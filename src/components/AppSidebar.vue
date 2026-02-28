@@ -11,6 +11,10 @@
           <i class="pi pi-chart-bar"></i>
           Воронка продаж
         </router-link>
+        <router-link to="/sql-query" class="sidebar-link">
+          <i class="pi pi-database"></i>
+          Редактор запросов
+        </router-link>
         <a href="#" class="sidebar-link">
           <i class="pi pi-plus-circle"></i>
           Новый лид
