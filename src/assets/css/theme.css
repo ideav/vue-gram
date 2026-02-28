@@ -1,0 +1,236 @@
+/* Basic PrimeVue Styling */
+
+/* DataTable */
+:root {
+  --p-primary-color: #1976d2;
+  --p-primary-contrast-color: #ffffff;
+  --p-surface-0: #ffffff;
+  --p-surface-50: #f8fafc;
+  --p-surface-100: #f1f5f9;
+  --p-surface-200: #e2e8f0;
+  --p-surface-300: #cbd5e1;
+  --p-surface-400: #94a3b8;
+  --p-surface-500: #64748b;
+  --p-surface-600: #475569;
+  --p-surface-700: #334155;
+  --p-surface-800: #1e293b;
+  --p-surface-900: #0f172a;
+  --p-text-color: #1e293b;
+  --p-text-muted-color: #64748b;
+  --p-border-radius: 6px;
+}
+
+/* PrimeVue DataTable */
+.p-datatable {
+  font-family: inherit;
+}
+
+.p-datatable-header {
+  background: var(--p-surface-50);
+  border: 1px solid var(--p-surface-200);
+  padding: 1rem;
+  border-top-left-radius: var(--p-border-radius);
+  border-top-right-radius: var(--p-border-radius);
+}
+
+.p-datatable-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.p-datatable-thead > tr > th {
+  background: var(--p-surface-50);
+  border: 1px solid var(--p-surface-200);
+  padding: 0.75rem 1rem;
+  text-align: left;
+  font-weight: 600;
+  color: var(--p-text-color);
+}
+
+.p-datatable-tbody > tr {
+  background: var(--p-surface-0);
+  border: 1px solid var(--p-surface-200);
+}
+
+.p-datatable-tbody > tr:hover {
+  background: var(--p-surface-50);
+}
+
+.p-datatable-tbody > tr.p-row-odd {
+  background: var(--p-surface-50);
+}
+
+.p-datatable-tbody > tr.p-row-odd:hover {
+  background: var(--p-surface-100);
+}
+
+.p-datatable-tbody > tr > td {
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--p-surface-200);
+}
+
+.p-paginator {
+  background: var(--p-surface-50);
+  border: 1px solid var(--p-surface-200);
+  padding: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom-left-radius: var(--p-border-radius);
+  border-bottom-right-radius: var(--p-border-radius);
+}
+
+.p-inputtext {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--p-surface-300);
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 0.95rem;
+  transition: all 0.2s;
+}
+
+.p-inputtext:focus {
+  outline: none;
+  border-color: var(--p-primary-color);
+  box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.1);
+}
+
+/* Button */
+.p-button {
+  padding: 0.5rem 1rem;
+  background: var(--p-primary-color);
+  border: 1px solid var(--p-primary-color);
+  color: var(--p-primary-contrast-color);
+  border-radius: 4px;
+  font-family: inherit;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.p-button:hover {
+  background: #1565c0;
+  border-color: #1565c0;
+}
+
+.p-button-outlined {
+  background: transparent;
+  border: 1px solid var(--p-primary-color);
+  color: var(--p-primary-color);
+}
+
+.p-button-outlined:hover {
+  background: rgba(25, 118, 210, 0.04);
+}
+
+.p-button-text {
+  background: transparent;
+  border: none;
+  color: var(--p-primary-color);
+}
+
+.p-button-text:hover {
+  background: rgba(25, 118, 210, 0.04);
+}
+
+.p-button-rounded {
+  border-radius: 50%;
+  width: 2.5rem;
+  height: 2.5rem;
+  padding: 0;
+  justify-content: center;
+}
+
+.p-button-sm,
+.p-button-small {
+  padding: 0.375rem 0.75rem;
+  font-size: 0.875rem;
+}
+
+/* Tag */
+.p-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.5rem;
+  border-radius: 3px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.p-tag-info {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.p-tag-success {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.p-tag-warn,
+.p-tag-warning {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.p-tag-danger {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.p-tag-secondary {
+  background: var(--p-surface-200);
+  color: var(--p-surface-700);
+}
+
+/* IconField */
+.p-iconfield {
+  position: relative;
+  display: inline-flex;
+}
+
+.p-iconfield .p-inputicon {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.p-iconfield .p-inputicon:first-child {
+  left: 0.75rem;
+}
+
+.p-iconfield .p-inputicon:last-child {
+  right: 0.75rem;
+}
+
+.p-iconfield .p-inputicon:first-child + .p-inputtext {
+  padding-left: 2.5rem;
+}
+
+.p-iconfield .p-inputicon:last-child ~ .p-inputtext {
+  padding-right: 2.5rem;
+}
+
+/* Sortable columns */
+.p-sortable-column {
+  cursor: pointer;
+  user-select: none;
+}
+
+.p-sortable-column:hover {
+  background: var(--p-surface-100);
+}
+
+.p-sortable-column-icon {
+  margin-left: 0.5rem;
+}
+
+/* Filter */
+.p-column-filter {
+  width: 100%;
+  margin-top: 0.25rem;
+}
