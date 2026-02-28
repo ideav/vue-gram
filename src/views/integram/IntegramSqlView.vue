@@ -160,7 +160,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useToast } from 'primevue/usetoast'
-import IntegramBreadcrumb from './IntegramBreadcrumb.vue'
+import IntegramBreadcrumb from '@/components/integram/IntegramBreadcrumb.vue'
 import integramService from '@/services/integramService'
 import { logger } from '@/utils/logger'
 

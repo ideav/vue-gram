@@ -436,7 +436,7 @@
 </template>
 
 <script setup>
-import IntegramBreadcrumb from './IntegramBreadcrumb.vue'
+import IntegramBreadcrumb from '@/components/integram/IntegramBreadcrumb.vue'
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useToast } from 'primevue/usetoast'

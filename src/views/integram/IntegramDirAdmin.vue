@@ -364,7 +364,7 @@
 </template>
 
 <script setup>
-import IntegramBreadcrumb from './IntegramBreadcrumb.vue'
+import IntegramBreadcrumb from '@/components/integram/IntegramBreadcrumb.vue'
 import { ref, reactive, computed, onMounted } from 'vue';
 import { useToast } from 'primevue/usetoast';
 import axios from 'axios';

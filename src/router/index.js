@@ -1,58 +1,19 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import TasksView from '../views/TasksView.vue'
-import KanbanView from '../views/KanbanView.vue'
-import PartnersView from '../views/PartnersView.vue'
-import DealsView from '../views/DealsView.vue'
-import SqlQueryView from '../views/SqlQueryView.vue'
-import IntegramTableView from '../views/IntegramTableView.vue'
 
 const routes = [
   {
     path: '/',
-    redirect: '/tasks'
+    redirect: '/integram/login'
   },
-  {
-    path: '/tasks',
-    name: 'Tasks',
-    component: TasksView
-  },
-  {
-    path: '/kanban',
-    name: 'Kanban',
-    component: KanbanView
-  },
-  {
-    path: '/partners',
-    name: 'Partners',
-    component: PartnersView
-  },
-  {
-    path: '/deals',
-    name: 'Deals',
-    component: DealsView
-  },
-  {
-    path: '/sql-query',
-    name: 'SqlQuery',
-    component: SqlQueryView
-  },
-  {
-    path: '/integram-table',
-    name: 'IntegramTable',
-    component: IntegramTableView
-  },
-
-  // Integram routes
   {
     path: '/integram/login',
     name: 'IntegramLogin',
-    component: () => import('../views/integram/IntegramLogin.vue'),
-    meta: { integram: true }
+    component: () => import('../views/integram/IntegramLogin.vue')
   },
   {
     path: '/integram/:database',
     component: () => import('../views/integram/IntegramMain.vue'),
-    meta: { integram: true },
+    meta: { requiresAuth: true },
     children: [
       {
         path: '',
@@ -126,6 +87,21 @@ const routes = [
 const router = createRouter({
   history: createWebHistory(),
   routes
+})
+
+// Auth guard
+router.beforeEach((to, from, next) => {
+  if (to.matched.some(record => record.meta.requiresAuth)) {
+    const token = localStorage.getItem('token')
+    const session = localStorage.getItem('integram_session')
+    if (!token && !session) {
+      next({ path: '/integram/login', query: { redirect: to.fullPath } })
+    } else {
+      next()
+    }
+  } else {
+    next()
+  }
 })
 
 export default router

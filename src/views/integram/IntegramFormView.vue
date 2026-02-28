@@ -124,7 +124,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useToast } from 'primevue/usetoast'
-import IntegramBreadcrumb from './IntegramBreadcrumb.vue'
+import IntegramBreadcrumb from '@/components/integram/IntegramBreadcrumb.vue'
 
 // PrimeVue Components
 
