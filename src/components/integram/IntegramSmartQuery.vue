@@ -233,7 +233,7 @@ const breadcrumbItems = computed(() => {
     {
       label: 'Умный запрос',
       icon: 'pi pi-search',
-      to: (currentView.value !== 'list') ? '/integram/smartq' : undefined
+      to: (currentView.value !== 'list') ? '/smartq' : undefined
     }
   ]
 
@@ -362,7 +362,7 @@ async function selectReport(reportId) {
 
   // Update URL
   router.push({
-    path: '/integram/smartq',
+    path: '/smartq',
     query: { reportId }
   })
 
@@ -413,7 +413,7 @@ function createNewReport() {
   error.value = null
 
   router.push({
-    path: '/integram/smartq',
+    path: '/smartq',
     query: { mode: 'create' }
   })
 }
@@ -424,7 +424,7 @@ function editReport(reportId) {
   error.value = null
 
   router.push({
-    path: '/integram/smartq',
+    path: '/smartq',
     query: { reportId, mode: 'edit' }
   })
 }
@@ -451,7 +451,7 @@ function backToList() {
   error.value = null
 
   router.push({
-    path: '/integram/smartq'
+    path: '/smartq'
   })
 
   loadReportList()

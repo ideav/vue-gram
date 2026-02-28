@@ -36,7 +36,7 @@ const homeItem = computed(() => {
   const databaseName = props.database || route.params.database || integramApiClient.getDatabase()
   return {
     icon: 'pi pi-database',
-    route: databaseName ? `/integram/${databaseName}/` : '/integram',
+    route: databaseName ? `/${databaseName}/` : '/',
     label: databaseName || 'База'
   }
 })

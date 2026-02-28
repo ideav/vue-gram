@@ -1190,7 +1190,7 @@ async function confirmSaveReport() {
     reportDescription.value = ''
 
     // Navigate to the report
-    router.push(`/integram/smartq?reportId=${reportId}`)
+    router.push(`/smartq?reportId=${reportId}`)
   } catch (err) {
     logger.error('Failed to save report:', err)
     toast.add({

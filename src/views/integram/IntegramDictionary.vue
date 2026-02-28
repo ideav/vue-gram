@@ -69,7 +69,7 @@
               <router-link
                 v-for="table in category.tables"
                 :key="table.id"
-                :to="`/integram/${database}/object/${table.id}`"
+                :to="`/${database}/object/${table.id}`"
                 class="table-card-link"
               >
                 <Card class="table-card cursor-pointer">
@@ -90,7 +90,7 @@
               <router-link
                 v-for="table in category.tables"
                 :key="table.id"
-                :to="`/integram/${database}/object/${table.id}`"
+                :to="`/${database}/object/${table.id}`"
                 class="table-list-item"
               >
                 <i class="pi pi-table table-list-icon"></i>
@@ -446,7 +446,7 @@ async function handleCreateType() {
 
     // Navigate to new table
     if (result.obj) {
-      router.push(`/integram/${database.value}/object/${result.obj}`);
+      router.push(`/${database.value}/object/${result.obj}`);
     }
   } catch (err) {
     toast.add({
@@ -476,7 +476,7 @@ function handleKeyDown(event) {
 onMounted(async () => {
   // Issue #5100: Redirect to login if not authenticated (removed embedded auth form)
   if (!isAuthenticated.value) {
-    router.push('/integram/login?redirect=' + encodeURIComponent(route.fullPath));
+    router.push('/login?redirect=' + encodeURIComponent(route.fullPath));
     return;
   }
 

@@ -193,7 +193,7 @@ const breadcrumbItems = computed(() => {
     {
       label: 'SQL',
       icon: 'pi pi-code',
-      to: '/integram/sql'
+      to: '/sql'
     }
   ]
 

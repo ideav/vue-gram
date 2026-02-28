@@ -266,7 +266,7 @@
                     label="Просмотр"
                     size="small"
                     outlined
-                    @click.stop="router.push(`/integram/${database}/table/${table.id}`)"
+                    @click.stop="router.push(`/${database}/table/${table.id}`)"
                     class="flex-1"
                   />
                   <Button
@@ -274,7 +274,7 @@
                     label="Структура"
                     size="small"
                     outlined
-                    @click.stop="router.push(`/integram/${database}/edit_types?typeId=${table.id}`)"
+                    @click.stop="router.push(`/${database}/edit_types?typeId=${table.id}`)"
                     class="flex-1"
                   />
                 </div>
@@ -353,7 +353,7 @@
                   text
                   rounded
                   v-tooltip.top="'Просмотр'"
-                  @click.stop="router.push(`/integram/${database}/table/${data.id}`)"
+                  @click.stop="router.push(`/${database}/table/${data.id}`)"
                 />
                 <Button
                   icon="pi pi-pencil"
@@ -361,7 +361,7 @@
                   text
                   rounded
                   v-tooltip.top="'Структура'"
-                  @click.stop="router.push(`/integram/${database}/edit_types?typeId=${data.id}`)"
+                  @click.stop="router.push(`/${database}/edit_types?typeId=${data.id}`)"
                 />
                 <Button
                   icon="pi pi-ellipsis-v"
@@ -844,12 +844,12 @@ const tableMenuItems = computed(() => {
     {
       label: 'Просмотр',
       icon: 'pi pi-eye',
-      command: () => router.push(`/integram/${database.value}/table/${selectedTable.value.id}`)
+      command: () => router.push(`/${database.value}/table/${selectedTable.value.id}`)
     },
     {
       label: 'Редактировать структуру',
       icon: 'pi pi-pencil',
-      command: () => router.push(`/integram/${database.value}/edit_types?typeId=${selectedTable.value.id}`)
+      command: () => router.push(`/${database.value}/edit_types?typeId=${selectedTable.value.id}`)
     },
     {
       separator: true
@@ -1196,14 +1196,14 @@ function showTableMenu(event, table) {
 }
 
 function handleRowClick(event) {
-  router.push(`/integram/${database.value}/table/${event.data.id}`)
+  router.push(`/${database.value}/table/${event.data.id}`)
 }
 
 /**
  * Navigate to table by ID
  */
 function navigateToTable(tableId) {
-  router.push(`/integram/${database.value}/table/${tableId}`)
+  router.push(`/${database.value}/table/${tableId}`)
 }
 
 /**
@@ -1418,7 +1418,7 @@ async function createTable() {
     newTableUnique.value = false
 
     // Navigate to structure editor
-    router.push(`/integram/${database.value}/edit_types?typeId=${result.id}`)
+    router.push(`/${database.value}/edit_types?typeId=${result.id}`)
   } catch (err) {
     console.error('Error creating table:', err)
     createTableError.value = err.message || 'Не удалось создать таблицу'
@@ -1455,7 +1455,7 @@ async function cloneTable() {
     selectedTable.value = null
 
     // Navigate to new table
-    router.push(`/integram/${database.value}/table/${result.id}`)
+    router.push(`/${database.value}/table/${result.id}`)
   } catch (err) {
     console.error('Error cloning table:', err)
     cloneTableError.value = err.message || 'Не удалось клонировать таблицу'
@@ -1537,7 +1537,7 @@ async function renameTable(table) {
 // Lifecycle
 onMounted(async () => {
   if (!isAuthenticated.value) {
-    router.push('/integram/login?redirect=' + encodeURIComponent(route.fullPath))
+    router.push('/login?redirect=' + encodeURIComponent(route.fullPath))
     return
   }
   await loadTables()

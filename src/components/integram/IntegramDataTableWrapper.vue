@@ -1380,7 +1380,7 @@ const createForm = ref({
 })
 
 // ✅ Extract constant breadcrumb item to avoid recreation
-const TABLES_BREADCRUMB_ITEM = Object.freeze({ label: 'Таблицы', to: `/integram/table`, icon: 'pi pi-table' })
+const TABLES_BREADCRUMB_ITEM = Object.freeze({ label: 'Таблицы', to: `/table`, icon: 'pi pi-table' })
 
 // Computed
 const database = computed(() => props.databaseProp || props.database || route.params.database || sessionDatabase.value || 'A2025')
@@ -1550,7 +1550,7 @@ function isRangeOperator(operator) {
 // Methods
 async function loadData(page = 1) {
   if (!isAuthenticated.value) {
-    router.replace('/integram/login')
+    router.replace('/login')
     return
   }
 
@@ -3551,7 +3551,7 @@ onMounted(async () => {
   document.addEventListener('keydown', handleSearchNavigation)
 
   if (!isAuthenticated.value) {
-    router.replace('/integram/login')
+    router.replace('/login')
     return
   }
   await loadData()

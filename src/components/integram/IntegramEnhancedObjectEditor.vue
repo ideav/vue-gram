@@ -110,7 +110,7 @@
                     <div class="flex gap-2 align-items-center">
                       <router-link
                         v-if="req.refTypeId"
-                        :to="`/integram/${database}/object/${req.refTypeId}?F_U=${objectData.id}`"
+                        :to="`/${database}/object/${req.refTypeId}?F_U=${objectData.id}`"
                         class="text-primary font-semibold"
                       >
                         <Badge :value="req.count || 0" /> Перейти к списку
@@ -284,7 +284,7 @@
                 <div class="flex gap-2 align-items-center">
                   <router-link
                     v-if="req.refTypeId"
-                    :to="`/integram/${database}/object/${req.refTypeId}?F_U=${objectData.id}`"
+                    :to="`/${database}/object/${req.refTypeId}?F_U=${objectData.id}`"
                     class="text-primary font-semibold"
                   >
                     <Badge :value="req.count || 0" /> Перейти к списку
@@ -1138,7 +1138,7 @@ async function duplicateObject() {
       })
 
       // Navigate to new object
-      router.push(`/integram/${props.database}/edit/${result.id}`)
+      router.push(`/${props.database}/edit/${result.id}`)
     }
   } catch (error) {
     toast.add({
@@ -1163,7 +1163,7 @@ async function deleteObject() {
     })
 
     // Navigate back to object list
-    router.push(`/integram/${props.database}/object/${objectData.value.typ}`)
+    router.push(`/${props.database}/object/${objectData.value.typ}`)
 
   } catch (error) {
     toast.add({
@@ -1202,18 +1202,18 @@ async function deleteFile(reqId) {
 
 function executeButtonAction(btn) {
   // Navigate to button action
-  router.push(`/integram/${props.database}/${btn.action}`)
+  router.push(`/${props.database}/${btn.action}`)
 }
 
 function cancel() {
-  router.push(`/integram/${props.database}/object/${objectData.value.typ}`)
+  router.push(`/${props.database}/object/${objectData.value.typ}`)
 }
 
 function addSubordinateItem(req) {
   // Navigate to the subordinate table with the current object as parent
   // This will open the create form for the subordinate table
   router.push({
-    path: `/integram/${props.database}/object/${req.refTypeId}`,
+    path: `/${props.database}/object/${req.refTypeId}`,
     query: {
       F_U: props.objectId,
       action: 'add'

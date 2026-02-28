@@ -318,7 +318,7 @@ const breadcrumbItems = computed(() => {
   const items = [
     {
       label: 'Отчёты',
-      to: selectedReportId.value ? `/integram/${database.value}/report` : undefined
+      to: selectedReportId.value ? `/${database.value}/report` : undefined
     }
   ]
 
@@ -348,7 +348,7 @@ const reportListMenuItems = computed(() => [
     icon: 'pi pi-pencil',
     command: () => {
       if (selectedContextReport.value) {
-        router.push(`/integram/${database.value}/object/${selectedContextReport.value.id}?edit=1`)
+        router.push(`/${database.value}/object/${selectedContextReport.value.id}?edit=1`)
       }
     }
   },

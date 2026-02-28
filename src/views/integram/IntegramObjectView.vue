@@ -221,7 +221,7 @@
                   </template>
                   <template v-else>
                     <router-link
-                      :to="`/integram/${database}/edit_obj/${slotProps.data.id}`"
+                      :to="`/${database}/edit_obj/${slotProps.data.id}`"
                       class="value-link"
                     >
                       {{ slotProps.data.val }}
@@ -682,14 +682,14 @@
         <DataTable :value="referencesData" :paginator="referencesData.length > 10" :rows="10" class="p-datatable-sm">
           <Column field="typeName" header="Таблица" style="width: 40%">
             <template #body="slotProps">
-              <router-link :to="`/integram/${database}/object/${slotProps.data.typeId}`" class="text-primary">
+              <router-link :to="`/${database}/object/${slotProps.data.typeId}`" class="text-primary">
                 {{ slotProps.data.typeName }}
               </router-link>
             </template>
           </Column>
           <Column field="objectName" header="Объект" style="width: 40%">
             <template #body="slotProps">
-              <router-link :to="`/integram/${database}/edit_obj/${slotProps.data.objectId}`" class="text-primary">
+              <router-link :to="`/${database}/edit_obj/${slotProps.data.objectId}`" class="text-primary">
                 {{ slotProps.data.objectName }}
               </router-link>
             </template>
@@ -908,7 +908,7 @@ const createForm = ref({
 // Computed
 // Breadcrumb items
 const breadcrumbItems = computed(() => {
-  const tablePath = `/integram/${database.value}/table`;
+  const tablePath = `/${database.value}/table`;
 
   return [
     { label: 'Таблицы', to: tablePath, icon: 'pi pi-table' },
@@ -954,7 +954,7 @@ const filteredObjects = computed(() => {
 // Methods
 async function loadObjects(page = 1, append = false) {
   if (!isAuthenticated.value) {
-    router.replace('/integram/login');
+    router.replace('/login');
     return;
   }
 
@@ -1317,7 +1317,7 @@ async function saveEdit(rowData, reqId = null) {
 }
 
 function editObject(objectId) {
-  router.push(`/integram/${database.value}/edit_obj/${objectId}`);
+  router.push(`/${database.value}/edit_obj/${objectId}`);
 }
 
 async function moveObjectUp(objectId) {
@@ -1885,7 +1885,7 @@ async function handleCreate() {
 
     // Navigate to edit if ID returned
     if (result.id) {
-      router.push(`/integram/${database.value}/edit_obj/${result.id}`);
+      router.push(`/${database.value}/edit_obj/${result.id}`);
     }
   } catch (err) {
     toast.add({
@@ -2033,7 +2033,7 @@ async function executeAddColumn() {
 // Lifecycle
 onMounted(async () => {
   if (!isAuthenticated.value) {
-    router.replace('/integram/login');
+    router.replace('/login');
     return;
   }
 

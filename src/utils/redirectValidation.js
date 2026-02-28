@@ -11,7 +11,7 @@ export function isValidRedirectUrl(url) {
   return true
 }
 
-export function getSafeRedirectUrl(redirectParam, defaultUrl = '/integram/my') {
+export function getSafeRedirectUrl(redirectParam, defaultUrl = '/my') {
   if (isValidRedirectUrl(redirectParam)) {
     return redirectParam
   }

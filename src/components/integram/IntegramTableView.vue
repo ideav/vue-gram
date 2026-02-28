@@ -6,10 +6,10 @@
           <nav aria-label="breadcrumb">
             <ol class="breadcrumb p-0 m-0">
               <li class="breadcrumb-item">
-                <router-link :to="`/integram/${databaseName}`"><i class="pi pi-database mr-1"></i>{{ databaseName }}</router-link>
+                <router-link :to="`/${databaseName}`"><i class="pi pi-database mr-1"></i>{{ databaseName }}</router-link>
               </li>
               <li class="breadcrumb-item">
-                <router-link :to="`/integram/${databaseName}/dict`"><i class="pi pi-table mr-1"></i>Таблицы</router-link>
+                <router-link :to="`/${databaseName}/dict`"><i class="pi pi-table mr-1"></i>Таблицы</router-link>
               </li>
               <li class="breadcrumb-item active" aria-current="page">
                 <i class="pi pi-bars mr-1"></i>{{ typeData?.val || 'Loading...' }}
@@ -654,7 +654,7 @@ const subtotals = computed(() => {
 // Methods
 async function loadObjects(page = 1) {
   if (!isAuthenticated.value) {
-    router.replace('/integram/login');
+    router.replace('/login');
     return;
   }
 
@@ -885,7 +885,7 @@ async function saveEdit(rowData, reqId = null) {
 
 function editObject(objectId) {
   // Navigate to single object editor
-  router.push(`/integram/edit_obj/${objectId}`);
+  router.push(`/edit_obj/${objectId}`);
 }
 
 async function handleCreate() {
@@ -957,7 +957,7 @@ async function handleCreate() {
 
     // Navigate to edit if ID returned
     if (result.id) {
-      router.push(`/integram/edit_obj/${result.id}`);
+      router.push(`/edit_obj/${result.id}`);
     }
   } catch (err) {
     toast.add({
@@ -1009,7 +1009,7 @@ async function handleDelete(objectId) {
 // Lifecycle
 onMounted(async () => {
   if (!isAuthenticated.value) {
-    router.replace('/integram/login');
+    router.replace('/login');
     return;
   }
 

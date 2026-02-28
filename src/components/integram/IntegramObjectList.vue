@@ -4,19 +4,19 @@
     <nav class="breadcrumb mb-3">
       <ol class="flex list-none p-2 m-0">
         <li class="mr-2">
-          <router-link :to="`/integram/${database}`"><i class="pi pi-database mr-1"></i>{{ database }}</router-link>
+          <router-link :to="`/${database}`"><i class="pi pi-database mr-1"></i>{{ database }}</router-link>
         </li>
         <li class="mr-2">
           <span class="text-500">/</span>
         </li>
         <li class="mr-2">
-          <router-link :to="`/integram/${database}/dict`"><i class="pi pi-table mr-1"></i>{{ $t('tables') }}</router-link>
+          <router-link :to="`/${database}/dict`"><i class="pi pi-table mr-1"></i>{{ $t('tables') }}</router-link>
         </li>
         <li v-if="parentType" class="mr-2">
           <span class="text-500">/</span>
         </li>
         <li v-if="parentType" class="mr-2">
-          <router-link :to="`/integram/${database}/object/${parentType.id}`">
+          <router-link :to="`/${database}/object/${parentType.id}`">
             <i class="pi pi-folder mr-1"></i>{{ parentType.val }}
           </router-link>
         </li>
@@ -202,7 +202,7 @@
           <Column field="id" header="ID" :sortable="true" style="width: 80px">
             <template #body="{ data }">
               <router-link
-                :to="`/integram/${database}/edit/${data.id}`"
+                :to="`/${database}/edit/${data.id}`"
                 class="text-primary font-semibold"
               >
                 #{{ data.id }}
@@ -235,7 +235,7 @@
                 :title="$t('doubleClickToEdit')"
               >
                 <router-link
-                  :to="`/integram/${database}/edit/${data.id}`"
+                  :to="`/${database}/edit/${data.id}`"
                   class="text-primary"
                 >
                   {{ data.val }}
@@ -326,7 +326,7 @@
           >
             <template #body="{ data }">
               <router-link
-                :to="`/integram/${database}/object/${arrCol.id}?F_U=${data.id}`"
+                :to="`/${database}/object/${arrCol.id}?F_U=${data.id}`"
                 class="text-primary"
               >
                 <Badge :value="arrCol.count[data.id] || 0" />
@@ -1102,7 +1102,7 @@ async function toggleColumnMulti(col) {
 }
 
 function goToReferenceTable(col) {
-  router.push(`/integram/${props.database}/object/${col.refTypeId}`)
+  router.push(`/${props.database}/object/${col.refTypeId}`)
 }
 
 async function confirmDeleteColumn(col) {
@@ -1344,7 +1344,7 @@ function onRowContextMenu(event) {
 }
 
 function editObject(obj) {
-  router.push(`/integram/${props.database}/edit/${obj.id}`)
+  router.push(`/${props.database}/edit/${obj.id}`)
 }
 
 function quickEditObject(obj) {

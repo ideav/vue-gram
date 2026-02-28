@@ -208,49 +208,49 @@ const quickAccessItems = computed(() => [
     name: t('newTables'),
     description: t('newTablesDesc'),
     icon: 'pi pi-table',
-    path: `/integram/${database.value}/table`
+    path: `/${database.value}/table`
   },
   {
     name: t('tables'),
     description: t('tablesDesc'),
     icon: 'pi pi-list',
-    path: `/integram/${database.value}/dict`
+    path: `/${database.value}/dict`
   },
   {
     name: t('types'),
     description: t('typesDesc'),
     icon: 'pi pi-cog',
-    path: `/integram/${database.value}/edit_types`
+    path: `/${database.value}/edit_types`
   },
   {
     name: t('sql'),
     description: t('sqlDesc'),
     icon: 'pi pi-code',
-    path: `/integram/${database.value}/sql`
+    path: `/${database.value}/sql`
   },
   {
     name: t('smartQuery'),
     description: t('smartQueryDesc'),
     icon: 'pi pi-th-large',
-    path: `/integram/${database.value}/smartq`
+    path: `/${database.value}/smartq`
   },
   {
     name: t('reports'),
     description: t('reportsDesc'),
     icon: 'pi pi-chart-bar',
-    path: `/integram/${database.value}/report`
+    path: `/${database.value}/report`
   },
   {
     name: t('forms'),
     description: t('formsDesc'),
     icon: 'pi pi-file',
-    path: `/integram/${database.value}/form`
+    path: `/${database.value}/form`
   },
   {
     name: t('myforms'),
     description: t('myformsDesc'),
     icon: 'pi pi-sliders-h',
-    path: `/integram/${database.value}/myform`
+    path: `/${database.value}/myform`
   }
 ])
 

@@ -1020,7 +1020,7 @@ function initFieldReordering() {
 onMounted(async () => {
   // Check authentication
   if (!isAuthenticated.value) {
-    router.push('/integram/login?redirect=' + encodeURIComponent(window.location.pathname))
+    router.push('/login?redirect=' + encodeURIComponent(window.location.pathname))
     return
   }
 

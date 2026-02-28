@@ -562,7 +562,7 @@ async function enterDatabase(dbName) {
     })
 
     // Navigate to database
-    router.push(`/integram/${dbName}/`)
+    router.push(`/${dbName}/`)
   } catch (error) {
     console.error('Failed to enter database:', error)
     toast.add({
@@ -675,7 +675,7 @@ async function handleLogin() {
       })
 
       // Issue #5112: Redirect to database-specific URL
-      const defaultRedirect = `/integram/${loginForm.value.database}/`
+      const defaultRedirect = `/${loginForm.value.database}/`
       const redirectUrl = getSafeRedirectUrl(route.query.redirect, defaultRedirect)
       router.push(redirectUrl)
     } else {

@@ -22,7 +22,7 @@
             label="Вернуться к списку таблиц"
             icon="pi pi-arrow-left"
             class="mt-3"
-            @click="router.push(`/integram/${database}/dict`)"
+            @click="router.push(`/${database}/dict`)"
           />
         </div>
       </template>
@@ -71,7 +71,7 @@ const breadcrumbItems = computed(() => [
 // Methods
 function viewTable(typeId) {
   // Navigate to object list for this type
-  router.push(`/integram/${database.value}/object/${typeId}`)
+  router.push(`/${database.value}/object/${typeId}`)
 }
 
 async function refresh() {
@@ -88,7 +88,7 @@ onMounted(async () => {
     if (!isAuthenticated.value) {
       errorMessage.value = 'Не авторизован. Требуется вход в систему.'
       setTimeout(() => {
-        router.replace('/integram/login')
+        router.replace('/login')
       }, 2000)
       return
     }
@@ -99,7 +99,7 @@ onMounted(async () => {
     if (!authInfo || !authInfo.token) {
       errorMessage.value = 'Сессия истекла. Требуется повторный вход.'
       setTimeout(() => {
-        router.replace('/integram/login')
+        router.replace('/login')
       }, 2000)
       return
     }

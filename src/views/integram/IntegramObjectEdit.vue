@@ -290,7 +290,7 @@
         <Message severity="warn" :closable="false">
           <p>Не удалось загрузить объект #{{ objectId }}</p>
           <p class="mt-2">
-            <router-link :to="`/integram/${database}/dict`">
+            <router-link :to="`/${database}/dict`">
               Вернуться к списку таблиц
             </router-link>
           </p>
@@ -396,7 +396,7 @@ const database = computed(() => route.params.database || sessionDatabase.value |
 // Note: Database ({db}) is automatically prepended by IntegramBreadcrumb's homeItem
 const breadcrumbItems = computed(() => {
   const items = [
-    { label: 'Таблицы', to: `/integram/${database.value}/dict`, icon: 'pi pi-table' }
+    { label: 'Таблицы', to: `/${database.value}/dict`, icon: 'pi pi-table' }
   ];
 
   if (isType.value && typeData.value?.val) {
@@ -407,7 +407,7 @@ const breadcrumbItems = computed(() => {
     if (singleObjectTypeName.value && singleObjectTypeId.value) {
       items.push({
         label: singleObjectTypeName.value,
-        to: `/integram/${database.value}/object/${singleObjectTypeId.value}`,
+        to: `/${database.value}/object/${singleObjectTypeId.value}`,
         icon: 'pi pi-bars'
       });
     }
@@ -676,12 +676,12 @@ async function deleteRow() {
 
 function editObjectForm(rowObjectId) {
   // Navigate to form editor for this specific object
-  router.push(`/integram/${database.value}/edit_obj/${rowObjectId}`);
+  router.push(`/${database.value}/edit_obj/${rowObjectId}`);
 }
 
 function editTypeStructure() {
   // Navigate to type structure editor
-  router.push(`/integram/${database.value}/edit_types?typeId=${objectId.value}`);
+  router.push(`/${database.value}/edit_types?typeId=${objectId.value}`);
 }
 
 // Handle object loaded event from EnhancedObjectEditor
@@ -808,7 +808,7 @@ async function loadData() {
 
 // Redirect to login if not authenticated
 if (!isAuthenticated.value) {
-  router.replace('/integram/login');
+  router.replace('/login');
 }
 
 // Initialize on mount
@@ -845,7 +845,7 @@ onMounted(async () => {
 
     // Redirect to login after a delay
     setTimeout(() => {
-      router.replace('/integram/login');
+      router.replace('/login');
     }, 2000);
   }
 });

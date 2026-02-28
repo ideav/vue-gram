@@ -3,15 +3,15 @@ import { createRouter, createWebHistory } from 'vue-router'
 const routes = [
   {
     path: '/',
-    redirect: '/integram/login'
+    redirect: '/login'
   },
   {
-    path: '/integram/login',
+    path: '/login',
     name: 'IntegramLogin',
     component: () => import('../views/integram/IntegramLogin.vue')
   },
   {
-    path: '/integram/:database',
+    path: '/:database',
     component: () => import('../views/integram/IntegramMain.vue'),
     meta: { requiresAuth: true },
     children: [
@@ -95,7 +95,7 @@ router.beforeEach((to, from, next) => {
     const token = localStorage.getItem('token')
     const session = localStorage.getItem('integram_session')
     if (!token && !session) {
-      next({ path: '/integram/login', query: { redirect: to.fullPath } })
+      next({ path: '/login', query: { redirect: to.fullPath } })
     } else {
       next()
     }

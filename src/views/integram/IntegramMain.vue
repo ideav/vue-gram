@@ -3,7 +3,7 @@
     <!-- Modern PrimeVue Navigation Bar -->
     <Menubar :model="menuItems" class="integram-menubar">
       <template #start>
-        <router-link :to="`/integram/${database}`" class="integram-brand flex align-items-center gap-2 mr-3 no-underline">
+        <router-link :to="`/${database}`" class="integram-brand flex align-items-center gap-2 mr-3 no-underline">
           <svg width="32" height="27" viewBox="0 0 40 34" fill="none" xmlns="http://www.w3.org/2000/svg" class="integram-logo">
             <g clip-path="url(#clip0_integram)">
               <path d="M21.0983 12.4256L19.5194 14.1254L22.2153 17.0289L13.4346 26.3889L2.28812 22.7817V11.2779L13.4346 7.67068L15.452 9.87038L17.0454 8.19038L14.1005 5L0 9.56361V24.4959L14.1005 29.0595L25.3877 17.0289L21.0983 12.4256Z" fill="currentColor"/>
@@ -47,6 +47,15 @@
           </Dropdown>
 
           <Button
+            :icon="isDarkTheme ? 'pi pi-sun' : 'pi pi-moon'"
+            text
+            rounded
+            @click="toggleDarkMode"
+            severity="secondary"
+            v-tooltip.bottom="isDarkTheme ? 'Light mode' : 'Dark mode'"
+            aria-label="Toggle theme"
+          />
+          <Button
             icon="pi pi-question-circle"
             text
             rounded
@@ -78,7 +87,7 @@
           <p class="mt-3 text-lg font-semibold">Переключение БД...</p>
         </div>
       </div>
-      <SafeRouterView :key="database" />
+      <router-view :key="database" />
     </div>
 
     <!-- Password Change Modal -->
@@ -163,11 +172,13 @@ import Dialog from 'primevue/dialog'
 import Password from 'primevue/password'
 import Message from 'primevue/message'
 import integramApiClient from '@/services/integramApiClient'
-import SafeRouterView from '@/components/SafeRouterView.vue'
+
+import { useTheme } from '@/composables/useTheme'
 
 const router = useRouter()
 const route = useRoute()
 const toast = useToast()
+const { isDarkTheme, toggleDarkMode } = useTheme()
 
 // Refs
 const userMenu = ref()
@@ -193,8 +204,8 @@ const userName = computed(() => integramApiClient.getAuthInfo().userName || 'Use
 
 // Check if we should show switching overlay (NOT on database home page)
 const shouldShowSwitchingOverlay = computed(() => {
-  // Don't show on /integram/{db}/ (home page)
-  const isHomePage = route.path === `/integram/${database.value}/` || route.path === `/integram/${database.value}`
+  // Don't show on /{db}/ (home page)
+  const isHomePage = route.path === `/${database.value}/` || route.path === `/${database.value}`
   return switchingDatabase.value && !isHomePage
 })
 
@@ -261,7 +272,7 @@ const menuItems = computed(() => {
     label: locale.value === 'ru' ? item.ruName : item.enName,
     icon: item.icon,
     command: () => {
-      const url = `/integram/${currentDB}/${item.href}`
+      const url = `/${currentDB}/${item.href}`
       console.log('[IntegramMain] Menu item clicked:', item.ruName, 'URL:', url, 'currentDB:', currentDB)
       router.push(url)
     }
@@ -352,7 +363,7 @@ function toggleUserMenu(event) {
 }
 
 function openHelp() {
-  router.push('/integram/api-docs')
+  router.push('/api-docs')
 }
 
 function showPasswordChange() {
@@ -454,7 +465,7 @@ async function handleDatabaseChange(event) {
     // Issue #5112: Always redirect to database home page when switching databases
     // This ensures components reload with correct data for the new database
     // and avoids issues with resources (tables, objects) that may not exist in the new DB
-    const newPath = `/integram/${newDatabase}/`
+    const newPath = `/${newDatabase}/`
 
     console.log('[handleDatabaseChange] Switching from', oldDatabase, 'to', newDatabase, 'redirecting to:', newPath)
 
@@ -480,7 +491,7 @@ async function handleDatabaseChange(event) {
 function logout() {
   integramApiClient.logout()
   document.cookie = `${database.value}=;Path=/`
-  router.push('/integram/login')
+  router.push('/login')
 }
 
 // Issue #5112: Watch route params to sync dropdown selection

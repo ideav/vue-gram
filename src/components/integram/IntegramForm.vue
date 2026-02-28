@@ -149,7 +149,7 @@ const breadcrumbItems = computed(() => {
     {
       label: 'Формы',
       icon: 'pi pi-file',
-      to: selectedForm.value ? '/integram/form' : undefined
+      to: selectedForm.value ? '/form' : undefined
     }
   ]
 
