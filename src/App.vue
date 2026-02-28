@@ -1,18 +1,31 @@
 <template>
   <div id="app" class="app-container">
-    <AppHeader />
-    <div class="app-content">
-      <AppSidebar />
-      <main class="main-content">
-        <router-view />
-      </main>
-    </div>
+    <template v-if="isIntegramRoute">
+      <router-view />
+    </template>
+    <template v-else>
+      <AppHeader />
+      <div class="app-content">
+        <AppSidebar />
+        <main class="main-content">
+          <router-view />
+        </main>
+      </div>
+    </template>
   </div>
 </template>
 
 <script setup>
+import { computed } from 'vue'
+import { useRoute } from 'vue-router'
 import AppHeader from './components/AppHeader.vue'
 import AppSidebar from './components/AppSidebar.vue'
+
+const route = useRoute()
+
+const isIntegramRoute = computed(() => {
+  return route.path.startsWith('/integram')
+})
 </script>
 
 <style>

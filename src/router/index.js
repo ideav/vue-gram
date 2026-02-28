@@ -40,6 +40,86 @@ const routes = [
     path: '/integram-table',
     name: 'IntegramTable',
     component: IntegramTableView
+  },
+
+  // Integram routes
+  {
+    path: '/integram/login',
+    name: 'IntegramLogin',
+    component: () => import('../views/integram/IntegramLogin.vue'),
+    meta: { integram: true }
+  },
+  {
+    path: '/integram/:database',
+    component: () => import('../views/integram/IntegramMain.vue'),
+    meta: { integram: true },
+    children: [
+      {
+        path: '',
+        name: 'IntegramLanding',
+        component: () => import('../views/integram/IntegramLanding.vue')
+      },
+      {
+        path: 'dict',
+        name: 'IntegramDictionary',
+        component: () => import('../views/integram/IntegramDictionary.vue')
+      },
+      {
+        path: 'object/:typeId',
+        name: 'IntegramObjectView',
+        component: () => import('../views/integram/IntegramObjectView.vue')
+      },
+      {
+        path: 'table',
+        name: 'IntegramTableList',
+        component: () => import('../views/integram/IntegramTableList.vue')
+      },
+      {
+        path: 'table/:typeId',
+        name: 'IntegramDataTableView',
+        component: () => import('../views/integram/IntegramDataTableView.vue')
+      },
+      {
+        path: 'edit_obj/:objectId',
+        name: 'IntegramObjectEdit',
+        component: () => import('../views/integram/IntegramObjectEdit.vue')
+      },
+      {
+        path: 'edit_types',
+        name: 'IntegramTypeEditor',
+        component: () => import('../views/integram/IntegramTypeEditor.vue')
+      },
+      {
+        path: 'sql',
+        name: 'IntegramSql',
+        component: () => import('../views/integram/IntegramSqlView.vue')
+      },
+      {
+        path: 'report/:reportId?',
+        name: 'IntegramReport',
+        component: () => import('../views/integram/IntegramReportView.vue')
+      },
+      {
+        path: 'form/:formId?',
+        name: 'IntegramForm',
+        component: () => import('../views/integram/IntegramFormView.vue')
+      },
+      {
+        path: 'upload',
+        name: 'IntegramUpload',
+        component: () => import('../views/integram/IntegramUploadView.vue')
+      },
+      {
+        path: 'dir_admin',
+        name: 'IntegramDirAdmin',
+        component: () => import('../views/integram/IntegramDirAdmin.vue')
+      },
+      {
+        path: 'info',
+        name: 'IntegramInfo',
+        component: () => import('../views/integram/IntegramInfoView.vue')
+      }
+    ]
   }
 ]
 

@@ -27,6 +27,10 @@
         <i class="pi pi-table"></i>
         Integram
       </router-link>
+      <router-link to="/integram/my" class="nav-link" active-class="active">
+        <i class="pi pi-server"></i>
+        Integram App
+      </router-link>
     </nav>
     <div class="header-right">
       <button class="user-menu-btn">
