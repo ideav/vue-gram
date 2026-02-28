@@ -23,6 +23,10 @@
         <i class="pi pi-dollar"></i>
         Сделки
       </router-link>
+      <router-link to="/integram-table" class="nav-link" active-class="active">
+        <i class="pi pi-table"></i>
+        Integram
+      </router-link>
     </nav>
     <div class="header-right">
       <button class="user-menu-btn">

@@ -15,6 +15,10 @@
           <i class="pi pi-database"></i>
           Редактор запросов
         </router-link>
+        <router-link to="/integram-table" class="sidebar-link">
+          <i class="pi pi-table"></i>
+          Таблица Integram
+        </router-link>
         <a href="#" class="sidebar-link">
           <i class="pi pi-plus-circle"></i>
           Новый лид
