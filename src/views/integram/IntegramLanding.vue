@@ -1,245 +1,333 @@
 <template>
-  <div class="integram-landing">
-    <!-- Hero -->
-    <div class="hero-card">
-      <div class="hero-header">
-        <i class="pi pi-database"></i>
-        <h2>{{ t('welcome') }} Integram</h2>
-      </div>
-      <p class="hero-subtitle">{{ t('subtitle') }}</p>
-      <div class="hero-tags">
-        <span v-if="database" class="tag info"><i class="pi pi-database"></i> {{ database }}</span>
-        <span v-if="userName" class="tag success"><i class="pi pi-user"></i> {{ userName }}</span>
-      </div>
-    </div>
+  <div class="integram-landing-container">
+    <!-- Hero Card -->
+    <Card class="mb-4">
+      <template #title>
+        <div class="flex align-items-center gap-2">
+          <i class="pi pi-database text-primary" style="font-size: 1.5rem"></i>
+          <span>{{ t('welcome') }} Integram</span>
+        </div>
+      </template>
+      <template #subtitle>
+        {{ t('subtitle') }}
+      </template>
+      <template #content>
+        <div class="flex gap-2 flex-wrap">
+          <Tag v-if="database" :value="database" icon="pi pi-database" severity="info" />
+          <Tag v-if="userName" :value="userName" icon="pi pi-user" severity="success" />
+        </div>
+      </template>
+    </Card>
 
-    <!-- Quick Access -->
-    <div class="section-card">
-      <h3>{{ t('quickAccess') }}</h3>
-      <p class="section-desc">{{ t('quickAccessDesc') }}</p>
-      <div class="quick-grid">
-        <div
-          v-for="item in quickAccessItems"
-          :key="item.path"
-          class="quick-item"
-          @click="$router.push(item.path)"
-        >
-          <div class="quick-icon">
-            <i :class="item.icon"></i>
-          </div>
-          <div class="quick-info">
-            <strong>{{ item.name }}</strong>
-            <p>{{ item.description }}</p>
+    <!-- Quick Access Section -->
+    <Card class="mb-4">
+      <template #title>
+        <div class="flex align-items-center gap-2">
+          <span>{{ t('quickAccess') }}</span>
+        </div>
+      </template>
+      <template #subtitle>{{ t('quickAccessDesc') }}</template>
+      <template #content>
+        <div class="grid">
+          <div
+            v-for="(item, index) in quickAccessItems"
+            :key="index"
+            class="col-12 md:col-6 lg:col-4 xl:col-3"
+          >
+            <div
+              class="surface-card border-1 surface-border border-round p-3 h-full cursor-pointer hover:surface-hover transition-colors transition-duration-200"
+              @click="navigate(item.path)"
+            >
+              <div class="flex align-items-center gap-3 mb-2">
+                <div class="icon-box">
+                  <i :class="item.icon"></i>
+                </div>
+                <span class="font-semibold text-900">{{ item.name }}</span>
+              </div>
+              <p class="text-600 text-sm m-0 line-height-3">{{ item.description }}</p>
+            </div>
           </div>
         </div>
-      </div>
-    </div>
+      </template>
+    </Card>
 
-    <!-- Features -->
-    <div class="section-card">
-      <h3>{{ t('features') }}</h3>
-      <p class="section-desc">{{ t('featuresDesc') }}</p>
-      <div class="features-grid">
-        <div v-for="feature in features" :key="feature.title" class="feature-item">
-          <div class="feature-icon">
-            <i :class="feature.icon"></i>
-          </div>
-          <div>
-            <strong>{{ feature.title }}</strong>
-            <p>{{ feature.description }}</p>
+    <!-- Features Section -->
+    <Card class="mb-4">
+      <template #title>
+        <div class="flex align-items-center gap-2">
+          <span>{{ t('features') }}</span>
+        </div>
+      </template>
+      <template #subtitle>{{ t('featuresDesc') }}</template>
+      <template #content>
+        <div class="grid">
+          <div
+            v-for="(feature, index) in features"
+            :key="index"
+            class="col-12 md:col-6"
+          >
+            <div class="flex gap-3 align-items-start p-2">
+              <div class="icon-box flex-shrink-0">
+                <i :class="feature.icon"></i>
+              </div>
+              <div>
+                <div class="font-semibold text-900 mb-1">{{ feature.title }}</div>
+                <p class="text-600 text-sm m-0 line-height-3">{{ feature.description }}</p>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
-    </div>
+      </template>
+    </Card>
+
+    <!-- Statistics Section -->
+    <Card v-if="stats">
+      <template #title>
+        <div class="flex align-items-center gap-2">
+          <i class="pi pi-chart-bar"></i>
+          <span>{{ t('overview') }}</span>
+        </div>
+      </template>
+      <template #content>
+        <div class="grid">
+          <div v-for="(stat, key) in stats" :key="key" class="col-6 md:col-3 text-center">
+            <div class="text-3xl font-bold text-primary mb-1">{{ stat.value }}</div>
+            <div class="text-600 text-sm">{{ stat.label }}</div>
+          </div>
+        </div>
+      </template>
+    </Card>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
+import Card from 'primevue/card'
+import Tag from 'primevue/tag'
 import integramApiClient from '@/services/integramApiClient'
 
+const router = useRouter()
 const route = useRoute()
-const locale = ref('ru')
 
+// State
+const locale = ref('ru')
+const stats = ref(null)
+
+// Computed
 const database = computed(() => route.params.database || integramApiClient.getDatabase() || '')
 const userName = computed(() => integramApiClient.getAuthInfo().userName || '')
 
+// Translations
 function t(key) {
-  const tr = {
+  const translations = {
     ru: {
-      welcome: 'Добро пожаловать в', subtitle: 'Универсальная система управления данными',
-      quickAccess: 'Быстрый доступ', quickAccessDesc: 'Основные модули системы',
-      features: 'Возможности', featuresDesc: 'Полный набор инструментов для работы с данными',
-      tables: 'Таблицы', tablesDesc: 'Управление таблицами и просмотр данных',
-      objects: 'Объекты', objectsDesc: 'Управление объектами базы данных',
-      types: 'Структура', typesDesc: 'Настройка структуры данных (DDL)',
-      sql: 'SQL', sqlDesc: 'Выполнение SQL запросов',
-      reports: 'Запросы', reportsDesc: 'Создание и просмотр запросов',
-      forms: 'Формы', formsDesc: 'Работа с формами',
-      flexibleStructure: 'Гибкая структура', flexibleStructureDesc: 'Создавайте собственные типы данных и связи',
-      powerfulSQL: 'Мощный SQL', powerfulSQLDesc: 'Полный доступ через SQL интерфейс',
-      reportsAndForms: 'Запросы и формы', reportsAndFormsDesc: 'Настраиваемые формы и шаблоны запросов',
-      fileManagement: 'Файлы', fileManagementDesc: 'Загрузка и работа с файлами',
-      visualQueries: 'Визуальные запросы', visualQueriesDesc: 'Интерактивные таблицы с редактированием',
-      security: 'Безопасность', securityDesc: 'Система прав доступа и ролей'
+      welcome: 'Добро пожаловать в',
+      subtitle: 'Универсальная система управления данными с мощными инструментами для работы с базами данных',
+      quickAccess: 'Быстрый доступ',
+      quickAccessDesc: 'Основные модули системы',
+      features: 'Возможности системы',
+      featuresDesc: 'Полный набор инструментов для работы с данными',
+      overview: 'Обзор',
+      open: 'Открыть',
+      tables: 'Таблицы',
+      tablesDesc: 'Управление таблицами и просмотр данных',
+      newTables: 'Новые таблицы',
+      newTablesDesc: 'Современный интерфейс DataTable с редактированием',
+      types: 'Структура',
+      typesDesc: 'Настройка структуры данных (DDL)',
+      sql: 'SQL',
+      sqlDesc: 'Выполнение SQL запросов к базе данных',
+      smartQuery: 'Умный запрос',
+      smartQueryDesc: 'Умные интерактивные таблицы с фильтрацией',
+      reports: 'Запросы',
+      reportsDesc: 'Создание и просмотр запросов',
+      forms: 'Формы',
+      formsDesc: 'Работа с пользовательскими формами',
+      myforms: 'Мои формы',
+      myformsDesc: 'Конструктор пользовательских форм',
+      flexibleStructure: 'Гибкая структура',
+      flexibleStructureDesc: 'Создавайте собственные типы данных и связи между ними',
+      powerfulSQL: 'Мощный SQL',
+      powerfulSQLDesc: 'Полный доступ к базе данных через SQL интерфейс',
+      reportsAndForms: 'Запросы и формы',
+      reportsAndFormsDesc: 'Настраиваемые формы ввода и шаблоны запросов',
+      fileManagement: 'Управление файлами',
+      fileManagementDesc: 'Загрузка и работа с файлами (Excel, CSV)',
+      visualQueries: 'Визуальные запросы',
+      visualQueriesDesc: 'Умные интерактивные таблицы с inline-редактированием',
+      security: 'Безопасность',
+      securityDesc: 'Система прав доступа и ролей пользователей'
     },
     en: {
-      welcome: 'Welcome to', subtitle: 'Universal Data Management System',
-      quickAccess: 'Quick Access', quickAccessDesc: 'Main system modules',
-      features: 'Features', featuresDesc: 'Complete toolkit for data management',
-      tables: 'Tables', tablesDesc: 'Manage tables and view data',
-      objects: 'Objects', objectsDesc: 'Manage database objects',
-      types: 'Structure', typesDesc: 'Configure data structure (DDL)',
-      sql: 'SQL', sqlDesc: 'Execute database queries',
-      reports: 'Reports', reportsDesc: 'Create and view reports',
-      forms: 'Forms', formsDesc: 'Work with forms',
-      flexibleStructure: 'Flexible Structure', flexibleStructureDesc: 'Create your own data types and relationships',
-      powerfulSQL: 'Powerful SQL', powerfulSQLDesc: 'Full database access through SQL interface',
-      reportsAndForms: 'Reports & Forms', reportsAndFormsDesc: 'Customizable forms and reports',
-      fileManagement: 'File Management', fileManagementDesc: 'Upload and work with files',
-      visualQueries: 'Visual Queries', visualQueriesDesc: 'Interactive tables with editing',
-      security: 'Security', securityDesc: 'Access rights and user roles'
+      welcome: 'Welcome to',
+      subtitle: 'Universal Data Management System with powerful database tools',
+      quickAccess: 'Quick Access',
+      quickAccessDesc: 'Main system modules',
+      features: 'System Features',
+      featuresDesc: 'Complete toolkit for data management',
+      overview: 'Overview',
+      open: 'Open',
+      tables: 'Tables',
+      tablesDesc: 'Manage dictionaries and view data',
+      newTables: 'New Tables',
+      newTablesDesc: 'Modern DataTable interface with inline editing',
+      types: 'Type Editor',
+      typesDesc: 'Configure data structure (DDL)',
+      sql: 'SQL Editor',
+      sqlDesc: 'Execute database queries',
+      smartQuery: 'SmartQ',
+      smartQueryDesc: 'Smart interactive tables with filtering',
+      reports: 'Reports',
+      reportsDesc: 'Create and view reports',
+      forms: 'Forms',
+      formsDesc: 'Work with custom forms',
+      myforms: 'My Forms',
+      myformsDesc: 'Custom form builder',
+      flexibleStructure: 'Flexible Structure',
+      flexibleStructureDesc: 'Create your own data types and relationships',
+      powerfulSQL: 'Powerful SQL',
+      powerfulSQLDesc: 'Full database access through SQL interface',
+      reportsAndForms: 'Reports & Forms',
+      reportsAndFormsDesc: 'Customizable input forms and report templates',
+      fileManagement: 'File Management',
+      fileManagementDesc: 'Upload and work with files (Excel, CSV)',
+      visualQueries: 'Visual Queries',
+      visualQueriesDesc: 'SmartQ - interactive tables with inline editing',
+      security: 'Security',
+      securityDesc: 'Access rights and user roles system'
     }
   }
-  return tr[locale.value]?.[key] || key
+
+  return translations[locale.value]?.[key] || key
 }
 
+// Quick Access Items - Issue #5112: Include database in all paths
 const quickAccessItems = computed(() => [
-  { name: t('objects'), description: t('objectsDesc'), icon: 'pi pi-database', path: `/integram/${database.value}/dict` },
-  { name: t('tables'), description: t('tablesDesc'), icon: 'pi pi-table', path: `/integram/${database.value}/table` },
-  { name: t('types'), description: t('typesDesc'), icon: 'pi pi-sitemap', path: `/integram/${database.value}/edit_types` },
-  { name: t('sql'), description: t('sqlDesc'), icon: 'pi pi-code', path: `/integram/${database.value}/sql` },
-  { name: t('reports'), description: t('reportsDesc'), icon: 'pi pi-chart-bar', path: `/integram/${database.value}/report` },
-  { name: t('forms'), description: t('formsDesc'), icon: 'pi pi-file', path: `/integram/${database.value}/form` }
+  {
+    name: t('newTables'),
+    description: t('newTablesDesc'),
+    icon: 'pi pi-table',
+    path: `/integram/${database.value}/table`
+  },
+  {
+    name: t('tables'),
+    description: t('tablesDesc'),
+    icon: 'pi pi-list',
+    path: `/integram/${database.value}/dict`
+  },
+  {
+    name: t('types'),
+    description: t('typesDesc'),
+    icon: 'pi pi-cog',
+    path: `/integram/${database.value}/edit_types`
+  },
+  {
+    name: t('sql'),
+    description: t('sqlDesc'),
+    icon: 'pi pi-code',
+    path: `/integram/${database.value}/sql`
+  },
+  {
+    name: t('smartQuery'),
+    description: t('smartQueryDesc'),
+    icon: 'pi pi-th-large',
+    path: `/integram/${database.value}/smartq`
+  },
+  {
+    name: t('reports'),
+    description: t('reportsDesc'),
+    icon: 'pi pi-chart-bar',
+    path: `/integram/${database.value}/report`
+  },
+  {
+    name: t('forms'),
+    description: t('formsDesc'),
+    icon: 'pi pi-file',
+    path: `/integram/${database.value}/form`
+  },
+  {
+    name: t('myforms'),
+    description: t('myformsDesc'),
+    icon: 'pi pi-sliders-h',
+    path: `/integram/${database.value}/myform`
+  }
 ])
 
+// Features
 const features = computed(() => [
-  { title: t('flexibleStructure'), description: t('flexibleStructureDesc'), icon: 'pi pi-sitemap' },
-  { title: t('powerfulSQL'), description: t('powerfulSQLDesc'), icon: 'pi pi-database' },
-  { title: t('reportsAndForms'), description: t('reportsAndFormsDesc'), icon: 'pi pi-file' },
-  { title: t('fileManagement'), description: t('fileManagementDesc'), icon: 'pi pi-upload' },
-  { title: t('visualQueries'), description: t('visualQueriesDesc'), icon: 'pi pi-eye' },
-  { title: t('security'), description: t('securityDesc'), icon: 'pi pi-shield' }
+  {
+    title: t('flexibleStructure'),
+    description: t('flexibleStructureDesc'),
+    icon: 'pi pi-sitemap'
+  },
+  {
+    title: t('powerfulSQL'),
+    description: t('powerfulSQLDesc'),
+    icon: 'pi pi-database'
+  },
+  {
+    title: t('reportsAndForms'),
+    description: t('reportsAndFormsDesc'),
+    icon: 'pi pi-file'
+  },
+  {
+    title: t('fileManagement'),
+    description: t('fileManagementDesc'),
+    icon: 'pi pi-upload'
+  },
+  {
+    title: t('visualQueries'),
+    description: t('visualQueriesDesc'),
+    icon: 'pi pi-eye'
+  },
+  {
+    title: t('security'),
+    description: t('securityDesc'),
+    icon: 'pi pi-shield'
+  }
 ])
 
+// Methods
+function navigate(path) {
+  router.push(path)
+}
+
+// Lifecycle
 onMounted(() => {
-  const saved = localStorage.getItem('integram_locale')
-  if (saved) locale.value = saved
+  const savedLocale = localStorage.getItem('integram_locale')
+  if (savedLocale) {
+    locale.value = savedLocale
+  }
 })
 </script>
 
 <style scoped>
-.integram-landing { max-width: 1200px; margin: 0 auto; }
-
-.hero-card, .section-card {
-  background: white;
-  border-radius: 12px;
-  padding: 1.5rem;
-  margin-bottom: 1rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-  border: 1px solid #e2e8f0;
+.integram-landing-container {
+  /* Match other Integram components - no extra padding, .content provides 1rem */
 }
 
-.hero-header {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 0.5rem;
-}
-
-.hero-header i { font-size: 1.5rem; color: #1976d2; }
-.hero-header h2 { margin: 0; color: #1e293b; }
-
-.hero-subtitle { color: #64748b; margin-bottom: 1rem; }
-
-.hero-tags { display: flex; gap: 0.5rem; flex-wrap: wrap; }
-
-.tag {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.375rem;
-  padding: 0.25rem 0.75rem;
-  border-radius: 20px;
-  font-size: 0.8rem;
-  font-weight: 500;
-}
-
-.tag.info { background: #e0f2fe; color: #0369a1; }
-.tag.success { background: #dcfce7; color: #15803d; }
-
-.section-card h3 {
-  margin: 0 0 0.25rem;
-  color: #1e293b;
-  font-size: 1.15rem;
-}
-
-.section-desc { color: #94a3b8; font-size: 0.875rem; margin-bottom: 1rem; }
-
-.quick-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 0.75rem;
-}
-
-.quick-item {
-  display: flex;
-  gap: 0.75rem;
-  padding: 1rem;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.quick-item:hover {
-  border-color: #1976d2;
-  background: #f8fafc;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-}
-
-.quick-icon {
-  width: 40px;
-  height: 40px;
-  min-width: 40px;
-  background: #1976d2;
-  border-radius: 8px;
+/* Icon box with proper centering */
+.icon-box {
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  min-width: 2.5rem;
+  min-height: 2.5rem;
+  background: var(--p-primary-color);
+  border-radius: var(--p-border-radius);
 }
 
-.quick-icon i { color: white; font-size: 1.1rem; }
-
-.quick-info strong { display: block; color: #1e293b; margin-bottom: 0.25rem; font-size: 0.9rem; }
-.quick-info p { margin: 0; color: #94a3b8; font-size: 0.8rem; line-height: 1.4; }
-
-.features-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 1rem;
-}
-
-.feature-item {
-  display: flex;
-  gap: 0.75rem;
-  align-items: flex-start;
-  padding: 0.5rem;
-}
-
-.feature-icon {
-  width: 36px;
-  height: 36px;
-  min-width: 36px;
-  background: #1976d2;
-  border-radius: 8px;
+.icon-box i {
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 100%;
+  height: 100%;
+  color: var(--p-primary-contrast-color);
+  font-size: 1.25rem;
+  line-height: 1;
 }
-
-.feature-icon i { color: white; font-size: 1rem; }
-.feature-item strong { display: block; color: #1e293b; margin-bottom: 0.25rem; font-size: 0.875rem; }
-.feature-item p { margin: 0; color: #94a3b8; font-size: 0.8rem; line-height: 1.4; }
 </style>

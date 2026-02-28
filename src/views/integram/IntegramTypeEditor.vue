@@ -1,255 +1,137 @@
 <template>
-  <div class="integram-type-editor">
-    <div class="page-header">
-      <h2><i class="pi pi-sitemap"></i> Структура данных</h2>
-    </div>
+  <div class="integram-type-editor-page">
+    <!-- Breadcrumb -->
+    <IntegramBreadcrumb :items="breadcrumbItems" />
 
-    <div v-if="loading" class="loading">
-      <i class="pi pi-spin pi-spinner" style="font-size: 2rem"></i>
-    </div>
-
-    <div v-else-if="error" class="error-box">
-      <p>{{ error }}</p>
-      <button @click="loadData" class="retry-btn">Повторить</button>
-    </div>
-
-    <div v-else>
-      <!-- Type List -->
-      <div class="types-panel">
-        <div class="panel-header">
-          <h3>Типы данных</h3>
-          <button class="add-btn-sm" @click="createNewType">
-            <i class="pi pi-plus"></i>
-          </button>
+    <!-- Loading State -->
+    <Card v-if="!sessionReady">
+      <template #content>
+        <div class="text-center py-5">
+          <ProgressSpinner />
+          <p class="mt-3">Инициализация сессии...</p>
         </div>
+      </template>
+    </Card>
 
-        <div
-          v-for="type in types"
-          :key="type.id"
-          :class="['type-item', { selected: selectedType?.id === type.id }]"
-          @click="selectType(type)"
-        >
-          <i class="pi pi-table"></i>
-          <span>{{ type.val || type.name }}</span>
-          <span class="type-id">#{{ type.id }}</span>
+    <!-- Error State -->
+    <Card v-else-if="errorMessage">
+      <template #content>
+        <div class="text-center py-5">
+          <Message severity="error" :closable="false">{{ errorMessage }}</Message>
+          <Button
+            label="Вернуться к списку таблиц"
+            icon="pi pi-arrow-left"
+            class="mt-3"
+            @click="router.push(`/integram/${database}/dict`)"
+          />
         </div>
-      </div>
+      </template>
+    </Card>
 
-      <!-- Selected Type Details -->
-      <div v-if="selectedType" class="type-details">
-        <div class="details-header">
-          <h3>{{ selectedType.val || selectedType.name }}</h3>
-          <div class="details-actions">
-            <button class="add-btn-sm" @click="addRequisite" title="Добавить поле">
-              <i class="pi pi-plus"></i> Поле
-            </button>
-            <button class="icon-btn danger" @click="deleteSelectedType" title="Удалить тип">
-              <i class="pi pi-trash"></i>
-            </button>
-          </div>
-        </div>
-
-        <div v-if="loadingReqs" class="loading-sm">
-          <i class="pi pi-spin pi-spinner"></i>
-        </div>
-
-        <div v-else class="reqs-list">
-          <div v-for="req in typeReqs" :key="req.id" class="req-item">
-            <div class="req-info">
-              <strong>{{ req.alias || req.name || `Req #${req.id}` }}</strong>
-              <span class="req-type">{{ getTypeName(req.type || req.t) }} (ID: {{ req.id }})</span>
-            </div>
-            <div class="req-actions">
-              <button class="icon-btn" @click="moveUp(req.id)" title="Вверх"><i class="pi pi-arrow-up"></i></button>
-              <button class="icon-btn danger" @click="deleteReq(req.id)" title="Удалить"><i class="pi pi-trash"></i></button>
-            </div>
-          </div>
-          <div v-if="typeReqs.length === 0" class="empty-sm">Нет полей</div>
-        </div>
-      </div>
-    </div>
+    <!-- Type Editor Component -->
+    <IntegramTypeEditorComponent
+      v-else
+      :session="sessionData"
+      @view-table="viewTable"
+      @refresh="refresh"
+    />
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { useToast } from 'primevue/usetoast'
+import { useIntegramSession } from '@/composables/useIntegramSession'
 import integramApiClient from '@/services/integramApiClient'
+import IntegramTypeEditorComponent from '@/components/integram/IntegramTypeEditor.vue'
+import IntegramBreadcrumb from '@/components/integram/IntegramBreadcrumb.vue'
 
-const loading = ref(true)
-const loadingReqs = ref(false)
-const error = ref(null)
-const types = ref([])
-const selectedType = ref(null)
-const typeReqs = ref([])
+const route = useRoute()
+const router = useRouter()
+const toast = useToast()
+const { isAuthenticated, database: sessionDatabase } = useIntegramSession()
 
-const typeNames = {
-  3: 'SHORT', 8: 'CHARS', 2: 'LONG', 13: 'NUMBER', 14: 'SIGNED',
-  4: 'DATETIME', 9: 'DATE', 7: 'BOOL', 10: 'FILE', 17: 'PATH',
-  11: 'MEMO', 15: 'HTML', 16: 'PWD', 12: 'BUTTON'
+// State
+const sessionReady = ref(false)
+const errorMessage = ref('')
+const sessionData = ref(null)
+
+// Get database from session or route
+const database = computed(() => sessionDatabase.value || 'integram')
+
+// Get typeId from query if provided
+const initialTypeId = computed(() => route.query.typeId)
+
+// Breadcrumb items
+const breadcrumbItems = computed(() => [
+  { label: 'Структура', icon: 'pi pi-sitemap' }
+])
+
+// Methods
+function viewTable(typeId) {
+  // Navigate to object list for this type
+  router.push(`/integram/${database.value}/object/${typeId}`)
 }
 
-function getTypeName(typeId) {
-  return typeNames[typeId] || `Type ${typeId}`
+async function refresh() {
+  // Trigger router re-navigation to reload component data
+  const currentPath = router.currentRoute.value.fullPath
+  await router.replace('/integram-reload-placeholder')
+  await router.replace(currentPath)
 }
 
-async function loadData() {
-  loading.value = true
-  error.value = null
+// Initialize session
+onMounted(async () => {
   try {
-    const response = await integramApiClient.getTypeEditorData()
-    if (response?.type && Array.isArray(response.type)) {
-      types.value = response.type
-    } else if (Array.isArray(response)) {
-      types.value = response
+    // Check authentication
+    if (!isAuthenticated.value) {
+      errorMessage.value = 'Не авторизован. Требуется вход в систему.'
+      setTimeout(() => {
+        router.replace('/integram/login')
+      }, 2000)
+      return
     }
-  } catch (err) {
-    error.value = err.message
-  } finally {
-    loading.value = false
-  }
-}
 
-async function selectType(type) {
-  selectedType.value = type
-  loadingReqs.value = true
-  try {
-    const meta = await integramApiClient.getTypeMetadata(type.id)
-    if (meta?.reqs && Array.isArray(meta.reqs)) {
-      typeReqs.value = meta.reqs
-    } else {
-      typeReqs.value = []
+    // Get authentication info
+    const authInfo = integramApiClient.getAuthInfo()
+
+    if (!authInfo || !authInfo.token) {
+      errorMessage.value = 'Сессия истекла. Требуется повторный вход.'
+      setTimeout(() => {
+        router.replace('/integram/login')
+      }, 2000)
+      return
     }
-  } catch (err) {
-    typeReqs.value = []
-  } finally {
-    loadingReqs.value = false
-  }
-}
 
-async function createNewType() {
-  const name = prompt('Название нового типа:')
-  if (!name) return
-  try {
-    await integramApiClient.createType(name, 3)
-    await loadData()
-  } catch (err) {
-    alert('Ошибка: ' + err.message)
-  }
-}
-
-async function deleteSelectedType() {
-  if (!selectedType.value) return
-  if (!confirm(`Удалить тип "${selectedType.value.val}"?`)) return
-  try {
-    await integramApiClient.deleteType(selectedType.value.id)
-    selectedType.value = null
-    typeReqs.value = []
-    await loadData()
-  } catch (err) {
-    alert('Ошибка: ' + err.message)
-  }
-}
-
-async function addRequisite() {
-  if (!selectedType.value) return
-  const typeId = prompt('ID типа реквизита (3=SHORT, 8=CHARS, 13=NUMBER, 7=BOOL, 4=DATETIME):')
-  if (!typeId) return
-  try {
-    const result = await integramApiClient.addRequisite(selectedType.value.id, parseInt(typeId))
-    if (result?.id) {
-      const alias = prompt('Название поля:')
-      if (alias) {
-        await integramApiClient.saveRequisiteAlias(result.id, alias)
-      }
+    // Setup session data for component
+    sessionData.value = {
+      sessionId: authInfo.token,
+      database: authInfo.database || database.value,
+      user: authInfo.user
     }
-    await selectType(selectedType.value)
-  } catch (err) {
-    alert('Ошибка: ' + err.message)
-  }
-}
 
-async function moveUp(reqId) {
-  try {
-    await integramApiClient.moveRequisiteUp(reqId)
-    if (selectedType.value) await selectType(selectedType.value)
-  } catch (err) {
-    alert('Ошибка: ' + err.message)
-  }
-}
+    sessionReady.value = true
 
-async function deleteReq(reqId) {
-  if (!confirm('Удалить поле?')) return
-  try {
-    await integramApiClient.deleteRequisite(reqId)
-    if (selectedType.value) await selectType(selectedType.value)
-  } catch (err) {
-    alert('Ошибка: ' + err.message)
+    // If typeId provided in query, show notification
+    if (initialTypeId.value) {
+      toast.add({
+        severity: 'info',
+        summary: 'Редактирование типа',
+        detail: `Тип ID: ${initialTypeId.value}. Найдите его в списке ниже.`,
+        life: 5000
+      })
+    }
+  } catch (error) {
+    console.error('Session initialization error:', error)
+    errorMessage.value = error.message || 'Ошибка инициализации сессии'
   }
-}
-
-onMounted(loadData)
+})
 </script>
 
 <style scoped>
-.integram-type-editor { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 1fr; gap: 1rem; }
-.page-header { grid-column: 1 / -1; margin-bottom: 0.5rem; }
-.page-header h2 { display: flex; align-items: center; gap: 0.5rem; color: #1e293b; margin: 0; }
-.loading { text-align: center; padding: 3rem; color: #64748b; grid-column: 1 / -1; }
-.error-box { text-align: center; padding: 2rem; background: #fef0f0; border-radius: 8px; color: #dc2626; grid-column: 1 / -1; }
-.retry-btn { margin-top: 1rem; padding: 0.5rem 1.5rem; background: #1976d2; color: white; border: none; border-radius: 6px; cursor: pointer; }
-
-.types-panel, .type-details {
-  background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 1rem;
-}
-
-.panel-header, .details-header {
-  display: flex; align-items: center; justify-content: space-between;
-  margin-bottom: 0.75rem; padding-bottom: 0.75rem; border-bottom: 1px solid #f1f5f9;
-}
-
-.panel-header h3, .details-header h3 { margin: 0; font-size: 1rem; color: #334155; }
-
-.add-btn-sm {
-  padding: 4px 10px; background: #1976d2; color: white; border: none;
-  border-radius: 6px; cursor: pointer; font-size: 0.8rem;
-  display: flex; align-items: center; gap: 4px;
-}
-.add-btn-sm:hover { background: #1565c0; }
-
-.details-actions { display: flex; gap: 0.5rem; }
-
-.type-item {
-  display: flex; align-items: center; gap: 0.5rem;
-  padding: 0.5rem 0.75rem; border-radius: 6px; cursor: pointer;
-  font-size: 0.875rem; color: #334155; transition: all 0.15s;
-}
-.type-item:hover { background: #f1f5f9; }
-.type-item.selected { background: #e3f2fd; color: #1976d2; font-weight: 500; }
-.type-id { margin-left: auto; font-size: 0.75rem; color: #94a3b8; }
-
-.loading-sm { text-align: center; padding: 1.5rem; color: #64748b; }
-.empty-sm { text-align: center; padding: 1.5rem; color: #94a3b8; font-size: 0.875rem; }
-
-.req-item {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 0.5rem 0.75rem; border-bottom: 1px solid #f8fafc;
-}
-.req-item:last-child { border-bottom: none; }
-.req-info strong { display: block; color: #1e293b; font-size: 0.875rem; }
-.req-type { font-size: 0.75rem; color: #94a3b8; }
-.req-actions { display: flex; gap: 4px; }
-
-.icon-btn {
-  width: 28px; height: 28px; border: none; background: transparent;
-  border-radius: 4px; cursor: pointer; display: flex; align-items: center;
-  justify-content: center; color: #64748b;
-}
-.icon-btn:hover { background: #f1f5f9; color: #1976d2; }
-.icon-btn.danger:hover { background: #fef0f0; color: #dc2626; }
-
-@media (min-width: 768px) {
-  .integram-type-editor { grid-template-columns: 300px 1fr; }
-  .page-header { grid-column: 1 / -1; }
-  .types-panel, .type-details { max-height: calc(100vh - 180px); overflow-y: auto; }
+.integram-type-editor-page {
+  width: 100%;
+  height: 100%;
 }
 </style>
