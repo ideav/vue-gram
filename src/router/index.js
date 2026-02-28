@@ -3,6 +3,7 @@ import TasksView from '../views/TasksView.vue'
 import KanbanView from '../views/KanbanView.vue'
 import PartnersView from '../views/PartnersView.vue'
 import DealsView from '../views/DealsView.vue'
+import SqlQueryView from '../views/SqlQueryView.vue'
 import IntegramTableView from '../views/IntegramTableView.vue'
 
 const routes = [
@@ -29,6 +30,11 @@ const routes = [
     path: '/deals',
     name: 'Deals',
     component: DealsView
+  },
+  {
+    path: '/sql-query',
+    name: 'SqlQuery',
+    component: SqlQueryView
   },
   {
     path: '/integram-table',
