@@ -27,6 +27,7 @@
     "jspdf": "^4.2.0",
     "marked": "^17.0.3",
     "pinia": "^3.0.4",
+    "primeflex": "^4.0.0",
     "primeicons": "^7.0.0",
     "primevue": "^4.5.4",
     "prismjs": "^1.30.0",
