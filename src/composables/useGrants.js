@@ -20,9 +20,9 @@ export function useGrants() {
   }
 
   function getGrantIcon(value) {
-    if (!value || value === '0' || value === 'false') return 'pi pi-times'
-    if (value === '1' || value === 'true') return 'pi pi-check'
-    return 'pi pi-info-circle'
+    if (!value || value === '0' || value === 'false') return 'fi fi-rr-cross-small'
+    if (value === '1' || value === 'true') return 'fi fi-rr-check'
+    return 'fi fi-rr-info'
   }
 
   function isSystemGrant(grantName) {

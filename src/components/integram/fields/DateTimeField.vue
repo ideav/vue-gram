@@ -12,7 +12,7 @@
         class="flex-1"
       />
       <Button
-        icon="pi pi-clock"
+        icon="fi fi-rr-clock"
         @click="toggleSpecialValues"
         size="small"
         text

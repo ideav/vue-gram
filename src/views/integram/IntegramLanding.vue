@@ -4,7 +4,7 @@
     <Card class="mb-4">
       <template #title>
         <div class="flex align-items-center gap-2">
-          <i class="pi pi-database text-primary" style="font-size: 1.5rem"></i>
+          <i class="fi fi-rr-database text-primary" style="font-size: 1.5rem"></i>
           <span>{{ t('welcome') }} Integram</span>
         </div>
       </template>
@@ -13,8 +13,8 @@
       </template>
       <template #content>
         <div class="flex gap-2 flex-wrap">
-          <Tag v-if="database" :value="database" icon="pi pi-database" severity="info" />
-          <Tag v-if="userName" :value="userName" icon="pi pi-user" severity="success" />
+          <Tag v-if="database" :value="database" icon="fi fi-rr-database" severity="info" />
+          <Tag v-if="userName" :value="userName" icon="fi fi-rr-user" severity="success" />
         </div>
       </template>
     </Card>
@@ -84,7 +84,7 @@
     <Card v-if="stats">
       <template #title>
         <div class="flex align-items-center gap-2">
-          <i class="pi pi-chart-bar"></i>
+          <i class="fi fi-rr-chart-histogram"></i>
           <span>{{ t('overview') }}</span>
         </div>
       </template>
@@ -207,49 +207,49 @@ const quickAccessItems = computed(() => [
   {
     name: t('newTables'),
     description: t('newTablesDesc'),
-    icon: 'pi pi-table',
+    icon: 'fi fi-rr-table',
     path: `/${database.value}/table`
   },
   {
     name: t('tables'),
     description: t('tablesDesc'),
-    icon: 'pi pi-list',
+    icon: 'fi fi-rr-list',
     path: `/${database.value}/dict`
   },
   {
     name: t('types'),
     description: t('typesDesc'),
-    icon: 'pi pi-cog',
+    icon: 'fi fi-rr-settings',
     path: `/${database.value}/edit_types`
   },
   {
     name: t('sql'),
     description: t('sqlDesc'),
-    icon: 'pi pi-code',
+    icon: 'fi fi-rr-code',
     path: `/${database.value}/sql`
   },
   {
     name: t('smartQuery'),
     description: t('smartQueryDesc'),
-    icon: 'pi pi-th-large',
+    icon: 'fi fi-rr-grid',
     path: `/${database.value}/smartq`
   },
   {
     name: t('reports'),
     description: t('reportsDesc'),
-    icon: 'pi pi-chart-bar',
+    icon: 'fi fi-rr-chart-histogram',
     path: `/${database.value}/report`
   },
   {
     name: t('forms'),
     description: t('formsDesc'),
-    icon: 'pi pi-file',
+    icon: 'fi fi-rr-file',
     path: `/${database.value}/form`
   },
   {
     name: t('myforms'),
     description: t('myformsDesc'),
-    icon: 'pi pi-sliders-h',
+    icon: 'fi fi-rr-settings-sliders',
     path: `/${database.value}/myform`
   }
 ])
@@ -259,32 +259,32 @@ const features = computed(() => [
   {
     title: t('flexibleStructure'),
     description: t('flexibleStructureDesc'),
-    icon: 'pi pi-sitemap'
+    icon: 'fi fi-rr-sitemap'
   },
   {
     title: t('powerfulSQL'),
     description: t('powerfulSQLDesc'),
-    icon: 'pi pi-database'
+    icon: 'fi fi-rr-database'
   },
   {
     title: t('reportsAndForms'),
     description: t('reportsAndFormsDesc'),
-    icon: 'pi pi-file'
+    icon: 'fi fi-rr-file'
   },
   {
     title: t('fileManagement'),
     description: t('fileManagementDesc'),
-    icon: 'pi pi-upload'
+    icon: 'fi fi-rr-upload'
   },
   {
     title: t('visualQueries'),
     description: t('visualQueriesDesc'),
-    icon: 'pi pi-eye'
+    icon: 'fi fi-rr-eye'
   },
   {
     title: t('security'),
     description: t('securityDesc'),
-    icon: 'pi pi-shield'
+    icon: 'fi fi-rr-shield'
   }
 ])
 

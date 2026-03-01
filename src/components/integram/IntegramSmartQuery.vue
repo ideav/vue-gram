@@ -17,13 +17,13 @@
             <div class="flex gap-2 align-items-center ml-auto">
               <Button
                 label="Создать"
-                icon="pi pi-plus"
+                icon="fi fi-rr-plus"
                 @click="createNewReport"
                 severity="primary"
                 size="small"
               />
               <Button
-                icon="pi pi-refresh"
+                icon="fi fi-rr-refresh"
                 @click="loadReportList"
                 :loading="loadingList"
                 outlined
@@ -44,7 +44,7 @@
 
           <!-- Empty State -->
           <div v-else-if="!loadingList && reports.length === 0" class="text-center p-5">
-            <i class="pi pi-file text-6xl text-400 mb-3"></i>
+            <i class="fi fi-rr-file text-6xl text-400 mb-3"></i>
             <p class="text-xl text-500">Отчеты не найдены</p>
             <p class="text-muted">Отчеты (объект типа 22) пока не созданы</p>
           </div>
@@ -82,7 +82,7 @@
               <template #body="{ data }">
                 <Button
                   label="Открыть"
-                  icon="pi pi-eye"
+                  icon="fi fi-rr-eye"
                   @click.stop="selectReport(data.id)"
                   outlined
                   aria-label="Открыть отчет"
@@ -109,7 +109,7 @@
           <div class="flex justify-content-between align-items-center">
             <div class="flex align-items-center gap-3">
               <Button
-                icon="pi pi-arrow-left"
+                icon="fi fi-rr-arrow-left"
                 @click="closeReport"
                 outlined
                 rounded
@@ -122,14 +122,14 @@
             <div class="integram-actions">
               <Button
                 label="Редактировать"
-                icon="pi pi-pencil"
+                icon="fi fi-rr-pencil"
                 @click="editReport(currentReportId)"
                 severity="secondary"
                 outlined
                 aria-label="Редактировать отчет"
               />
               <Button
-                icon="pi pi-refresh"
+                icon="fi fi-rr-refresh"
                 @click="refreshReport"
                 :loading="loading"
                 outlined
@@ -232,7 +232,7 @@ const breadcrumbItems = computed(() => {
   const items = [
     {
       label: 'Умный запрос',
-      icon: 'pi pi-search',
+      icon: 'fi fi-rr-search',
       to: (currentView.value !== 'list') ? '/smartq' : undefined
     }
   ]
@@ -240,17 +240,17 @@ const breadcrumbItems = computed(() => {
   if (currentView.value === 'viewer' && reportName.value) {
     items.push({
       label: reportName.value,
-      icon: 'pi pi-chart-bar'
+      icon: 'fi fi-rr-chart-histogram'
     })
   } else if (currentView.value === 'editor') {
     items.push({
       label: t('smartq.editor.editReport'),
-      icon: 'pi pi-pencil'
+      icon: 'fi fi-rr-pencil'
     })
   } else if (currentView.value === 'create') {
     items.push({
       label: t('smartq.editor.createReport'),
-      icon: 'pi pi-plus'
+      icon: 'fi fi-rr-plus'
     })
   }
 

@@ -43,7 +43,7 @@
         <!-- Active Databases -->
         <div class="db-category-card mb-3">
           <div class="category-header">
-            <i class="pi pi-check-circle"></i>
+            <i class="fi fi-rr-check-circle"></i>
             <span>{{ t('activeDatabases') }}</span>
           </div>
           <div class="flex flex-wrap gap-2 justify-content-center">
@@ -57,7 +57,7 @@
               v-tooltip.top="`${t('enterDatabase')}: ${db.name}`"
             >
               <template #icon>
-                <i class="pi pi-database mr-2"></i>
+                <i class="fi fi-rr-database mr-2"></i>
               </template>
             </Button>
           </div>
@@ -66,7 +66,7 @@
         <!-- Owned Databases -->
         <div v-if="ownedDatabases.length > 0" class="db-category-card">
           <div class="category-header secondary">
-            <i class="pi pi-server"></i>
+            <i class="fi fi-rr-database"></i>
             <span>{{ t('ownedDatabases') }}</span>
           </div>
           <div class="flex flex-wrap gap-2 justify-content-center">
@@ -79,7 +79,7 @@
               @click="enterDatabase(dbName)"
             >
               <template #icon>
-                <i class="pi pi-database mr-2"></i>
+                <i class="fi fi-rr-database mr-2"></i>
               </template>
             </Button>
           </div>
@@ -91,7 +91,7 @@
         <div class="mt-3">
           <Button
             :label="t('logout')"
-            icon="pi pi-sign-out"
+            icon="fi fi-rr-sign-out-alt"
             severity="danger"
             size="small"
             class="w-full"
@@ -187,7 +187,7 @@
 
         <Button
           :label="t('signInWithGoogle')"
-          icon="pi pi-google"
+          icon="fi fi-rr-globe-alt"
           outlined
           class="w-full mb-3"
           @click="handleGoogleSignIn"

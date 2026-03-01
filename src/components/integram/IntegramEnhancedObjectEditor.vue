@@ -54,7 +54,7 @@
           </div>
           <div class="flex gap-2 align-items-center ml-auto">
             <Button
-              :icon="gridMode ? 'pi pi-list' : 'pi pi-th-large'"
+              :icon="gridMode ? 'fi fi-rr-list' : 'fi fi-rr-grid'"
               @click="toggleGridMode"
               size="small"
               rounded
@@ -121,7 +121,7 @@
                         </router-link>
                         <Button
                           v-if="req.refTypeId"
-                          icon="pi pi-plus"
+                          icon="fi fi-rr-plus"
                           label="Добавить"
                           @click="addSubordinateItem(req)"
                           size="small"
@@ -299,7 +299,7 @@
                   </div>
                   <Button
                     v-if="req.refTypeId"
-                    icon="pi pi-plus"
+                    icon="fi fi-rr-plus"
                     label="Добавить"
                     @click="addSubordinateItem(req)"
                     size="small"
@@ -452,20 +452,20 @@
         <div class="mt-4 integram-actions">
           <Button
             label="Сохранить"
-            icon="pi pi-save"
+            icon="fi fi-rr-disk"
             @click="saveObject"
             :loading="saving"
             severity="primary"
           />
           <Button
             label="Дублировать"
-            icon="pi pi-copy"
+            icon="fi fi-rr-copy"
             @click="duplicateObject"
             outlined
           />
           <Button
             label="Отмена"
-            icon="pi pi-times"
+            icon="fi fi-rr-cross-small"
             @click="cancel"
             outlined
           />
@@ -473,7 +473,7 @@
           <Button
             v-if="!confirmDelete"
             label="Удалить"
-            icon="pi pi-trash"
+            icon="fi fi-rr-trash"
             @click="confirmDelete = true"
             severity="danger"
             outlined
@@ -489,7 +489,7 @@
           <div class="flex gap-2">
             <Button
               label="Да, удалить"
-              icon="pi pi-trash"
+              icon="fi fi-rr-trash"
               @click="deleteObject"
               :loading="deleting"
               severity="danger"

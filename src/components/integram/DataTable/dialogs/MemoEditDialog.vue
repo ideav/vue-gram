@@ -22,13 +22,13 @@
         @keydown.meta.enter="$emit('save')"
       />
       <div class="memo-hint mt-2 text-sm text-color-secondary">
-        <i class="pi pi-info-circle mr-1"></i>
+        <i class="fi fi-rr-info mr-1"></i>
         Ctrl+Enter для сохранения
       </div>
     </div>
     <template #footer>
-      <Button label="Отмена" icon="pi pi-times" @click="$emit('cancel')" text />
-      <Button label="Сохранить" icon="pi pi-check" @click="$emit('save')" />
+      <Button label="Отмена" icon="fi fi-rr-cross-small" @click="$emit('cancel')" text />
+      <Button label="Сохранить" icon="fi fi-rr-check" @click="$emit('save')" />
     </template>
   </Dialog>
 </template>

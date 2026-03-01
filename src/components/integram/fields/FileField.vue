@@ -6,7 +6,7 @@
           {{ currentFile.split('/').pop() }}
         </a>
         <Button
-          icon="pi pi-trash"
+          icon="fi fi-rr-trash"
           @click="confirmDeleteFile = true"
           size="small"
           text

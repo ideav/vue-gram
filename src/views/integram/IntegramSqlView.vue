@@ -24,7 +24,7 @@
           <div class="integram-actions mb-2">
             <Button
               label="Выполнить"
-              icon="pi pi-play"
+              icon="fi fi-rr-play"
               @click="executeQuery"
               :loading="loading"
               :disabled="!sqlQuery.trim()"
@@ -32,14 +32,14 @@
             />
             <Button
               label="Очистить"
-              icon="pi pi-times"
+              icon="fi fi-rr-cross-small"
               @click="clearQuery"
               outlined
               aria-label="Очистить запрос"
             />
             <Button
               label="Примеры"
-              icon="pi pi-book"
+              icon="fi fi-rr-book"
               @click="showExamples = !showExamples"
               outlined
               aria-label="Показать примеры запросов"
@@ -83,7 +83,7 @@
             <Badge :value="results.length" severity="info" />
             <span class="ml-2">записей найдено</span>
             <span v-if="queryTime" class="ml-3 text-500">
-              <i class="pi pi-clock"></i> {{ queryTime }}ms
+              <i class="fi fi-rr-clock"></i> {{ queryTime }}ms
             </span>
           </div>
           <DataTable
@@ -105,14 +105,14 @@
           <div class="integram-actions mt-3">
             <Button
               label="Экспорт CSV"
-              icon="pi pi-download"
+              icon="fi fi-rr-download"
               @click="exportCSV"
               outlined
               aria-label="Экспортировать в CSV"
             />
             <Button
               label="Экспорт JSON"
-              icon="pi pi-file"
+              icon="fi fi-rr-file"
               @click="exportJSON"
               outlined
               aria-label="Экспортировать в JSON"
@@ -192,7 +192,7 @@ const breadcrumbItems = computed(() => {
   const items = [
     {
       label: 'SQL',
-      icon: 'pi pi-code',
+      icon: 'fi fi-rr-code',
       to: '/sql'
     }
   ]
@@ -200,7 +200,7 @@ const breadcrumbItems = computed(() => {
   if (reportId.value && reportName.value) {
     items.push({
       label: reportName.value,
-      icon: 'pi pi-chart-bar',
+      icon: 'fi fi-rr-chart-histogram',
       to: undefined
     })
   }

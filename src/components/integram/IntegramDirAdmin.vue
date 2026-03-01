@@ -17,10 +17,10 @@
         <div class="field">
           <label>Текущая директория</label>
           <div class="flex gap-2 align-items-center">
-            <Chip :label="currentFolder" icon="pi pi-folder" />
+            <Chip :label="currentFolder" icon="fi fi-rr-folder" />
             <Button
               v-if="currentFolder !== 'templates'"
-              icon="pi pi-arrow-left"
+              icon="fi fi-rr-arrow-left"
               label="Назад"
               @click="navigateUp"
               outlined
@@ -32,7 +32,7 @@
         <div class="grid">
           <div class="col-12 md:col-6">
             <Button
-              icon="pi pi-folder"
+              icon="fi fi-rr-folder"
               label="Шаблоны"
               @click="navigateTo('templates')"
               :severity="currentFolder === 'templates' ? 'primary' : 'secondary'"
@@ -42,7 +42,7 @@
           </div>
           <div class="col-12 md:col-6">
             <Button
-              icon="pi pi-download"
+              icon="fi fi-rr-download"
               label="Загрузки"
               @click="navigateTo('download')"
               :severity="currentFolder === 'download' ? 'primary' : 'secondary'"
@@ -97,7 +97,7 @@
           aria-label="Имя новой папки"
         />
         <Button
-          icon="pi pi-plus"
+          icon="fi fi-rr-plus"
           label="Создать"
           @click="createFolder"
           :disabled="!newFolderName"
@@ -115,7 +115,7 @@
         </p>
         <div class="flex gap-2">
           <Button
-            icon="pi pi-download"
+            icon="fi fi-rr-download"
             label="Создать резервную копию"
             @click="createBackup"
             :loading="loading.backup"
@@ -141,7 +141,7 @@
             <Column header="Действие" style="width: 150px">
               <template #body="{ data }">
                 <Button
-                  icon="pi pi-replay"
+                  icon="fi fi-rr-rotate-right"
                   label="Восстановить"
                   size="small"
                   severity="warning"
@@ -163,7 +163,7 @@
         </span>
         <div class="integram-actions">
           <Button
-            icon="pi pi-check-square"
+            icon="fi fi-rr-checkbox"
             label="Выбрать все"
             @click="selectAll"
             text
@@ -171,7 +171,7 @@
           />
           <!-- Кнопка удаления визуально отделена -->
           <Button
-            icon="pi pi-trash"
+            icon="fi fi-rr-trash"
             label="Удалить выбранные"
             @click="confirmDeleteSelected"
             :disabled="selectedItems.length === 0"
@@ -194,8 +194,8 @@
 
         <Column field="type" header="Тип" style="width: 60px">
           <template #body="{ data }">
-            <i v-if="data.type === 'folder'" class="pi pi-folder text-primary text-xl"></i>
-            <i v-else class="pi pi-file text-secondary text-xl"></i>
+            <i v-if="data.type === 'folder'" class="fi fi-rr-folder text-primary text-xl"></i>
+            <i v-else class="fi fi-rr-file text-secondary text-xl"></i>
           </template>
         </Column>
 
@@ -229,7 +229,7 @@
             <div class="integram-actions">
               <Button
                 v-if="data.type === 'file'"
-                icon="pi pi-eye"
+                icon="fi fi-rr-eye"
                 v-tooltip.top="'Просмотр'"
                 @click="viewFile(data)"
                 text
@@ -238,7 +238,7 @@
               />
               <Button
                 v-if="data.type === 'file' && isEditable(data.name)"
-                icon="pi pi-pencil"
+                icon="fi fi-rr-pencil"
                 v-tooltip.top="'Редактировать'"
                 @click="editFile(data)"
                 text
@@ -247,7 +247,7 @@
               />
               <Button
                 v-if="data.type === 'file'"
-                icon="pi pi-download"
+                icon="fi fi-rr-download"
                 v-tooltip.top="'Скачать'"
                 @click="downloadFile(data)"
                 text
@@ -256,7 +256,7 @@
               />
               <Button
                 v-if="data.type === 'file'"
-                icon="pi pi-copy"
+                icon="fi fi-rr-copy"
                 v-tooltip.top="'Копировать путь'"
                 @click="copyPath(data)"
                 text
@@ -265,7 +265,7 @@
               />
               <!-- Кнопка удаления визуально отделена -->
               <Button
-                icon="pi pi-trash"
+                icon="fi fi-rr-trash"
                 v-tooltip.top="'Удалить'"
                 @click="confirmDelete(data)"
                 severity="danger"
@@ -288,7 +288,7 @@
       :style="{ width: '450px' }"
     >
       <div class="flex align-items-center gap-3">
-        <i class="pi pi-exclamation-triangle text-4xl text-warning"></i>
+        <i class="fi fi-rr-triangle-warning text-4xl text-warning"></i>
         <span v-if="deleteDialog.items.length === 1">
           Вы уверены, что хотите удалить <strong>{{ deleteDialog.items[0].name }}</strong>?
         </span>
@@ -300,14 +300,14 @@
         <div class="integram-actions justify-content-end w-full">
           <Button
             label="Отмена"
-            icon="pi pi-times"
+            icon="fi fi-rr-cross-small"
             @click="deleteDialog.visible = false"
             text
             aria-label="Отменить удаление"
           />
           <Button
             label="Удалить"
-            icon="pi pi-trash"
+            icon="fi fi-rr-trash"
             severity="danger"
             @click="executeDelete"
             aria-label="Подтвердить удаление"
@@ -325,7 +325,7 @@
     >
       <div class="flex flex-column gap-3">
         <div class="flex align-items-center gap-3">
-          <i class="pi pi-exclamation-triangle text-4xl" style="color: var(--orange-500)"></i>
+          <i class="fi fi-rr-triangle-warning text-4xl" style="color: var(--orange-500)"></i>
           <div>
             <p class="m-0 font-bold">Внимание! Это действие необратимо.</p>
             <p class="m-0 mt-2">
@@ -344,14 +344,14 @@
         <div class="integram-actions justify-content-end w-full">
           <Button
             label="Отмена"
-            icon="pi pi-times"
+            icon="fi fi-rr-cross-small"
             @click="restoreDialog.visible = false"
             text
             aria-label="Отменить восстановление"
           />
           <Button
             label="Восстановить"
-            icon="pi pi-replay"
+            icon="fi fi-rr-rotate-right"
             severity="warning"
             @click="executeRestore"
             :loading="loading.restore"
@@ -382,7 +382,7 @@ const toast = useToast();
 const breadcrumbItems = computed(() => [
   {
     label: 'Файлы',
-    icon: 'pi pi-folder',
+    icon: 'fi fi-rr-folder',
     to: undefined // Current page
   }
 ])

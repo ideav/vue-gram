@@ -7,12 +7,12 @@
     <div v-if="metadataLoading && loadMetadataEnabled" class="metadata-loading-notification mb-3">
       <div class="flex align-items-center justify-content-between">
         <div class="flex align-items-center gap-2">
-          <i class="pi pi-spin pi-spinner text-primary"></i>
+          <i class="fi fi-spin fi-rr-spinner text-primary"></i>
           <span class="font-medium">Загрузка метаданных...</span>
           <Badge :value="`${loadedMetadataCount} / ${tables.length}`" severity="secondary" />
         </div>
         <Button
-          icon="pi pi-times"
+          icon="fi fi-rr-cross-small"
           size="small"
           text
           rounded
@@ -33,7 +33,7 @@
           </div>
           <div class="flex gap-2 align-items-center ml-auto">
             <Button
-              icon="pi pi-plus"
+              icon="fi fi-rr-plus"
               label="Создать"
               size="small"
               @click="showCreateTableDialog = true"
@@ -41,7 +41,7 @@
             />
 
             <Button
-              icon="pi pi-cog"
+              icon="fi fi-rr-settings"
               size="small"
               outlined
               @click="showSettingsDialog = true"
@@ -49,7 +49,7 @@
             />
 
             <Button
-              icon="pi pi-refresh"
+              icon="fi fi-rr-refresh"
               size="small"
               outlined
               @click="loadTables"
@@ -70,7 +70,7 @@
           <div class="flex align-items-center justify-content-between flex-wrap gap-3">
             <!-- Search -->
             <IconField iconPosition="left" class="flex-grow-1" style="max-width: 400px">
-              <InputIcon class="pi pi-search" />
+              <InputIcon class="fi fi-rr-search" />
               <InputText
                 ref="searchInput"
                 v-model="searchQuery"
@@ -95,7 +95,7 @@
                   @click="activeFilter = 'favorites'"
                   class="cursor-pointer"
                 >
-                  <i class="pi pi-star-fill mr-1"></i>
+                  <i class="fi fi-sr-star mr-1"></i>
                   Избранные
                 </Chip>
                 <Chip
@@ -104,7 +104,7 @@
                   @click="activeFilter = 'empty'"
                   class="cursor-pointer"
                 >
-                  <i class="pi pi-inbox mr-1"></i>
+                  <i class="fi fi-rr-inbox mr-1"></i>
                   Пустые
                 </Chip>
                 <Chip
@@ -113,7 +113,7 @@
                   @click="activeFilter = 'filled'"
                   class="cursor-pointer"
                 >
-                  <i class="pi pi-check-circle mr-1"></i>
+                  <i class="fi fi-rr-check-circle mr-1"></i>
                   С данными
                 </Chip>
               </div>
@@ -194,7 +194,7 @@
               <template #header>
                 <div class="card-header-actions">
                   <Button
-                    :icon="isFavorite(table.id) ? 'pi pi-star-fill' : 'pi pi-star'"
+                    :icon="isFavorite(table.id) ? 'fi fi-sr-star' : 'fi fi-rr-star'"
                     :class="{ 'favorite-active': isFavorite(table.id) }"
                     text
                     rounded
@@ -203,7 +203,7 @@
                     v-tooltip.top="isFavorite(table.id) ? 'Убрать из избранного' : 'Добавить в избранное'"
                   />
                   <Button
-                    icon="pi pi-ellipsis-v"
+                    icon="fi fi-rr-menu-dots-vertical"
                     text
                     rounded
                     size="small"
@@ -226,12 +226,12 @@
                 <!-- Stats - simplified for performance -->
                 <div v-if="loadMetadataEnabled" class="table-stats">
                   <div v-if="table.recordCount !== undefined" class="stat-item">
-                    <i class="pi pi-database text-400"></i>
+                    <i class="fi fi-rr-database text-400"></i>
                     <span>{{ table.recordCount }} зап.</span>
                   </div>
 
                   <div v-if="table.columnCount !== undefined" class="stat-item">
-                    <i class="pi pi-bars text-400"></i>
+                    <i class="fi fi-rr-menu-burger text-400"></i>
                     <span>{{ table.columnCount }} кол.</span>
                   </div>
 
@@ -262,7 +262,7 @@
               <template #footer>
                 <div class="flex gap-2">
                   <Button
-                    icon="pi pi-eye"
+                    icon="fi fi-rr-eye"
                     label="Просмотр"
                     size="small"
                     outlined
@@ -270,7 +270,7 @@
                     class="flex-1"
                   />
                   <Button
-                    icon="pi pi-pencil"
+                    icon="fi fi-rr-pencil"
                     label="Структура"
                     size="small"
                     outlined
@@ -294,7 +294,7 @@
           <Column style="width: 3rem">
             <template #body="{ data }">
               <Button
-                :icon="isFavorite(data.id) ? 'pi pi-star-fill' : 'pi pi-star'"
+                :icon="isFavorite(data.id) ? 'fi fi-sr-star' : 'fi fi-rr-star'"
                 :class="{ 'favorite-active': isFavorite(data.id) }"
                 text
                 rounded
@@ -307,7 +307,7 @@
           <Column field="name" header="Название" sortable>
             <template #body="{ data }">
               <div class="flex align-items-center gap-2">
-                <i class="pi pi-table text-primary"></i>
+                <i class="fi fi-rr-table text-primary"></i>
                 <span class="font-semibold">{{ getTableDisplayName(data) }}</span>
               </div>
             </template>
@@ -324,7 +324,7 @@
               <span v-if="data.recordCount !== undefined">
                 {{ data.recordCount }}
               </span>
-              <i v-else class="pi pi-spin pi-spinner text-sm"></i>
+              <i v-else class="fi fi-spin fi-rr-spinner text-sm"></i>
             </template>
           </Column>
 
@@ -348,7 +348,7 @@
             <template #body="{ data }">
               <div class="flex gap-1">
                 <Button
-                  icon="pi pi-eye"
+                  icon="fi fi-rr-eye"
                   size="small"
                   text
                   rounded
@@ -356,7 +356,7 @@
                   @click.stop="router.push(`/${database}/table/${data.id}`)"
                 />
                 <Button
-                  icon="pi pi-pencil"
+                  icon="fi fi-rr-pencil"
                   size="small"
                   text
                   rounded
@@ -364,7 +364,7 @@
                   @click.stop="router.push(`/${database}/edit_types?typeId=${data.id}`)"
                 />
                 <Button
-                  icon="pi pi-ellipsis-v"
+                  icon="fi fi-rr-menu-dots-vertical"
                   size="small"
                   text
                   rounded
@@ -377,7 +377,7 @@
 
           <!-- Empty State -->
           <div v-if="sortedFilteredTables.length === 0" class="text-center py-5">
-            <i class="pi pi-inbox text-5xl text-color-secondary mb-3"></i>
+            <i class="fi fi-rr-inbox text-5xl text-color-secondary mb-3"></i>
             <p class="text-color-secondary text-lg mb-2">
               {{ getEmptyStateMessage() }}
             </p>
@@ -385,14 +385,14 @@
               <Button
                 v-if="searchQuery || activeFilter !== 'all'"
                 label="Сбросить фильтры"
-                icon="pi pi-times"
+                icon="fi fi-rr-cross-small"
                 severity="secondary"
                 text
                 @click="resetFilters"
               />
               <Button
                 label="Обновить"
-                icon="pi pi-refresh"
+                icon="fi fi-rr-refresh"
                 severity="secondary"
                 outlined
                 :loading="loading"
@@ -400,7 +400,7 @@
               />
               <Button
                 label="Создать таблицу"
-                icon="pi pi-plus"
+                icon="fi fi-rr-plus"
                 severity="success"
                 @click="showCreateTableDialog = true"
               />
@@ -449,13 +449,13 @@
       <template #footer>
         <Button
           label="Отмена"
-          icon="pi pi-times"
+          icon="fi fi-rr-cross-small"
           @click="showCreateTableDialog = false"
           text
         />
         <Button
           label="Создать"
-          icon="pi pi-check"
+          icon="fi fi-rr-check"
           @click="createTable"
           :loading="creatingTable"
           :disabled="!newTableName.trim()"
@@ -494,13 +494,13 @@
       <template #footer>
         <Button
           label="Отмена"
-          icon="pi pi-times"
+          icon="fi fi-rr-cross-small"
           @click="showCloneDialog = false"
           text
         />
         <Button
           label="Клонировать"
-          icon="pi pi-copy"
+          icon="fi fi-rr-copy"
           @click="cloneTable"
           :loading="cloningTable"
           :disabled="!cloneTableName.trim()"
@@ -516,7 +516,7 @@
       :style="{ width: '450px' }"
     >
       <div class="flex align-items-center gap-3">
-        <i class="pi pi-exclamation-triangle text-5xl text-orange-500"></i>
+        <i class="fi fi-rr-triangle-warning text-5xl text-orange-500"></i>
         <div>
           <p class="mb-2">
             Вы действительно хотите удалить таблицу <strong>{{ selectedTable?.name }}</strong>?
@@ -530,13 +530,13 @@
       <template #footer>
         <Button
           label="Отмена"
-          icon="pi pi-times"
+          icon="fi fi-rr-cross-small"
           @click="showDeleteDialog = false"
           text
         />
         <Button
           label="Удалить"
-          icon="pi pi-trash"
+          icon="fi fi-rr-trash"
           severity="danger"
           @click="deleteTable"
           :loading="deletingTable"
@@ -556,7 +556,7 @@
           <label class="font-semibold mb-2 block">Загрузка данных</label>
           <div class="flex align-items-center p-3 border-round surface-50">
             <div class="flex align-items-center gap-2 flex-1">
-              <i class="pi pi-info-circle text-primary"></i>
+              <i class="fi fi-rr-info text-primary"></i>
               <div>
                 <div class="font-medium">Метаданные таблиц</div>
                 <div class="text-sm text-500">
@@ -569,8 +569,8 @@
                 v-model="loadMetadataEnabled"
                 onLabel="Вкл"
                 offLabel="Выкл"
-                onIcon="pi pi-check"
-                offIcon="pi pi-times"
+                onIcon="fi fi-rr-check"
+                offIcon="fi fi-rr-cross-small"
                 class="w-6rem"
               />
             </div>
@@ -581,7 +581,7 @@
           <label class="font-semibold mb-2 block">Навигация</label>
           <div class="flex align-items-center p-3 border-round surface-50">
             <div class="flex align-items-center gap-2 flex-1">
-              <i class="pi pi-list text-primary"></i>
+              <i class="fi fi-rr-list text-primary"></i>
               <div>
                 <div class="font-medium">Пагинация</div>
                 <div class="text-sm text-500">
@@ -594,8 +594,8 @@
                 v-model="paginationEnabled"
                 onLabel="Вкл"
                 offLabel="Выкл"
-                onIcon="pi pi-check"
-                offIcon="pi pi-times"
+                onIcon="fi fi-rr-check"
+                offIcon="fi fi-rr-cross-small"
                 class="w-6rem"
               />
             </div>
@@ -606,7 +606,7 @@
           <label class="font-semibold mb-2 block">Поиск</label>
           <div class="flex align-items-center p-3 border-round surface-50">
             <div class="flex align-items-center gap-2 flex-1">
-              <i class="pi pi-sort-amount-down text-primary"></i>
+              <i class="fi fi-rr-sort-amount-down text-primary"></i>
               <div>
                 <div class="font-medium">Умный поиск</div>
                 <div class="text-sm text-500">
@@ -619,8 +619,8 @@
                 v-model="smartSearchEnabled"
                 onLabel="Вкл"
                 offLabel="Выкл"
-                onIcon="pi pi-check"
-                offIcon="pi pi-times"
+                onIcon="fi fi-rr-check"
+                offIcon="fi fi-rr-cross-small"
                 class="w-6rem"
               />
             </div>
@@ -631,7 +631,7 @@
       <template #footer>
         <Button
           label="Закрыть"
-          icon="pi pi-times"
+          icon="fi fi-rr-cross-small"
           @click="showSettingsDialog = false"
           autofocus
         />
@@ -812,8 +812,8 @@ watch([activeFilter, sortBy], () => {
 })
 
 const viewOptions = [
-  { value: 'grid', icon: 'pi pi-th-large', label: 'Сетка' },
-  { value: 'list', icon: 'pi pi-list', label: 'Список' }
+  { value: 'grid', icon: 'fi fi-rr-grid', label: 'Сетка' },
+  { value: 'list', icon: 'fi fi-rr-list', label: 'Список' }
 ]
 
 // Sort options - filter metadata-dependent options when metadata is disabled
@@ -843,12 +843,12 @@ const tableMenuItems = computed(() => {
   return [
     {
       label: 'Просмотр',
-      icon: 'pi pi-eye',
+      icon: 'fi fi-rr-eye',
       command: () => router.push(`/${database.value}/table/${selectedTable.value.id}`)
     },
     {
       label: 'Редактировать структуру',
-      icon: 'pi pi-pencil',
+      icon: 'fi fi-rr-pencil',
       command: () => router.push(`/${database.value}/edit_types?typeId=${selectedTable.value.id}`)
     },
     {
@@ -856,7 +856,7 @@ const tableMenuItems = computed(() => {
     },
     {
       label: isFavorite(selectedTable.value.id) ? 'Убрать из избранного' : 'Добавить в избранное',
-      icon: isFavorite(selectedTable.value.id) ? 'pi pi-star-fill' : 'pi pi-star',
+      icon: isFavorite(selectedTable.value.id) ? 'fi fi-sr-star' : 'fi fi-rr-star',
       command: () => toggleFavorite(selectedTable.value.id)
     },
     {
@@ -864,7 +864,7 @@ const tableMenuItems = computed(() => {
     },
     {
       label: 'Клонировать структуру',
-      icon: 'pi pi-copy',
+      icon: 'fi fi-rr-copy',
       command: () => {
         cloneTableName.value = `${selectedTable.value.name} (копия)`
         showCloneDialog.value = true
@@ -872,7 +872,7 @@ const tableMenuItems = computed(() => {
     },
     {
       label: 'Переименовать',
-      icon: 'pi pi-pencil',
+      icon: 'fi fi-rr-pencil',
       command: () => renameTable(selectedTable.value)
     },
     {
@@ -880,7 +880,7 @@ const tableMenuItems = computed(() => {
     },
     {
       label: 'Удалить',
-      icon: 'pi pi-trash',
+      icon: 'fi fi-rr-trash',
       class: 'text-red-500',
       command: () => {
         showDeleteDialog.value = true
@@ -1047,7 +1047,7 @@ const totalPages = computed(() => {
 })
 
 const breadcrumbItems = computed(() => [
-  { label: 'Таблицы', icon: 'pi pi-table' }
+  { label: 'Таблицы', icon: 'fi fi-rr-table' }
 ])
 
 // Methods

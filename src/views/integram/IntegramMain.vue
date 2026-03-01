@@ -31,7 +31,7 @@
           >
             <template #value="slotProps">
               <div v-if="slotProps.value" class="flex align-items-center gap-2">
-                <i class="pi pi-database"></i>
+                <i class="fi fi-rr-database"></i>
                 <span>{{ slotProps.value }}</span>
               </div>
               <span v-else>БД</span>
@@ -47,7 +47,7 @@
           </Select>
 
           <Button
-            :icon="isDarkTheme ? 'pi pi-sun' : 'pi pi-moon'"
+            :icon="isDarkTheme ? 'fi fi-rr-sun' : 'fi fi-rr-moon'"
             text
             rounded
             @click="toggleDarkMode"
@@ -56,7 +56,7 @@
             aria-label="Toggle theme"
           />
           <Button
-            icon="pi pi-question-circle"
+            icon="fi fi-rr-question"
             text
             rounded
             @click="openHelp"
@@ -65,7 +65,7 @@
             aria-label="Помощь"
           />
           <Button
-            icon="pi pi-user"
+            icon="fi fi-rr-user"
             text
             rounded
             @click="toggleUserMenu"
@@ -138,13 +138,13 @@
       <template #footer>
         <Button
           :label="t('cancel')"
-          icon="pi pi-times"
+          icon="fi fi-rr-cross-small"
           @click="passwordChangeVisible = false"
           text
         />
         <Button
           :label="t('change')"
-          icon="pi pi-check"
+          icon="fi fi-rr-check"
           @click="changePassword"
           :loading="passwordChanging"
         />
@@ -218,7 +218,7 @@ const availableDatabases = computed(() => {
     databases.push({
       value: dbName,
       label: dbName,
-      icon: 'pi pi-database',
+      icon: 'fi fi-rr-database',
       isPrimary: dbName === 'my',
       isOwned: false
     })
@@ -232,7 +232,7 @@ const availableDatabases = computed(() => {
         databases.push({
           value: dbName,
           label: dbName, // Removed "(owned)" - Tag shows this
-          icon: 'pi pi-th-large',
+          icon: 'fi fi-rr-grid',
           isPrimary: false,
           isOwned: true
         })
@@ -250,17 +250,17 @@ const availableDatabases = computed(() => {
 
 // Base menu items configuration (legacy naming from main.html)
 const baseMenuItems = [
-  { href: 'dict', icon: 'pi pi-database', ruName: 'Объекты', enName: 'Objects' },
-  { href: 'table', icon: 'pi pi-table', ruName: 'Таблицы', enName: 'Tables' },
-  { href: 'edit_types', icon: 'pi pi-sitemap', ruName: 'Структура', enName: 'Structure' },
-  { href: 'sql', icon: 'pi pi-code', ruName: 'SQL', enName: 'SQL' },
-  { href: 'smartq', icon: 'pi pi-search', ruName: 'Умный запрос', enName: 'Smart Query' },
-  { href: 'report', icon: 'pi pi-chart-bar', ruName: 'Запросы', enName: 'Queries' },
-  { href: 'form', icon: 'pi pi-file', ruName: 'Формы', enName: 'Forms' },
-  { href: 'myform', icon: 'pi pi-sliders-h', ruName: 'Мои формы', enName: 'My Forms' },
-  { href: 'upload', icon: 'pi pi-upload', ruName: 'Загрузка', enName: 'Upload' },
-  { href: 'dir_admin', icon: 'pi pi-folder', ruName: 'Файлы', enName: 'Files' },
-  { href: 'info', icon: 'pi pi-info-circle', ruName: 'Информация', enName: 'Info' }
+  { href: 'dict', icon: 'fi fi-rr-database', ruName: 'Объекты', enName: 'Objects' },
+  { href: 'table', icon: 'fi fi-rr-table', ruName: 'Таблицы', enName: 'Tables' },
+  { href: 'edit_types', icon: 'fi fi-rr-sitemap', ruName: 'Структура', enName: 'Structure' },
+  { href: 'sql', icon: 'fi fi-rr-code', ruName: 'SQL', enName: 'SQL' },
+  { href: 'smartq', icon: 'fi fi-rr-search', ruName: 'Умный запрос', enName: 'Smart Query' },
+  { href: 'report', icon: 'fi fi-rr-chart-histogram', ruName: 'Запросы', enName: 'Queries' },
+  { href: 'form', icon: 'fi fi-rr-file', ruName: 'Формы', enName: 'Forms' },
+  { href: 'myform', icon: 'fi fi-rr-settings-sliders', ruName: 'Мои формы', enName: 'My Forms' },
+  { href: 'upload', icon: 'fi fi-rr-upload', ruName: 'Загрузка', enName: 'Upload' },
+  { href: 'dir_admin', icon: 'fi fi-rr-folder', ruName: 'Файлы', enName: 'Files' },
+  { href: 'info', icon: 'fi fi-rr-info', ruName: 'Информация', enName: 'Info' }
 ]
 
 // Menu items for PrimeVue Menubar
@@ -283,12 +283,12 @@ const menuItems = computed(() => {
 const userMenuItems = computed(() => [
   {
     label: t('help'),
-    icon: 'pi pi-question-circle',
+    icon: 'fi fi-rr-question',
     command: openHelp
   },
   {
     label: t('myAccount'),
-    icon: 'pi pi-user',
+    icon: 'fi fi-rr-user',
     command: () => window.open(`/my?login=${database.value}`, '_blank')
   },
   {
@@ -296,12 +296,12 @@ const userMenuItems = computed(() => [
   },
   {
     label: 'EN/RU',
-    icon: 'pi pi-globe',
+    icon: 'fi fi-rr-globe',
     command: toggleLocale
   },
   {
     label: t('changePassword'),
-    icon: 'pi pi-key',
+    icon: 'fi fi-rr-key',
     command: showPasswordChange
   },
   {
@@ -309,7 +309,7 @@ const userMenuItems = computed(() => [
   },
   {
     label: t('exit'),
-    icon: 'pi pi-sign-out',
+    icon: 'fi fi-rr-sign-out-alt',
     command: logout,
     class: 'text-red-500'
   }

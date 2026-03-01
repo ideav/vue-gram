@@ -20,7 +20,7 @@
           <Message severity="error" :closable="false">{{ errorMessage }}</Message>
           <Button
             label="Вернуться к списку таблиц"
-            icon="pi pi-arrow-left"
+            icon="fi fi-rr-arrow-left"
             class="mt-3"
             @click="router.push(`/${database}/dict`)"
           />
@@ -65,7 +65,7 @@ const initialTypeId = computed(() => route.query.typeId)
 
 // Breadcrumb items
 const breadcrumbItems = computed(() => [
-  { label: 'Структура', icon: 'pi pi-sitemap' }
+  { label: 'Структура', icon: 'fi fi-rr-sitemap' }
 ])
 
 // Methods

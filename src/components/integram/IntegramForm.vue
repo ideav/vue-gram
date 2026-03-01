@@ -31,7 +31,7 @@
         <div v-if="selectedForm">
           <div class="mb-3">
             <Button
-              icon="pi pi-arrow-left"
+              icon="fi fi-rr-arrow-left"
               label="Назад к выбору"
               @click="resetForm"
               text
@@ -85,7 +85,7 @@
                   <pre class="text-sm bg-gray-100 p-2 border-round">{{ panel.query }}</pre>
                   <Button
                     label="Выполнить запрос"
-                    icon="pi pi-play"
+                    icon="fi fi-rr-play"
                     @click="executePanelQuery(panel)"
                     class="mt-2"
                     aria-label="Выполнить SQL запрос"
@@ -104,13 +104,13 @@
 
         <!-- Empty State -->
         <div v-if="!selectedForm && availableForms.length === 0" class="integram-empty-state">
-          <i class="pi pi-inbox empty-icon"></i>
+          <i class="fi fi-rr-inbox empty-icon"></i>
           <p class="empty-title">Формы не найдены</p>
           <p class="empty-description">Создайте первую форму для отображения данных</p>
           <div class="empty-action">
             <Button
               label="Создать форму"
-              icon="pi pi-plus"
+              icon="fi fi-rr-plus"
               @click="createNewForm"
               aria-label="Создать новую форму"
             />
@@ -148,7 +148,7 @@ const breadcrumbItems = computed(() => {
   const items = [
     {
       label: 'Формы',
-      icon: 'pi pi-file',
+      icon: 'fi fi-rr-file',
       to: selectedForm.value ? '/form' : undefined
     }
   ]
@@ -157,7 +157,7 @@ const breadcrumbItems = computed(() => {
   if (selectedForm.value?.name) {
     items.push({
       label: selectedForm.value.name,
-      icon: 'pi pi-file'
+      icon: 'fi fi-rr-file'
     })
   }
 

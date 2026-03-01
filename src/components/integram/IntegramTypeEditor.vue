@@ -114,7 +114,7 @@
 
         <div class="col-12 md:col-3 flex align-items-end">
           <Button
-            icon="pi pi-plus"
+            icon="fi fi-rr-plus"
             label="Добавить"
             @click="createType"
             :loading="loading.create"
@@ -148,7 +148,7 @@
     <Panel header="Поиск типов" :toggleable="true" :collapsed="collapseSearch" class="mb-2">
       <div class="flex gap-2 align-items-center flex-wrap">
         <IconField iconPosition="left" class="flex-1">
-          <InputIcon class="pi pi-search" />
+          <InputIcon class="fi fi-rr-search" />
           <InputText
             v-model="searchQuery"
             placeholder="Поиск по названию типа..."
@@ -158,7 +158,7 @@
           />
         </IconField>
         <Button
-          icon="pi pi-times"
+          icon="fi fi-rr-cross-small"
           label="Очистить"
           @click="clearSearch"
           severity="secondary"
@@ -216,7 +216,7 @@
                 <div class="flex gap-2 align-items-center">
                   <Badge v-if="type.requisites?.length" :value="type.requisites.length" severity="secondary" />
                   <Button
-                    :icon="expandedTypes.includes(type.id) ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"
+                    :icon="expandedTypes.includes(type.id) ? 'fi fi-rr-angle-small-up' : 'fi fi-rr-angle-small-down'"
                     @click="toggleTypeExpansion(type.id)"
                     text
                     rounded
@@ -245,21 +245,21 @@
                 <!-- Actions -->
                 <div class="integram-actions mb-3">
                   <Button
-                    icon="pi pi-pencil"
+                    icon="fi fi-rr-pencil"
                     label="Редактировать тип"
                     @click="editType(type)"
                     outlined
                     aria-label="Редактировать тип"
                   />
                   <Button
-                    icon="pi pi-eye"
+                    icon="fi fi-rr-eye"
                     label="Просмотр таблицы"
                     @click="viewTable(type.id)"
                     outlined
                     aria-label="Открыть таблицу"
                   />
                   <Button
-                    icon="pi pi-sitemap"
+                    icon="fi fi-rr-sitemap"
                     label="Создать подчинённый"
                     @click="showSubordinateTypeDialog(type)"
                     outlined
@@ -268,7 +268,7 @@
                     v-tooltip.top="'Создать подчинённый тип (таблица со ссылкой на родителя)'"
                   />
                   <Button
-                    icon="pi pi-link"
+                    icon="fi fi-rr-link"
                     label="Создать ссылку"
                     @click="createReferenceToType(type)"
                     outlined
@@ -279,7 +279,7 @@
                   <!-- Кнопка удаления визуально отделена (margin-left: auto в CSS) -->
                   <Button
                     v-if="!type.hasReferences"
-                    icon="pi pi-trash"
+                    icon="fi fi-rr-trash"
                     label="Удалить тип"
                     @click="confirmDeleteType(type)"
                     severity="danger"
@@ -294,7 +294,7 @@
                     <div class="flex justify-content-between align-items-center w-full">
                       <span>Реквизиты (колонки)</span>
                       <Button
-                        icon="pi pi-plus"
+                        icon="fi fi-rr-plus"
                         label="Добавить реквизит"
                         @click="showAddRequisiteDialog(type)"
                         aria-label="Добавить новый реквизит"
@@ -337,7 +337,7 @@
                         <template #body="{ data }">
                           <div class="integram-actions">
                             <Button
-                              icon="pi pi-arrow-up"
+                              icon="fi fi-rr-arrow-up"
                               @click="moveRequisiteUp(type, data)"
                               text
                               rounded
@@ -345,7 +345,7 @@
                               aria-label="Переместить реквизит выше"
                             />
                             <Button
-                              icon="pi pi-arrow-down"
+                              icon="fi fi-rr-arrow-down"
                               @click="moveRequisiteDown(type, data)"
                               text
                               rounded
@@ -353,7 +353,7 @@
                               aria-label="Переместить реквизит ниже"
                             />
                             <Button
-                              icon="pi pi-pencil"
+                              icon="fi fi-rr-pencil"
                               @click="editRequisite(type, data)"
                               text
                               rounded
@@ -362,7 +362,7 @@
                             />
                             <!-- Кнопка удаления визуально отделена -->
                             <Button
-                              icon="pi pi-trash"
+                              icon="fi fi-rr-trash"
                               @click="confirmDeleteRequisite(type, data)"
                               severity="danger"
                               text
@@ -472,7 +472,7 @@
             />
             <div class="p-3 surface-ground border-round">
               <div class="flex align-items-center gap-2 mb-2">
-                <i class="pi pi-info-circle text-primary"></i>
+                <i class="fi fi-rr-info text-primary"></i>
                 <span class="font-semibold">CALCULATABLE:</span>
               </div>
               <ul class="m-0 pl-4 text-sm">
@@ -511,14 +511,14 @@
         <div class="integram-actions justify-content-end w-full">
           <Button
             label="Отмена"
-            icon="pi pi-times"
+            icon="fi fi-rr-cross-small"
             @click="requisiteDialog.visible = false"
             text
             aria-label="Отменить"
           />
           <Button
             :label="requisiteDialog.mode === 'add' ? 'Добавить' : 'Сохранить'"
-            icon="pi pi-check"
+            icon="fi fi-rr-check"
             @click="saveRequisite"
             :disabled="!requisiteDialog.data.name || !requisiteDialog.data.type || (requisiteDialog.data.type === 'CALCULATABLE' && !requisiteDialog.data.defaultValue)"
             aria-label="Сохранить реквизит"
@@ -535,7 +535,7 @@
       :style="{ width: '450px' }"
     >
       <div class="flex align-items-center gap-3">
-        <i class="pi pi-exclamation-triangle text-4xl text-warning"></i>
+        <i class="fi fi-rr-triangle-warning text-4xl text-warning"></i>
         <span>
           Вы уверены, что хотите удалить <strong>{{ deleteDialog.itemName }}</strong>?
         </span>
@@ -544,14 +544,14 @@
         <div class="integram-actions justify-content-end w-full">
           <Button
             label="Отмена"
-            icon="pi pi-times"
+            icon="fi fi-rr-cross-small"
             @click="deleteDialog.visible = false"
             text
             aria-label="Отменить удаление"
           />
           <Button
             label="Удалить"
-            icon="pi pi-trash"
+            icon="fi fi-rr-trash"
             severity="danger"
             @click="executeDelete"
             aria-label="Подтвердить удаление"
@@ -570,7 +570,7 @@
       <div class="flex flex-column gap-3">
         <div class="p-3 surface-ground border-round">
           <div class="flex align-items-center gap-2 mb-2">
-            <i class="pi pi-info-circle text-primary"></i>
+            <i class="fi fi-rr-info text-primary"></i>
             <span class="font-semibold">Родительский тип:</span>
           </div>
           <div class="text-lg">{{ subordinateTypeDialog.parentType?.name }}</div>
@@ -604,14 +604,14 @@
         <div class="integram-actions justify-content-end w-full">
           <Button
             label="Отмена"
-            icon="pi pi-times"
+            icon="fi fi-rr-cross-small"
             @click="subordinateTypeDialog.visible = false"
             text
             aria-label="Отменить"
           />
           <Button
             label="Создать"
-            icon="pi pi-plus"
+            icon="fi fi-rr-plus"
             @click="createSubordinateType"
             :disabled="!subordinateTypeDialog.name"
             :loading="loading.createSubordinate"
@@ -631,7 +631,7 @@
       <div class="flex flex-column gap-3">
         <div class="p-3 surface-ground border-round">
           <div class="flex align-items-center gap-2 mb-2">
-            <i class="pi pi-pencil text-primary"></i>
+            <i class="fi fi-rr-pencil text-primary"></i>
             <span class="font-semibold">Редактирование типа:</span>
           </div>
           <div class="text-lg">{{ editTypeDialog.originalName }}</div>
@@ -672,14 +672,14 @@
         <div class="integram-actions justify-content-end w-full">
           <Button
             label="Отмена"
-            icon="pi pi-times"
+            icon="fi fi-rr-cross-small"
             @click="editTypeDialog.visible = false"
             text
             aria-label="Отменить"
           />
           <Button
             label="Сохранить"
-            icon="pi pi-check"
+            icon="fi fi-rr-check"
             @click="saveEditedType"
             :disabled="!editTypeDialog.name"
             :loading="loading.editType"
@@ -712,9 +712,9 @@ const toast = useToast();
 // View mode - default to 'legacy' (connections view)
 const viewMode = ref('legacy');
 const viewModeOptions = [
-  { value: 'legacy', label: 'Связи', icon: 'pi pi-share-alt' },
-  { value: 'tree', label: 'Дерево', icon: 'pi pi-sitemap' },
-  { value: 'list', label: 'Список', icon: 'pi pi-list' }
+  { value: 'legacy', label: 'Связи', icon: 'fi fi-rr-share' },
+  { value: 'tree', label: 'Дерево', icon: 'fi fi-rr-sitemap' },
+  { value: 'list', label: 'Список', icon: 'fi fi-rr-list' }
 ];
 
 // Base types (all types including hidden system types)

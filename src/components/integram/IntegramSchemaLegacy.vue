@@ -68,7 +68,7 @@
     <!-- Toolbar -->
     <div class="legacy-toolbar">
       <IconField iconPosition="left">
-        <InputIcon class="pi pi-search" />
+        <InputIcon class="fi fi-rr-search" />
         <InputText
           v-model="searchQuery"
           placeholder="Поиск таблиц..."
@@ -78,7 +78,7 @@
       </IconField>
       <Button
         v-if="searchQuery"
-        icon="pi pi-times"
+        icon="fi fi-rr-cross-small"
         text
         rounded
         size="small"
@@ -87,7 +87,7 @@
       <div class="toolbar-divider"></div>
       <!-- Show all connections toggle -->
       <Button
-        :icon="showAllConnections ? 'pi pi-eye-slash' : 'pi pi-share-alt'"
+        :icon="showAllConnections ? 'fi fi-rr-eye-crossed' : 'fi fi-rr-share'"
         :label="showAllConnections ? 'Скрыть связи' : 'Все связи'"
         :severity="showAllConnections ? 'warning' : 'secondary'"
         size="small"
@@ -96,7 +96,7 @@
         v-tooltip.bottom="'Показать/скрыть все связи между таблицами'"
       />
       <Button
-        icon="pi pi-expand"
+        icon="fi fi-rr-expand"
         label="Развернуть"
         severity="secondary"
         size="small"
@@ -105,7 +105,7 @@
         v-tooltip.bottom="'Развернуть все таблицы'"
       />
       <Button
-        icon="pi pi-minus"
+        icon="fi fi-rr-minus"
         label="Свернуть"
         severity="secondary"
         size="small"
@@ -147,7 +147,7 @@
           <!-- Action buttons -->
           <div class="type-actions" @click.stop>
             <Button
-              icon="pi pi-database"
+              icon="fi fi-rr-database"
               text
               rounded
               size="small"
@@ -156,7 +156,7 @@
               @click="emit('open-table', type.id)"
             />
             <Button
-              icon="pi pi-cog"
+              icon="fi fi-rr-settings"
               text
               rounded
               size="small"
@@ -165,7 +165,7 @@
               @click="emit('edit-type', type.id)"
             />
           </div>
-          <i :class="expandedTypes.has(type.id) ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"></i>
+          <i :class="expandedTypes.has(type.id) ? 'fi fi-rr-angle-small-up' : 'fi fi-rr-angle-small-down'"></i>
         </div>
 
         <!-- Requisites -->
@@ -310,9 +310,9 @@ function clearSearch() {
 }
 
 function getTypeIcon(type) {
-  if (type.isReferenceTable) return 'pi pi-book'
-  if (type.isService) return 'pi pi-cog'
-  return 'pi pi-table'
+  if (type.isReferenceTable) return 'fi fi-rr-book'
+  if (type.isService) return 'fi fi-rr-settings'
+  return 'fi fi-rr-table'
 }
 
 function getReqTypeClass(type) {

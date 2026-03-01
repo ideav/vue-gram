@@ -5,14 +5,14 @@
       <h4 class="m-0">{{ tableTitle }}</h4>
       <div class="flex gap-2">
         <Button
-          icon="pi pi-plus"
+          icon="fi fi-rr-plus"
           label="Добавить строку"
           @click="addNewRow"
           size="small"
           :disabled="!canEdit"
         />
         <Button
-          icon="pi pi-table"
+          icon="fi fi-rr-table"
           label="Добавить колонку"
           @click="showAddColumnDialog"
           size="small"
@@ -20,7 +20,7 @@
           :disabled="!canEdit"
         />
         <Button
-          icon="pi pi-pencil"
+          icon="fi fi-rr-pencil"
           :label="inlineEditMode ? 'Отключить редактирование' : 'Редактировать в таблице'"
           @click="toggleInlineEdit"
           size="small"
@@ -28,7 +28,7 @@
           outlined
         />
         <Button
-          icon="pi pi-download"
+          icon="fi fi-rr-download"
           label="Экспорт"
           @click="exportTable"
           size="small"
@@ -129,7 +129,7 @@
           <div class="flex align-items-center justify-content-between">
             <span>{{ getRequisiteName(reqId) }}</span>
             <Button
-              icon="pi pi-trash"
+              icon="fi fi-rr-trash"
               @click="confirmDeleteColumn(reqId)"
               size="small"
               text
@@ -147,7 +147,7 @@
         <template #body="{ data }">
           <div class="flex gap-2">
             <Button
-              icon="pi pi-eye"
+              icon="fi fi-rr-eye"
               @click="viewObject(data.id)"
               size="small"
               text
@@ -155,7 +155,7 @@
               v-tooltip="'Просмотр'"
             />
             <Button
-              icon="pi pi-pencil"
+              icon="fi fi-rr-pencil"
               @click="editObject(data.id)"
               size="small"
               text
@@ -164,7 +164,7 @@
               v-tooltip="'Редактировать'"
             />
             <Button
-              icon="pi pi-trash"
+              icon="fi fi-rr-trash"
               @click="confirmDeleteRow(data.id)"
               size="small"
               text
@@ -217,10 +217,10 @@
         </div>
       </div>
       <template #footer>
-        <Button label="Отмена" icon="pi pi-times" @click="addColumnDialog.visible = false" text />
+        <Button label="Отмена" icon="fi fi-rr-cross-small" @click="addColumnDialog.visible = false" text />
         <Button
           label="Добавить"
-          icon="pi pi-check"
+          icon="fi fi-rr-check"
           @click="addColumn"
           :loading="addColumnDialog.loading"
           :disabled="!addColumnDialog.typeId"
@@ -236,14 +236,14 @@
       :style="{ width: '450px' }"
     >
       <div class="flex align-items-center gap-3">
-        <i class="pi pi-exclamation-triangle text-4xl text-warning"></i>
+        <i class="fi fi-rr-triangle-warning text-4xl text-warning"></i>
         <span>Вы уверены, что хотите удалить строку с ID <strong>{{ deleteRowDialog.objectId }}</strong>?</span>
       </div>
       <template #footer>
-        <Button label="Отмена" icon="pi pi-times" @click="deleteRowDialog.visible = false" text />
+        <Button label="Отмена" icon="fi fi-rr-cross-small" @click="deleteRowDialog.visible = false" text />
         <Button
           label="Удалить"
-          icon="pi pi-check"
+          icon="fi fi-rr-check"
           severity="danger"
           @click="deleteRow"
           :loading="deleteRowDialog.loading"
@@ -259,17 +259,17 @@
       :style="{ width: '450px' }"
     >
       <div class="flex align-items-center gap-3">
-        <i class="pi pi-exclamation-triangle text-4xl text-warning"></i>
+        <i class="fi fi-rr-triangle-warning text-4xl text-warning"></i>
         <span>
           Вы уверены, что хотите удалить колонку <strong>{{ getRequisiteName(deleteColumnDialog.reqId) }}</strong>?
           Это действие удалит реквизит из типа.
         </span>
       </div>
       <template #footer>
-        <Button label="Отмена" icon="pi pi-times" @click="deleteColumnDialog.visible = false" text />
+        <Button label="Отмена" icon="fi fi-rr-cross-small" @click="deleteColumnDialog.visible = false" text />
         <Button
           label="Удалить"
-          icon="pi pi-check"
+          icon="fi fi-rr-check"
           severity="danger"
           @click="deleteColumn"
           :loading="deleteColumnDialog.loading"

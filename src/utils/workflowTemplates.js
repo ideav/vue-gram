@@ -17,7 +17,7 @@ export const workflowTemplates = {
         data: {
           nodeType: 'StartNode',
           category: 'control',
-          icon: 'pi-play',
+          icon: 'fi-rr-play',
           description: 'Workflow entry point'
         }
       },
@@ -29,7 +29,7 @@ export const workflowTemplates = {
         data: {
           nodeType: 'DataSourceNode',
           category: 'data',
-          icon: 'pi-database',
+          icon: 'fi-rr-database',
           description: 'Fetch data from YouTube API',
           config: {
             source: 'youtube-api',
@@ -45,7 +45,7 @@ export const workflowTemplates = {
         data: {
           nodeType: 'FilterNode',
           category: 'transform',
-          icon: 'pi-filter',
+          icon: 'fi-rr-filter',
           description: 'Filter active channels only',
           config: {
             condition: 'status === "active"'
@@ -60,7 +60,7 @@ export const workflowTemplates = {
         data: {
           nodeType: 'AgentNode',
           category: 'agent',
-          icon: 'pi-android',
+          icon: 'fi-rr-robot',
           description: 'AI agent for trend analysis',
           config: {
             agentType: 'analytics',
@@ -76,7 +76,7 @@ export const workflowTemplates = {
         data: {
           nodeType: 'OutputNode',
           category: 'output',
-          icon: 'pi-file',
+          icon: 'fi-rr-file',
           description: 'Save analysis report',
           config: {
             destination: 'reports',
@@ -92,7 +92,7 @@ export const workflowTemplates = {
         data: {
           nodeType: 'EndNode',
           category: 'control',
-          icon: 'pi-stop',
+          icon: 'fi-rr-stop',
           description: 'Workflow exit point'
         }
       }
@@ -119,7 +119,7 @@ export const workflowTemplates = {
         data: {
           nodeType: 'StartNode',
           category: 'control',
-          icon: 'pi-play',
+          icon: 'fi-rr-play',
           description: 'Workflow entry point'
         }
       },
@@ -131,7 +131,7 @@ export const workflowTemplates = {
         data: {
           nodeType: 'DataSourceNode',
           category: 'data',
-          icon: 'pi-globe',
+          icon: 'fi-rr-globe',
           description: 'Fetch web page content',
           config: {
             source: 'http-request',
@@ -147,7 +147,7 @@ export const workflowTemplates = {
         data: {
           nodeType: 'AgentNode',
           category: 'agent',
-          icon: 'pi-code',
+          icon: 'fi-rr-code',
           description: 'Parse HTML content',
           config: {
             agentType: 'parser',
@@ -163,7 +163,7 @@ export const workflowTemplates = {
         data: {
           nodeType: 'FilterNode',
           category: 'transform',
-          icon: 'pi-check',
+          icon: 'fi-rr-check',
           description: 'Validate extracted data',
           config: {
             condition: 'data !== null && data.length > 0'
@@ -178,7 +178,7 @@ export const workflowTemplates = {
         data: {
           nodeType: 'OutputNode',
           category: 'output',
-          icon: 'pi-save',
+          icon: 'fi-rr-disk',
           description: 'Save scraped data',
           config: {
             destination: 'database',
@@ -194,7 +194,7 @@ export const workflowTemplates = {
         data: {
           nodeType: 'EndNode',
           category: 'control',
-          icon: 'pi-stop',
+          icon: 'fi-rr-stop',
           description: 'Workflow exit point'
         }
       }
@@ -221,7 +221,7 @@ export const workflowTemplates = {
         data: {
           nodeType: 'StartNode',
           category: 'control',
-          icon: 'pi-play',
+          icon: 'fi-rr-play',
           description: 'Workflow entry point'
         }
       },
@@ -233,7 +233,7 @@ export const workflowTemplates = {
         data: {
           nodeType: 'DataSourceNode',
           category: 'data',
-          icon: 'pi-wifi',
+          icon: 'fi-rr-wifi',
           description: 'Receive MAVLink telemetry',
           config: {
             source: 'mavlink',
@@ -250,7 +250,7 @@ export const workflowTemplates = {
         data: {
           nodeType: 'FilterNode',
           category: 'transform',
-          icon: 'pi-exclamation-triangle',
+          icon: 'fi-rr-triangle-warning',
           description: 'Filter critical events',
           config: {
             condition: 'severity >= "warning"'
@@ -265,7 +265,7 @@ export const workflowTemplates = {
         data: {
           nodeType: 'AgentNode',
           category: 'agent',
-          icon: 'pi-bell',
+          icon: 'fi-rr-bell',
           description: 'Handle critical alerts',
           config: {
             agentType: 'notification',
@@ -281,7 +281,7 @@ export const workflowTemplates = {
         data: {
           nodeType: 'DataSourceNode',
           category: 'data',
-          icon: 'pi-chart-line',
+          icon: 'fi-rr-chart-line-up',
           description: 'Process normal telemetry',
           config: {
             source: 'telemetry-buffer'
@@ -296,7 +296,7 @@ export const workflowTemplates = {
         data: {
           nodeType: 'OutputNode',
           category: 'output',
-          icon: 'pi-database',
+          icon: 'fi-rr-database',
           description: 'Store telemetry data',
           config: {
             destination: 'timeseries-db',
@@ -312,7 +312,7 @@ export const workflowTemplates = {
         data: {
           nodeType: 'EndNode',
           category: 'control',
-          icon: 'pi-stop',
+          icon: 'fi-rr-stop',
           description: 'Workflow exit point'
         }
       }
@@ -341,7 +341,7 @@ export const workflowTemplates = {
         data: {
           nodeType: 'StartNode',
           category: 'control',
-          icon: 'pi-play',
+          icon: 'fi-rr-play',
           description: 'Workflow entry point'
         }
       },
@@ -353,7 +353,7 @@ export const workflowTemplates = {
         data: {
           nodeType: 'DataSourceNode',
           category: 'data',
-          icon: 'pi-database',
+          icon: 'fi-rr-database',
           description: 'Input data source',
           config: {}
         }
@@ -366,7 +366,7 @@ export const workflowTemplates = {
         data: {
           nodeType: 'AgentNode',
           category: 'agent',
-          icon: 'pi-android',
+          icon: 'fi-rr-robot',
           description: 'Main processing logic',
           config: {}
         }
@@ -379,7 +379,7 @@ export const workflowTemplates = {
         data: {
           nodeType: 'OutputNode',
           category: 'output',
-          icon: 'pi-file',
+          icon: 'fi-rr-file',
           description: 'Save output',
           config: {}
         }
@@ -392,7 +392,7 @@ export const workflowTemplates = {
         data: {
           nodeType: 'EndNode',
           category: 'control',
-          icon: 'pi-stop',
+          icon: 'fi-rr-stop',
           description: 'Workflow exit point'
         }
       }

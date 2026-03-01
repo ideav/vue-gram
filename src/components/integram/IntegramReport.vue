@@ -7,7 +7,7 @@
           <span>{{ reportTitle }}</span>
           <div class="flex gap-2 align-items-center ml-auto">
             <Button
-              icon="pi pi-filter"
+              icon="fi fi-rr-filter"
               @click="showFilters = !showFilters"
               size="small"
               rounded
@@ -16,7 +16,7 @@
               v-tooltip.bottom="showFilters ? 'Скрыть фильтры' : 'Показать фильтры'"
             />
             <Button
-              icon="pi pi-arrows-h"
+              icon="fi fi-rr-arrows-alt-h"
               @click="toggleCompactMode"
               size="small"
               rounded
@@ -24,7 +24,7 @@
               v-tooltip.bottom="compactMode ? 'Обычный' : 'Компактный'"
             />
             <Button
-              icon="pi pi-file"
+              icon="fi fi-rr-file"
               @click="exportToHTML"
               size="small"
               rounded
@@ -33,7 +33,7 @@
               v-tooltip.bottom="HTML"
             />
             <Button
-              icon="pi pi-download"
+              icon="fi fi-rr-download"
               @click="exportToExcel"
               size="small"
               rounded
@@ -42,7 +42,7 @@
               v-tooltip.bottom="Excel"
             />
             <Button
-              icon="pi pi-refresh"
+              icon="fi fi-rr-refresh"
               @click="emit('refresh')"
               size="small"
               rounded
@@ -99,14 +99,14 @@
       </div>
       <div class="flex gap-2 mt-3">
         <Button
-          icon="pi pi-check"
+          icon="fi fi-rr-check"
           label="Применить"
           @click="applyParameters"
           severity="primary"
           size="small"
         />
         <Button
-          icon="pi pi-times"
+          icon="fi fi-rr-cross-small"
           label="Сбросить"
           @click="resetParameters"
           severity="secondary"

@@ -13,7 +13,7 @@
       <div class="flex justify-content-between align-items-center mb-3">
         <h4 class="m-0">{{ typeData?.val || 'Подчинённые объекты' }}</h4>
         <Button
-          icon="pi pi-plus"
+          icon="fi fi-rr-plus"
           label="Добавить"
           size="small"
           @click="showAddDialog = true"
@@ -39,7 +39,7 @@
           <template #body="slotProps">
             <div class="flex gap-2">
               <Button
-                icon="pi pi-pencil"
+                icon="fi fi-rr-pencil"
                 text
                 rounded
                 size="small"
@@ -47,7 +47,7 @@
                 v-tooltip.bottom="'Редактировать'"
               />
               <Button
-                icon="pi pi-trash"
+                icon="fi fi-rr-trash"
                 text
                 rounded
                 size="small"
@@ -62,11 +62,11 @@
 
       <!-- Empty state -->
       <div v-else class="text-center py-5">
-        <i class="pi pi-inbox text-4xl text-color-secondary mb-2"></i>
+        <i class="fi fi-rr-inbox text-4xl text-color-secondary mb-2"></i>
         <p class="text-color-secondary">Нет подчинённых объектов</p>
         <Button
           label="Добавить первый объект"
-          icon="pi pi-plus"
+          icon="fi fi-rr-plus"
           outlined
           @click="showAddDialog = true"
         />
@@ -96,13 +96,13 @@
       <template #footer>
         <Button
           label="Отмена"
-          icon="pi pi-times"
+          icon="fi fi-rr-cross-small"
           text
           @click="closeAddDialog"
         />
         <Button
           label="Сохранить"
-          icon="pi pi-check"
+          icon="fi fi-rr-check"
           :loading="saving"
           @click="saveObject"
         />
@@ -121,13 +121,13 @@
       <template #footer>
         <Button
           label="Отмена"
-          icon="pi pi-times"
+          icon="fi fi-rr-cross-small"
           text
           @click="showDeleteDialog = false"
         />
         <Button
           label="Удалить"
-          icon="pi pi-trash"
+          icon="fi fi-rr-trash"
           severity="danger"
           :loading="deleting"
           @click="deleteObject"

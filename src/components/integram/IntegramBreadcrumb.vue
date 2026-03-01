@@ -35,7 +35,7 @@ const route = useRoute()
 const homeItem = computed(() => {
   const databaseName = props.database || route.params.database || integramApiClient.getDatabase()
   return {
-    icon: 'pi pi-database',
+    icon: 'fi fi-rr-database',
     route: databaseName ? `/${databaseName}/` : '/',
     label: databaseName || 'База'
   }

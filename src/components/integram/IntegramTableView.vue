@@ -6,13 +6,13 @@
           <nav aria-label="breadcrumb">
             <ol class="breadcrumb p-0 m-0">
               <li class="breadcrumb-item">
-                <router-link :to="`/${databaseName}`"><i class="pi pi-database mr-1"></i>{{ databaseName }}</router-link>
+                <router-link :to="`/${databaseName}`"><i class="fi fi-rr-database mr-1"></i>{{ databaseName }}</router-link>
               </li>
               <li class="breadcrumb-item">
-                <router-link :to="`/${databaseName}/dict`"><i class="pi pi-table mr-1"></i>Таблицы</router-link>
+                <router-link :to="`/${databaseName}/dict`"><i class="fi fi-rr-table mr-1"></i>Таблицы</router-link>
               </li>
               <li class="breadcrumb-item active" aria-current="page">
-                <i class="pi pi-bars mr-1"></i>{{ typeData?.val || 'Loading...' }}
+                <i class="fi fi-rr-menu-burger mr-1"></i>{{ typeData?.val || 'Loading...' }}
               </li>
             </ol>
           </nav>
@@ -20,7 +20,7 @@
           <div class="flex gap-2 align-items-center flex-wrap">
             <!-- Main controls -->
             <Button
-              icon="pi pi-plus"
+              icon="fi fi-rr-plus"
               label="Создать"
               size="small"
               @click="addRecord"
@@ -29,7 +29,7 @@
             />
 
             <Button
-              icon="pi pi-filter"
+              icon="fi fi-rr-filter"
               size="small"
               outlined
               @click="showFilters = !showFilters"
@@ -37,7 +37,7 @@
             />
 
             <Button
-              icon="pi pi-filter-slash"
+              icon="fi fi-rr-filter-slash"
               size="small"
               outlined
               @click="clearFilters"
@@ -46,7 +46,7 @@
             />
 
             <Button
-              icon="pi pi-refresh"
+              icon="fi fi-rr-refresh"
               size="small"
               outlined
               @click="loadObjects"
@@ -55,7 +55,7 @@
             />
 
             <Button
-              icon="pi pi-pencil"
+              icon="fi fi-rr-pencil"
               size="small"
               outlined
               @click="toggleInlineEdit"
@@ -271,7 +271,7 @@
               <template #body="slotProps">
                 <div class="flex gap-1 justify-content-end action-buttons">
                   <Button
-                    icon="pi pi-pencil"
+                    icon="fi fi-rr-pencil"
                     text
                     rounded
                     size="small"
@@ -279,7 +279,7 @@
                     v-tooltip.bottom="'Редактировать'"
                   />
                   <Button
-                    icon="pi pi-trash"
+                    icon="fi fi-rr-trash"
                     text
                     rounded
                     size="small"
@@ -293,7 +293,7 @@
 
             <template #empty>
               <div class="text-center py-4">
-                <i class="pi pi-inbox text-4xl text-color-secondary mb-2"></i>
+                <i class="fi fi-rr-inbox text-4xl text-color-secondary mb-2"></i>
                 <p class="text-color-secondary">Объекты не найдены</p>
               </div>
             </template>
@@ -310,7 +310,7 @@
             <div class="mb-2">
               <strong>Выбрано строк: {{ selectedRows.length }}</strong>
               <Button
-                icon="pi pi-times"
+                icon="fi fi-rr-cross-small"
                 size="small"
                 text
                 rounded
@@ -369,7 +369,7 @@
             </div>
             <div class="flex gap-2 align-items-center">
               <Button
-                icon="pi pi-angle-left"
+                icon="fi fi-rr-angle-left"
                 size="small"
                 outlined
                 :disabled="currentPage === 1"
@@ -378,7 +378,7 @@
               />
               <span class="text-sm">Стр. {{ currentPage }}</span>
               <Button
-                icon="pi pi-angle-right"
+                icon="fi fi-rr-angle-right"
                 size="small"
                 outlined
                 :disabled="currentPage >= totalPages || objectsList.length < rowsPerPage"
@@ -430,7 +430,7 @@
           <label>Родитель</label>
           <div class="p-inputgroup">
             <span class="p-inputgroup-addon">
-              <i class="pi pi-link"></i>
+              <i class="fi fi-rr-link"></i>
             </span>
             <InputText
               :value="route.query.F_U || 'Не указан'"
@@ -439,10 +439,10 @@
             />
           </div>
           <small v-if="route.query.F_U" class="text-green-500">
-            <i class="pi pi-check"></i> Родитель определён автоматически из контекста
+            <i class="fi fi-rr-check"></i> Родитель определён автоматически из контекста
           </small>
           <small v-else class="text-orange-500">
-            <i class="pi pi-exclamation-triangle"></i> Откройте таблицу из родительской записи для создания подчинённых объектов
+            <i class="fi fi-rr-triangle-warning"></i> Откройте таблицу из родительской записи для создания подчинённых объектов
           </small>
         </div>
 
@@ -975,7 +975,7 @@ function confirmDelete(object) {
   confirm.require({
     message: `Вы уверены, что хотите удалить "${object.val}" (ID: ${object.id})?`,
     header: 'Подтверждение удаления',
-    icon: 'pi pi-exclamation-triangle',
+    icon: 'fi fi-rr-triangle-warning',
     acceptClass: 'p-button-danger',
     accept: () => {
       handleDelete(object.id);

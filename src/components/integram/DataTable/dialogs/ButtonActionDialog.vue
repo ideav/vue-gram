@@ -45,7 +45,7 @@
             </div>
           </div>
           <div v-if="selectedAction?.id === action.id" class="action-check">
-            <i class="pi pi-check"></i>
+            <i class="fi fi-rr-check"></i>
           </div>
         </div>
       </div>
@@ -53,7 +53,7 @@
       <!-- Advanced Parameters (shown when action is selected) -->
       <div v-if="selectedAction" class="advanced-params">
         <div class="params-header mb-3">
-          <i class="pi pi-cog"></i>
+          <i class="fi fi-rr-settings"></i>
           <span>Параметры действия</span>
         </div>
 
@@ -103,7 +103,7 @@
         <!-- Preview URL/Endpoint -->
         <div v-if="selectedAction.endpoint || selectedAction.actionType === 'custom-url'" class="preview-section mt-4 p-3">
           <div class="preview-label mb-2">
-            <i class="pi pi-eye"></i>
+            <i class="fi fi-rr-eye"></i>
             <span>Предпросмотр:</span>
           </div>
           <code class="preview-code">{{ previewEndpoint }}</code>
@@ -112,10 +112,10 @@
     </div>
 
     <template #footer>
-      <Button label="Отмена" icon="pi pi-times" @click="$emit('cancel')" text />
+      <Button label="Отмена" icon="fi fi-rr-cross-small" @click="$emit('cancel')" text />
       <Button
         label="Применить"
-        icon="pi pi-check"
+        icon="fi fi-rr-check"
         @click="$emit('confirm', { action: selectedAction, params: actionParams })"
         :disabled="!selectedAction || !isValid"
       />

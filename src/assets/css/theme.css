@@ -1,3 +1,7 @@
+/* Flaticon Uicons spin animation */
+.fi-spin { animation: fi-spin 2s infinite linear; }
+@keyframes fi-spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(359deg); } }
+
 /* Basic PrimeVue Styling */
 
 /* DataTable */

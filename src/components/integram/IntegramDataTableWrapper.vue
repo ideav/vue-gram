@@ -22,7 +22,7 @@
             <!-- Toolbar buttons -->
             <div class="flex gap-1">
               <Button
-                icon="pi pi-refresh"
+                icon="fi fi-rr-refresh"
                 size="small"
                 text
                 rounded
@@ -31,7 +31,7 @@
                 :loading="loading"
               />
               <Button
-                icon="pi pi-pencil"
+                icon="fi fi-rr-pencil"
                 size="small"
                 text
                 rounded
@@ -40,7 +40,7 @@
                 v-tooltip.bottom="editMode === 'single-click' ? 'Режим редактирования' : 'Включить редактирование'"
               />
               <Button
-                :icon="hasActiveFilters ? 'pi pi-filter-fill' : 'pi pi-filter'"
+                :icon="hasActiveFilters ? 'fi fi-sr-filter' : 'fi fi-rr-filter'"
                 size="small"
                 text
                 rounded
@@ -48,7 +48,7 @@
                 v-tooltip.bottom="'Фильтры'"
               />
               <Button
-                icon="pi pi-check-square"
+                icon="fi fi-rr-checkbox"
                 size="small"
                 text
                 rounded
@@ -57,7 +57,7 @@
                 v-tooltip.bottom="'Выделение строк'"
               />
               <Button
-                icon="pi pi-calculator"
+                icon="fi fi-rr-calculator"
                 size="small"
                 text
                 rounded
@@ -66,7 +66,7 @@
                 v-tooltip.bottom="'Футер с агрегациями'"
               />
               <Button
-                icon="pi pi-eye-slash"
+                icon="fi fi-rr-eye-crossed"
                 size="small"
                 text
                 rounded
@@ -74,7 +74,7 @@
                 v-tooltip.bottom="'Колонки'"
               />
               <Button
-                icon="pi pi-print"
+                icon="fi fi-rr-print"
                 size="small"
                 text
                 rounded
@@ -82,7 +82,7 @@
                 v-tooltip.bottom="'Печать'"
               />
               <Button
-                icon="pi pi-file-excel"
+                icon="fi fi-rr-file-excel"
                 size="small"
                 text
                 rounded
@@ -90,7 +90,7 @@
                 v-tooltip.bottom="'Excel'"
               />
               <Button
-                icon="pi pi-file-pdf"
+                icon="fi fi-rr-file-pdf"
                 size="small"
                 text
                 rounded
@@ -106,7 +106,7 @@
                 v-tooltip.bottom="`Плотность строк: ${getRowDensityLabel()}`"
               />
               <Button
-                icon="pi pi-cog"
+                icon="fi fi-rr-settings"
                 size="small"
                 text
                 rounded
@@ -114,7 +114,7 @@
                 v-tooltip.bottom="'Настройки'"
               />
               <Button
-                icon="pi pi-question-circle"
+                icon="fi fi-rr-question"
                 size="small"
                 text
                 rounded
@@ -123,7 +123,7 @@
               />
               <span class="toolbar-separator"></span>
               <Button
-                icon="pi pi-plus"
+                icon="fi fi-rr-plus"
                 size="small"
                 text
                 rounded
@@ -132,7 +132,7 @@
                 :loading="isAddingRow"
               />
               <Button
-                icon="pi pi-plus-circle"
+                icon="fi fi-rr-square-plus"
                 size="small"
                 text
                 rounded
@@ -145,7 +145,7 @@
             <!-- Search field with navigation (Phase 2) -->
             <div class="search-with-navigation">
               <IconField iconPosition="left" class="header-search">
-                <InputIcon class="pi pi-search" />
+                <InputIcon class="fi fi-rr-search" />
                 <InputText
                   v-model="searchQuery"
                   placeholder="Поиск..."
@@ -157,7 +157,7 @@
                   {{ currentMatchIndex + 1 }} / {{ searchMatches.length }}
                 </span>
                 <Button
-                  icon="pi pi-chevron-up"
+                  icon="fi fi-rr-angle-small-up"
                   size="small"
                   text
                   rounded
@@ -165,7 +165,7 @@
                   v-tooltip.bottom="'Предыдущий (Shift+F3)'"
                 />
                 <Button
-                  icon="pi pi-chevron-down"
+                  icon="fi fi-rr-angle-small-down"
                   size="small"
                   text
                   rounded
@@ -188,7 +188,7 @@
         <!-- Error state -->
         <div v-else-if="error" class="text-center py-5">
           <Message severity="error" :closable="false">{{ error }}</Message>
-          <Button label="Повторить" icon="pi pi-refresh" @click="loadData" class="mt-3" />
+          <Button label="Повторить" icon="fi fi-rr-refresh" @click="loadData" class="mt-3" />
         </div>
 
         <!-- Partial data warning -->
@@ -253,7 +253,7 @@
         <div v-if="isBackgroundLoading" class="bg-loading-overlay">
           <div class="bg-loading-indicator">
             <div class="flex align-items-center gap-3">
-              <i class="pi pi-spin pi-spinner"></i>
+              <i class="fi fi-spin fi-rr-spinner"></i>
               <div class="flex-1">
                 <div class="flex justify-content-between align-items-center mb-1">
                   <span class="font-medium">Загрузка всех данных</span>
@@ -262,7 +262,7 @@
                 <ProgressBar :value="backgroundProgress" :showValue="false" style="height: 6px;" />
               </div>
               <Button
-                icon="pi pi-times"
+                icon="fi fi-rr-cross-small"
                 text
                 rounded
                 size="small"
@@ -329,7 +329,7 @@
         <Button label="Отмена" text @click="showCreateDialog = false" />
         <Button
           label="Создать"
-          icon="pi pi-check"
+          icon="fi fi-rr-check"
           :loading="creating"
           :disabled="!createForm.value"
           @click="handleCreate"
@@ -379,7 +379,7 @@
         />
         <Button
           label="Добавить"
-          icon="pi pi-plus"
+          icon="fi fi-rr-plus"
           :loading="isAddingColumn"
           :disabled="!newColumnAlias.trim()"
           @click="createColumn"
@@ -399,8 +399,8 @@
       :breakpoints="{ '960px': '75vw', '640px': '90vw' }"
     >
       <div class="flex justify-content-between mb-4">
-        <Button label="Показать все" @click="selectAllColumns(true)" size="small" icon="pi pi-eye" outlined />
-        <Button label="Скрыть все" @click="selectAllColumns(false)" size="small" icon="pi pi-eye-slash" outlined severity="secondary" />
+        <Button label="Показать все" @click="selectAllColumns(true)" size="small" icon="fi fi-rr-eye" outlined />
+        <Button label="Скрыть все" @click="selectAllColumns(false)" size="small" icon="fi fi-rr-eye-crossed" outlined severity="secondary" />
       </div>
       <div class="flex flex-column gap-3 mb-4 max-h-20rem overflow-y-auto">
         <div v-for="column in columnOptions" :key="column.id" class="flex align-items-center p-2 surface-hover border-round">
@@ -413,7 +413,7 @@
       <template #footer>
         <div class="flex justify-content-between w-full">
           <Button label="Отменить" @click="showColumnSelector = false" text size="small" />
-          <Button label="Применить" @click="applyColumnSelection" size="small" icon="pi pi-check" />
+          <Button label="Применить" @click="applyColumnSelection" size="small" icon="fi fi-rr-check" />
         </div>
       </template>
     </Dialog>
@@ -427,11 +427,11 @@
       :breakpoints="{ '960px': '90vw' }"
     >
       <div v-if="filterConditions.length === 0" class="filter-empty-state">
-        <i class="pi pi-filter" style="font-size: 2rem; color: var(--text-color-secondary);"></i>
+        <i class="fi fi-rr-filter" style="font-size: 2rem; color: var(--text-color-secondary);"></i>
         <p class="mt-3 mb-3 text-color-secondary">Условия фильтрации не заданы</p>
         <Button
           label="Добавить условие"
-          icon="pi pi-plus"
+          icon="fi fi-rr-plus"
           outlined
           @click="addCondition"
         />
@@ -446,7 +446,7 @@
           <div class="condition-header">
             <h4 class="condition-title">Условие {{ index + 1 }}</h4>
             <Button
-              icon="pi pi-trash"
+              icon="fi fi-rr-trash"
               text
               rounded
               severity="danger"
@@ -586,7 +586,7 @@
         <div class="mt-3">
           <Button
             label="Добавить условие"
-            icon="pi pi-plus"
+            icon="fi fi-rr-plus"
             text
             class="w-full"
             @click="addCondition"
@@ -598,7 +598,7 @@
         <div class="flex justify-content-between align-items-center w-full">
           <Button
             label="Сбросить все"
-            icon="pi pi-filter-slash"
+            icon="fi fi-rr-filter-slash"
             @click="resetAllFilters"
             severity="danger"
             text
@@ -613,7 +613,7 @@
             <Button
               ref="filterApplyButton"
               label="Применить"
-              icon="pi pi-check"
+              icon="fi fi-rr-check"
               @click="applyFilter"
             />
           </div>
@@ -648,7 +648,7 @@
         <div class="flex justify-content-between w-full">
           <Button
             label="Добавить запись"
-            icon="pi pi-plus"
+            icon="fi fi-rr-plus"
             @click="createNestedRecord"
             outlined
           />
@@ -694,7 +694,7 @@
         <!-- Overview Section -->
         <div class="help-section">
           <div class="help-section-header">
-            <i class="pi pi-info-circle"></i>
+            <i class="fi fi-rr-info"></i>
             <h3>Обзор</h3>
           </div>
           <div class="help-info-block">
@@ -705,7 +705,7 @@
         <!-- Navigation Section -->
         <div class="help-section">
           <div class="help-section-header">
-            <i class="pi pi-arrows-alt"></i>
+            <i class="fi fi-rr-expand-arrows-alt"></i>
             <h3>Навигация и выделение</h3>
           </div>
           <div class="help-grid">
@@ -730,7 +730,7 @@
         <!-- Preview Section -->
         <div class="help-section">
           <div class="help-section-header">
-            <i class="pi pi-eye"></i>
+            <i class="fi fi-rr-eye"></i>
             <h3>Предварительный просмотр</h3>
           </div>
           <div class="help-info-block">
@@ -746,14 +746,14 @@
         <!-- Editing Section -->
         <div class="help-section">
           <div class="help-section-header">
-            <i class="pi pi-pencil"></i>
+            <i class="fi fi-rr-pencil"></i>
             <h3>Редактирование</h3>
           </div>
           <div class="help-grid">
             <div class="help-card">
               <div class="help-card-icon">✏️</div>
               <div class="help-card-title">Режим редактирования</div>
-              <div class="help-card-desc">Нажмите кнопку <i class="pi pi-pencil"></i> в тулбаре для переключения между режимами: одинарный клик / двойной клик.</div>
+              <div class="help-card-desc">Нажмите кнопку <i class="fi fi-rr-pencil"></i> в тулбаре для переключения между режимами: одинарный клик / двойной клик.</div>
             </div>
             <div class="help-card">
               <div class="help-card-icon">💾</div>
@@ -771,7 +771,7 @@
         <!-- Fill Handle Section -->
         <div class="help-section">
           <div class="help-section-header">
-            <i class="pi pi-arrows-v"></i>
+            <i class="fi fi-rr-arrows-alt-v"></i>
             <h3>Автозаполнение (протяжка)</h3>
           </div>
           <div class="help-info-block">
@@ -788,56 +788,56 @@
         <!-- Toolbar Section -->
         <div class="help-section">
           <div class="help-section-header">
-            <i class="pi pi-bars"></i>
+            <i class="fi fi-rr-menu-burger"></i>
             <h3>Панель инструментов</h3>
           </div>
           <div class="help-toolbar-grid">
             <div class="help-toolbar-item">
-              <i class="pi pi-refresh"></i>
+              <i class="fi fi-rr-refresh"></i>
               <span>Обновить данные</span>
             </div>
             <div class="help-toolbar-item">
-              <i class="pi pi-pencil"></i>
+              <i class="fi fi-rr-pencil"></i>
               <span>Режим редактирования</span>
             </div>
             <div class="help-toolbar-item">
-              <i class="pi pi-filter"></i>
+              <i class="fi fi-rr-filter"></i>
               <span>Фильтры</span>
             </div>
             <div class="help-toolbar-item">
-              <i class="pi pi-check-square"></i>
+              <i class="fi fi-rr-checkbox"></i>
               <span>Режим выделения строк</span>
             </div>
             <div class="help-toolbar-item">
-              <i class="pi pi-calculator"></i>
+              <i class="fi fi-rr-calculator"></i>
               <span>Футер с агрегациями</span>
             </div>
             <div class="help-toolbar-item">
-              <i class="pi pi-eye-slash"></i>
+              <i class="fi fi-rr-eye-crossed"></i>
               <span>Видимость колонок</span>
             </div>
             <div class="help-toolbar-item">
-              <i class="pi pi-print"></i>
+              <i class="fi fi-rr-print"></i>
               <span>Печать таблицы</span>
             </div>
             <div class="help-toolbar-item">
-              <i class="pi pi-file-excel"></i>
+              <i class="fi fi-rr-file-excel"></i>
               <span>Экспорт в Excel</span>
             </div>
             <div class="help-toolbar-item">
-              <i class="pi pi-file-pdf"></i>
+              <i class="fi fi-rr-file-pdf"></i>
               <span>Экспорт в PDF</span>
             </div>
             <div class="help-toolbar-item">
-              <i class="pi pi-cog"></i>
+              <i class="fi fi-rr-settings"></i>
               <span>Настройки</span>
             </div>
             <div class="help-toolbar-item">
-              <i class="pi pi-plus"></i>
+              <i class="fi fi-rr-plus"></i>
               <span>Новая строка</span>
             </div>
             <div class="help-toolbar-item">
-              <i class="pi pi-plus-circle"></i>
+              <i class="fi fi-rr-square-plus"></i>
               <span>Новая колонка</span>
             </div>
           </div>
@@ -846,7 +846,7 @@
         <!-- Column Header Section -->
         <div class="help-section">
           <div class="help-section-header">
-            <i class="pi pi-th-large"></i>
+            <i class="fi fi-rr-grid"></i>
             <h3>Заголовки колонок</h3>
           </div>
           <div class="help-grid">
@@ -871,7 +871,7 @@
         <!-- Context Menu Section -->
         <div class="help-section">
           <div class="help-section-header">
-            <i class="pi pi-list"></i>
+            <i class="fi fi-rr-list"></i>
             <h3>Контекстное меню (ПКМ)</h3>
           </div>
           <div class="help-info-block">
@@ -897,7 +897,7 @@
         <!-- Keyboard Shortcuts Section -->
         <div class="help-section">
           <div class="help-section-header">
-            <i class="pi pi-key"></i>
+            <i class="fi fi-rr-key"></i>
             <h3>Горячие клавиши</h3>
           </div>
           <div class="help-shortcuts">
@@ -927,7 +927,7 @@
         <!-- Duplicates Section -->
         <div class="help-section">
           <div class="help-section-header">
-            <i class="pi pi-copy"></i>
+            <i class="fi fi-rr-copy"></i>
             <h3>Поиск дубликатов</h3>
           </div>
           <div class="help-info-block">
@@ -937,7 +937,7 @@
       </div>
 
       <template #footer>
-        <Button label="Понятно" icon="pi pi-check" @click="showHelpDialog = false" />
+        <Button label="Понятно" icon="fi fi-rr-check" @click="showHelpDialog = false" />
       </template>
     </Dialog>
 
@@ -954,7 +954,7 @@
         <!-- Loading Settings Section -->
         <div class="settings-section">
           <div class="settings-section-header">
-            <i class="pi pi-download"></i>
+            <i class="fi fi-rr-download"></i>
             <h3>Загрузка данных</h3>
           </div>
           <div class="settings-options">
@@ -991,7 +991,7 @@
               </div>
             </div>
             <div class="settings-info-note">
-              <i class="pi pi-info-circle"></i>
+              <i class="fi fi-rr-info"></i>
               <span>Для таблиц > {{ settings.maxAutoLoadSize.toLocaleString() }} записей автозагрузка отключена.</span>
             </div>
           </div>
@@ -1000,7 +1000,7 @@
         <!-- Date Style Section -->
         <div class="settings-section">
           <div class="settings-section-header">
-            <i class="pi pi-calendar"></i>
+            <i class="fi fi-rr-calendar"></i>
             <h3>Отображение дат</h3>
           </div>
           <div class="date-style-grid">
@@ -1045,7 +1045,7 @@
       </div>
 
       <template #footer>
-        <Button label="Готово" icon="pi pi-check" @click="showSettingsDialog = false" />
+        <Button label="Готово" icon="fi fi-rr-check" @click="showSettingsDialog = false" />
       </template>
     </Dialog>
   </div>
@@ -1167,10 +1167,10 @@ function cycleRowDensity() {
 
 function getRowDensityIcon() {
   switch (rowDensity.value) {
-    case 'compact': return 'pi pi-bars'
-    case 'comfortable': return 'pi pi-th-large'
-    case 'spacious': return 'pi pi-stop'
-    default: return 'pi pi-th-large'
+    case 'compact': return 'fi fi-rr-menu-burger'
+    case 'comfortable': return 'fi fi-rr-grid'
+    case 'spacious': return 'fi fi-rr-stop'
+    default: return 'fi fi-rr-grid'
   }
 }
 
@@ -1380,7 +1380,7 @@ const createForm = ref({
 })
 
 // ✅ Extract constant breadcrumb item to avoid recreation
-const TABLES_BREADCRUMB_ITEM = Object.freeze({ label: 'Таблицы', to: `/table`, icon: 'pi pi-table' })
+const TABLES_BREADCRUMB_ITEM = Object.freeze({ label: 'Таблицы', to: `/table`, icon: 'fi fi-rr-table' })
 
 // Computed
 const database = computed(() => props.databaseProp || props.database || route.params.database || sessionDatabase.value || 'A2025')
@@ -1396,7 +1396,7 @@ const apiServerUrl = computed(() => {
 const breadcrumbItems = computed(() => {
   const items = [TABLES_BREADCRUMB_ITEM]
   if (typeData.value?.val) {
-    items.push({ label: typeData.value.val, icon: 'pi pi-bars' })
+    items.push({ label: typeData.value.val, icon: 'fi fi-rr-menu-burger' })
   }
   return items
 })
@@ -3138,7 +3138,7 @@ function handleRowDelete(rowId) {
   confirm.require({
     message: `Вы уверены, что хотите удалить запись #${rowId}?`,
     header: 'Подтверждение удаления',
-    icon: 'pi pi-exclamation-triangle',
+    icon: 'fi fi-rr-triangle-warning',
     acceptClass: 'p-button-danger',
     accept: async () => {
       try {

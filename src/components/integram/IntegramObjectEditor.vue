@@ -24,7 +24,7 @@
           <div class="col-12 md:col-4 flex align-items-end">
             <Button
               label="Загрузить"
-              icon="pi pi-download"
+              icon="fi fi-rr-download"
               @click="loadObject"
               :loading="loading.object"
               :disabled="!objectId"
@@ -46,14 +46,14 @@
           </div>
           <div class="flex gap-2 align-items-center ml-auto">
             <Button
-              icon="pi pi-save"
+              icon="fi fi-rr-disk"
               label="Сохранить"
               @click="saveObject"
               :loading="loading.save"
               size="small"
             />
             <Button
-              icon="pi pi-copy"
+              icon="fi fi-rr-copy"
               @click="copyObject"
               :disabled="loading.save"
               outlined
@@ -62,7 +62,7 @@
               v-tooltip.bottom="'Копировать'"
             />
             <Button
-              icon="pi pi-times"
+              icon="fi fi-rr-cross-small"
               @click="closeEditor"
               outlined
               rounded
@@ -200,28 +200,28 @@ const breadcrumbItems = computed(() => {
   return [
     {
       label: 'Главная',
-      icon: 'pi pi-home',
+      icon: 'fi fi-rr-home',
       command: () => {
         // Navigate to home
       }
     },
     {
       label: 'Таблицы',
-      icon: 'pi pi-table',
+      icon: 'fi fi-rr-table',
       command: () => {
         // Navigate to tables
       }
     },
     {
       label: currentObject.value.typ_name,
-      icon: 'pi pi-bars',
+      icon: 'fi fi-rr-menu-burger',
       command: () => {
         // Navigate to parent table
       }
     },
     {
       label: currentObject.value.val,
-      icon: 'pi pi-file'
+      icon: 'fi fi-rr-file'
     }
   ]
 })
@@ -393,7 +393,7 @@ async function copyObject() {
   confirm.require({
     message: `Создать копию объекта "${currentObject.value.val}"?`,
     header: 'Подтверждение копирования',
-    icon: 'pi pi-question-circle',
+    icon: 'fi fi-rr-question',
     acceptLabel: 'Да, создать копию',
     rejectLabel: 'Отмена',
     accept: async () => {

@@ -43,7 +43,7 @@
         <div v-if="selectedType" class="upload-area">
           <div class="mb-3">
             <Button
-              icon="pi pi-arrow-left"
+              icon="fi fi-rr-arrow-left"
               label="Вернуться к выбору таблицы"
               @click="resetSelection"
               text
@@ -75,14 +75,14 @@
             <div class="integram-actions">
               <Button
                 label="Проверить"
-                icon="pi pi-check"
+                icon="fi fi-rr-check"
                 @click="validateFile"
                 :disabled="!fileContent"
                 aria-label="Проверить файл"
               />
               <Button
                 label="Настроить"
-                icon="pi pi-cog"
+                icon="fi fi-rr-settings"
                 @click="showSettings = !showSettings"
                 outlined
                 aria-label="Настройки импорта"
@@ -157,7 +157,7 @@
               <div class="flex gap-2 align-items-center">
                 <Button
                   label="Сохранить настройки"
-                  icon="pi pi-save"
+                  icon="fi fi-rr-disk"
                   size="small"
                   outlined
                   @click="saveImportSettings"
@@ -186,7 +186,7 @@
                 :class="{ 'has-formula': columnFormulas[col.field], 'is-skipped': columnSkipped[col.field] }"
               >
                 <div class="flex align-items-center gap-3 p-3 surface-50 border-round">
-                  <i class="pi pi-bars drag-handle cursor-move text-500"></i>
+                  <i class="fi fi-rr-menu-burger drag-handle cursor-move text-500"></i>
 
                   <!-- Skip Column Checkbox -->
                   <Checkbox
@@ -216,7 +216,7 @@
                       Пример: {{ preview[0]?.[col.field] || 'N/A' }}
                     </div>
                     <div v-if="columnFormulas[col.field]" class="text-xs text-green-500 mt-1">
-                      <i class="pi pi-calculator"></i> {{ columnFormulas[col.field] }}
+                      <i class="fi fi-rr-calculator"></i> {{ columnFormulas[col.field] }}
                     </div>
                   </div>
                   <div class="text-sm text-500">Позиция: {{ index + 1 }}</div>
@@ -229,7 +229,7 @@
           <Panel v-if="preview.length > 0" header="Формулы для вычисления полей" :toggleable="true" :collapsed="!showFormulaEditor">
             <template #header>
               <div class="flex align-items-center gap-2">
-                <i class="pi pi-calculator"></i>
+                <i class="fi fi-rr-calculator"></i>
                 <span>Формулы для вычисления полей</span>
                 <Badge v-if="Object.keys(columnFormulas).length > 0" :value="Object.keys(columnFormulas).length" severity="success" />
               </div>
@@ -253,13 +253,13 @@
                 />
                 <Button
                   label="Сохранить"
-                  icon="pi pi-check"
+                  icon="fi fi-rr-check"
                   size="small"
                   @click="saveFormula"
                   :disabled="!selectedFormulaField"
                 />
                 <Button
-                  icon="pi pi-trash"
+                  icon="fi fi-rr-trash"
                   severity="danger"
                   text
                   size="small"
@@ -309,14 +309,14 @@
           <div v-if="preview.length > 0" class="integram-actions">
             <Button
               label="Загрузить"
-              icon="pi pi-upload"
+              icon="fi fi-rr-upload"
               @click="confirmUpload = true"
               severity="warning"
               aria-label="Загрузить данные"
             />
             <Button
               label="Статистика"
-              icon="pi pi-chart-bar"
+              icon="fi fi-rr-chart-histogram"
               @click="showStats = !showStats"
               outlined
               aria-label="Показать статистику"
@@ -417,14 +417,14 @@
         <div class="integram-actions justify-content-end w-full">
           <Button
             label="Отменить"
-            icon="pi pi-times"
+            icon="fi fi-rr-cross-small"
             @click="confirmUpload = false"
             text
             aria-label="Отменить загрузку"
           />
           <Button
             label="Да, загружаем"
-            icon="pi pi-upload"
+            icon="fi fi-rr-upload"
             @click="doUpload"
             severity="warning"
             aria-label="Подтвердить загрузку"
@@ -457,7 +457,7 @@ const { setTimeout: setTimerTimeout } = useTimer()
 const breadcrumbItems = computed(() => [
   {
     label: 'Загрузка',
-    icon: 'pi pi-upload',
+    icon: 'fi fi-rr-upload',
     to: undefined // Current page
   }
 ])
@@ -879,9 +879,9 @@ function toggleLink(field) {
 
 function getLinkIcon(field) {
   const link = columnLinks.value[field] || 0
-  if (link === 2) return 'pi pi-list'
-  if (link === 1) return 'pi pi-link'
-  return 'pi pi-link'
+  if (link === 2) return 'fi fi-rr-list'
+  if (link === 1) return 'fi fi-rr-link'
+  return 'fi fi-rr-link'
 }
 
 function getLinkSeverity(field) {

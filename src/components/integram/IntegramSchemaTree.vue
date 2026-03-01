@@ -3,7 +3,7 @@
     <!-- Toolbar -->
     <div class="tree-toolbar">
       <IconField iconPosition="left">
-        <InputIcon class="pi pi-search" />
+        <InputIcon class="fi fi-rr-search" />
         <InputText
           v-model="searchQuery"
           placeholder="Поиск таблиц..."
@@ -13,7 +13,7 @@
       </IconField>
       <Button
         v-if="searchQuery"
-        icon="pi pi-times"
+        icon="fi fi-rr-cross-small"
         text
         rounded
         size="small"
@@ -21,7 +21,7 @@
       />
       <div class="toolbar-divider"></div>
       <Button
-        icon="pi pi-plus"
+        icon="fi fi-rr-plus"
         label="Развернуть все"
         severity="secondary"
         size="small"
@@ -29,7 +29,7 @@
         @click="expandAll"
       />
       <Button
-        icon="pi pi-minus"
+        icon="fi fi-rr-minus"
         label="Свернуть все"
         severity="secondary"
         size="small"
@@ -46,13 +46,13 @@
     <!-- Tree Legend -->
     <div class="tree-legend">
       <span class="legend-item">
-        <i class="pi pi-table" style="color: var(--p-primary-color)"></i> Таблица
+        <i class="fi fi-rr-table" style="color: var(--p-primary-color)"></i> Таблица
       </span>
       <span class="legend-item">
-        <i class="pi pi-book" style="color: #ff9800"></i> Справочник
+        <i class="fi fi-rr-book" style="color: #ff9800"></i> Справочник
       </span>
       <span class="legend-item">
-        <i class="pi pi-link" style="color: #9c27b0"></i> Ссылка
+        <i class="fi fi-rr-link" style="color: #9c27b0"></i> Ссылка
       </span>
       <span class="legend-item">
         <Badge value="U" severity="info" size="small" /> Уникальный
@@ -129,7 +129,7 @@
           <!-- Actions -->
           <div class="node-actions" v-if="node.type === 'table'">
             <Button
-              icon="pi pi-database"
+              icon="fi fi-rr-database"
               text
               rounded
               size="small"
@@ -138,7 +138,7 @@
               @click.stop="emit('open-table', node.typeId)"
             />
             <Button
-              icon="pi pi-cog"
+              icon="fi fi-rr-settings"
               text
               rounded
               size="small"
@@ -153,7 +153,7 @@
 
     <!-- Empty state -->
     <div v-if="treeNodes.length === 0" class="empty-state">
-      <i class="pi pi-inbox"></i>
+      <i class="fi fi-rr-inbox"></i>
       <p>Нет данных для отображения</p>
     </div>
   </div>
@@ -237,7 +237,7 @@ const treeNodes = computed(() => {
         isReference: req.isReference,
         refTarget: req.refTypeName,
         refTargetId: req.refTypeId,
-        icon: req.isReference ? 'pi pi-link' : 'pi pi-minus',
+        icon: req.isReference ? 'fi fi-rr-link' : 'fi fi-rr-minus',
         selectable: false
       }
 
@@ -263,7 +263,7 @@ const treeNodes = computed(() => {
       unique: type.unique,
       isReferenceTable: type.isReferenceTable,
       reqCount: type.requisites?.length || 0,
-      icon: type.isReferenceTable ? 'pi pi-book' : 'pi pi-table',
+      icon: type.isReferenceTable ? 'fi fi-rr-book' : 'fi fi-rr-table',
       children: children.length > 0 ? children : undefined
     }
   }
@@ -293,12 +293,12 @@ const totalReferences = computed(() => {
 // Methods
 function getNodeIcon(node) {
   if (node.type === 'table') {
-    return node.isReferenceTable ? 'pi pi-book' : 'pi pi-table'
+    return node.isReferenceTable ? 'fi fi-rr-book' : 'fi fi-rr-table'
   }
   if (node.type === 'requisite') {
-    return node.isReference ? 'pi pi-link' : 'pi pi-minus'
+    return node.isReference ? 'fi fi-rr-link' : 'fi fi-rr-minus'
   }
-  return 'pi pi-circle'
+  return 'fi fi-rr-circle'
 }
 
 function getReqTypeAbbr(type) {

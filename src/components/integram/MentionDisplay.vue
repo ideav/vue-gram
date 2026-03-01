@@ -10,7 +10,7 @@
             class="user-preview-avatar"
           />
           <div v-else class="user-preview-avatar-default">
-            <i class="pi pi-user"></i>
+            <i class="fi fi-rr-user"></i>
           </div>
           <div class="user-preview-info">
             <div class="user-preview-name">{{ hoveredUser.name }}</div>
@@ -39,7 +39,7 @@
           @error="console.log('[MentionDisplay] Photo load error for', segment.user.name, segment.user.photo)"
         />
         <span v-else class="mention-tag-avatar-default">
-          <i class="pi pi-user"></i>
+          <i class="fi fi-rr-user"></i>
         </span>
         <span class="mention-tag-name">{{ segment.user.name }}</span>
       </span>
@@ -104,12 +104,12 @@ const parseContactInfo = (text) => {
   // Replace phone numbers with clickable chips
   result = result.replace(phoneRegex, (match) => {
     const cleanPhone = match.replace(/[-.\s()]/g, '')
-    return `<a href="tel:${cleanPhone}" class="cell-chip cell-phone" title="Позвонить: ${match}" onclick="event.stopPropagation()"><i class="pi pi-phone"></i><span>${match}</span></a>`
+    return `<a href="tel:${cleanPhone}" class="cell-chip cell-phone" title="Позвонить: ${match}" onclick="event.stopPropagation()"><i class="fi fi-rr-phone"></i><span>${match}</span></a>`
   })
 
   // Replace emails with clickable chips
   result = result.replace(emailRegex, (match) => {
-    return `<a href="mailto:${match}" class="cell-chip cell-email" title="Написать: ${match}" onclick="event.stopPropagation()"><i class="pi pi-envelope"></i><span>${match}</span></a>`
+    return `<a href="mailto:${match}" class="cell-chip cell-email" title="Написать: ${match}" onclick="event.stopPropagation()"><i class="fi fi-rr-envelope"></i><span>${match}</span></a>`
   })
 
   return result

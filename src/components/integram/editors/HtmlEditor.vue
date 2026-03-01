@@ -12,7 +12,7 @@
     <div v-if="modelValue && !disabled" class="mt-2">
       <Button
         label="Предпросмотр"
-        icon="pi pi-eye"
+        icon="fi fi-rr-eye"
         size="small"
         text
         @click="showPreview = !showPreview"

@@ -32,7 +32,7 @@
 
       <!-- Loading state -->
       <div v-else class="dir-preview-loading">
-        <i class="pi pi-spin pi-spinner"></i>
+        <i class="fi fi-spin fi-rr-spinner"></i>
       </div>
     </Popover>
 
@@ -41,7 +41,7 @@
       <div v-if="currentNestedPreview" class="nested-preview-card">
         <!-- Header with table name -->
         <div class="nested-preview-header">
-          <i class="pi pi-table"></i>
+          <i class="fi fi-rr-table"></i>
           <span class="nested-preview-type">{{ currentNestedPreview.tableName }}</span>
           <span class="nested-preview-count-badge">{{ currentNestedPreview.totalCount }}</span>
         </div>
@@ -63,7 +63,7 @@
 
         <!-- Empty state -->
         <div v-else class="nested-preview-empty">
-          <i class="pi pi-inbox"></i>
+          <i class="fi fi-rr-inbox"></i>
           <span>Нет записей</span>
         </div>
 
@@ -71,7 +71,7 @@
 
       <!-- Loading state -->
       <div v-else class="nested-preview-loading">
-        <i class="pi pi-spin pi-spinner"></i>
+        <i class="fi fi-spin fi-rr-spinner"></i>
       </div>
     </Popover>
 
@@ -96,7 +96,7 @@
             size="small"
           >
             <template #prefix>
-              <i class="pi pi-search"></i>
+              <i class="fi fi-rr-search"></i>
             </template>
           </InputText>
         </div>
@@ -164,19 +164,19 @@
         </div>
       </div>
       <template #footer>
-        <Button label="Отмена" icon="pi pi-times" @click="cancelRowEdit" text />
-        <Button ref="rowEditSaveButton" label="Сохранить" icon="pi pi-check" @click="saveRowEdit" />
+        <Button label="Отмена" icon="fi fi-rr-cross-small" @click="cancelRowEdit" text />
+        <Button ref="rowEditSaveButton" label="Сохранить" icon="fi fi-rr-check" @click="saveRowEdit" />
       </template>
     </Dialog>
 
     <Dialog v-model:visible="isConfirmDialogVisible" header="Подтверждение" :style="{ width: '400px' }" :modal="true" @show="onConfirmDialogShow">
       <div class="confirmation-content">
-        <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem" />
+        <i class="fi fi-rr-triangle-warning mr-3" style="font-size: 2rem" />
         <span>{{ confirmMessage }}</span>
       </div>
       <template #footer>
-        <Button label="Отмена" icon="pi pi-times" @click="isConfirmDialogVisible = false" text />
-        <Button ref="confirmYesButton" label="Да" icon="pi pi-check" @click="confirmAction" />
+        <Button label="Отмена" icon="fi fi-rr-cross-small" @click="isConfirmDialogVisible = false" text />
+        <Button ref="confirmYesButton" label="Да" icon="fi fi-rr-check" @click="confirmAction" />
       </template>
     </Dialog>
 
@@ -254,7 +254,7 @@
           <div class="bulk-actions-buttons">
             <Button
               label="Удалить"
-              icon="pi pi-trash"
+              icon="fi fi-rr-trash"
               severity="danger"
               size="small"
               @click="bulkDeleteSelected"
@@ -262,14 +262,14 @@
             />
             <Button
               label="Экспорт"
-              icon="pi pi-file-excel"
+              icon="fi fi-rr-file-excel"
               severity="secondary"
               size="small"
               @click="bulkExportSelected"
             />
             <Button
               label="Отменить"
-              icon="pi pi-times"
+              icon="fi fi-rr-cross-small"
               text
               size="small"
               @click="clearSelection"
@@ -293,7 +293,7 @@
                   class="select-all-checkbox"
                   v-tooltip.bottom="'Выбрать все'"
                 />
-                <i v-else class="pi pi-hashtag"></i>
+                <i v-else class="fi fi-rr-hastag"></i>
               </div>
             </th>
 <th 
@@ -345,7 +345,7 @@
         <span class="header-text">{{ header.value }}</span>
         <span v-if="isColumnSorted(header.id)" class="sort-indicator">
           <span class="sort-order">{{ getSortInfo(header.id).order }}</span>
-          <i :class="getSortInfo(header.id).direction === 'asc' ? 'pi pi-arrow-up' : 'pi pi-arrow-down'"></i>
+          <i :class="getSortInfo(header.id).direction === 'asc' ? 'fi fi-rr-arrow-up' : 'fi fi-rr-arrow-down'"></i>
         </span>
         <span
           v-if="!props?.disableTypeEditing"
@@ -357,7 +357,7 @@
           <i class="fas fa-caret-down"></i>
         </span>
         <Button
-          :icon="hasActiveColumnFilter(header.id) ? 'pi pi-filter-fill' : 'pi pi-filter'"
+          :icon="hasActiveColumnFilter(header.id) ? 'fi fi-sr-filter' : 'fi fi-rr-filter'"
           class="p-button-text p-button-sm filter-button"
           :class="{ 'filter-active': hasActiveColumnFilter(header.id) }"
           :disabled="!props.allDataLoaded"
@@ -365,7 +365,7 @@
           v-tooltip.top="!props.allDataLoaded ? 'Фильтры доступны только при загрузке всех данных' : 'Фильтровать'"
         />
         <Button
-          icon="pi pi-bars"
+          icon="fi fi-rr-menu-burger"
           class="p-button-text p-button-sm group-button"
           @click.stop="toggleGroupBy(header.id)"
           :title="'Группировать по этому столбцу'"
@@ -391,8 +391,8 @@
                 @click="emitAddColumn"
                 title="Добавить колонку"
               >
-                <i v-if="props?.isAddingColumn" class="pi pi-spin pi-spinner"></i>
-                <i v-else class="pi pi-plus"></i>
+                <i v-if="props?.isAddingColumn" class="fi fi-spin fi-rr-spinner"></i>
+                <i v-else class="fi fi-rr-plus"></i>
               </button>
             </th>
           </tr>
@@ -407,7 +407,7 @@
             <!-- Group header row -->
             <tr v-if="item.type === 'group'" class="group-header" @click="toggleGroup(item.key)">
               <td :colspan="localHeaders.length + 1">
-                <i :class="['pi', expandedGroups[item.key] ? 'pi-chevron-down' : 'pi-chevron-right']"></i>
+                <i :class="['fi', expandedGroups[item.key] ? 'fi-rr-angle-small-down' : 'fi-rr-angle-small-right']"></i>
                 {{ formatMultiGroupHeader(item.key) }} ({{ item.data.rows.length }})
               </td>
             </tr>
@@ -445,7 +445,7 @@
                   <span class="row-number-text">{{ findRowIndex(item.data.id) + 1 }}</span>
                   <i
                     v-if="!props?.disableEditing"
-                    class="pi pi-pencil text-primary cursor-pointer row-edit-icon"
+                    class="fi fi-rr-pencil text-primary cursor-pointer row-edit-icon"
                     @click="startRowEdit(item.data)"
                     v-tooltip.right="{ value: 'Редактировать строку', showDelay: 1000 }"
                   ></i>
@@ -520,7 +520,7 @@
                         {{ item.data.cells[header.id]?.value || 0 }}
                       </span>
                       <span class="nested-label">{{ getNestedLabel(item.data.cells[header.id]?.value, header.label) }}</span>
-                      <i class="pi pi-chevron-right nested-arrow"></i>
+                      <i class="fi fi-rr-angle-small-right nested-arrow"></i>
                     </div>
                   </template>
 
@@ -571,7 +571,7 @@
                     >
                       <template #option="slotProps">
                         <div class="grant-option" :class="{ 'grant-option-system': isSystemGrant(slotProps.option.value) }">
-                          <i :class="slotProps.option.icon || 'pi pi-shield'" class="grant-option-icon"></i>
+                          <i :class="slotProps.option.icon || 'fi fi-rr-shield'" class="grant-option-icon"></i>
                           <span class="grant-option-label">{{ slotProps.option.label }}</span>
                           <Badge
                             v-if="slotProps.option.severity"
@@ -602,12 +602,12 @@
                         class="file-editor-label"
                         :title="editingValue || 'Выберите файл'"
                       >
-                        <i class="pi pi-upload file-editor-icon"></i>
+                        <i class="fi fi-rr-upload file-editor-icon"></i>
                         <span class="file-editor-text">{{ editingValue ? getFileName(editingValue) : 'Выберите файл...' }}</span>
                       </label>
                       <i
                         v-if="editingValue"
-                        class="pi pi-times file-editor-clear"
+                        class="fi fi-rr-cross-small file-editor-clear"
                         @click.stop="clearFileValue(header, item.data)"
                         title="Удалить файл"
                       ></i>
@@ -643,7 +643,7 @@
           <tr class="footer-row">
             <td class="row-counter-footer" :style="rowCounterStyle">
               <div class="footer-cell-content">
-                <i class="pi pi-calculator"></i>
+                <i class="fi fi-rr-calculator"></i>
               </div>
             </td>
             <td
@@ -677,8 +677,8 @@
           @click="emitAddRow"
         >
           <span class="add-row-icon">
-            <i v-if="props?.isAddingRow" class="pi pi-spin pi-spinner"></i>
-            <i v-else class="pi pi-plus"></i>
+            <i v-if="props?.isAddingRow" class="fi fi-spin fi-rr-spinner"></i>
+            <i v-else class="fi fi-rr-plus"></i>
           </span>
           <span class="add-row-text">Новая строка</span>
         </button>
@@ -790,7 +790,7 @@ const BUTTON_ACTIONS = [
   {
     id: 'update-cell',
     label: 'Обновить ячейку',
-    icon: 'pi pi-pencil',
+    icon: 'fi fi-rr-pencil',
     actionType: 'api-macro',
     method: 'POST',
     endpoint: '_m_set/[ID]',
@@ -803,7 +803,7 @@ const BUTTON_ACTIONS = [
   {
     id: 'delete-row',
     label: 'Удалить строку',
-    icon: 'pi pi-trash',
+    icon: 'fi fi-rr-trash',
     actionType: 'api-macro',
     method: 'POST',
     endpoint: '_m_del/[ID]',
@@ -815,7 +815,7 @@ const BUTTON_ACTIONS = [
   {
     id: 'move-up',
     label: 'Переместить вверх',
-    icon: 'pi pi-arrow-up',
+    icon: 'fi fi-rr-arrow-up',
     actionType: 'api-macro',
     method: 'POST',
     endpoint: '_m_up/[ID]',
@@ -826,7 +826,7 @@ const BUTTON_ACTIONS = [
   {
     id: 'move-to-parent',
     label: 'Изменить родителя',
-    icon: 'pi pi-sitemap',
+    icon: 'fi fi-rr-sitemap',
     actionType: 'api-macro',
     method: 'POST',
     endpoint: '_m_move/[ID]',
@@ -840,7 +840,7 @@ const BUTTON_ACTIONS = [
   {
     id: 'custom-url',
     label: 'Кастомный URL',
-    icon: 'pi pi-code',
+    icon: 'fi fi-rr-code',
     actionType: 'custom-url',
     description: 'Свой URL с поддержкой [ID] и [VAL] плейсхолдеров',
     params: ['customUrl'],
@@ -851,7 +851,7 @@ const BUTTON_ACTIONS = [
   {
     id: 'none',
     label: 'Без действия',
-    icon: 'pi pi-ban',
+    icon: 'fi fi-rr-ban',
     actionType: 'none',
     description: 'Кнопка без действия (неактивна)',
     params: []
@@ -1831,17 +1831,17 @@ const {
 // })
 
 const headerMenuItems = computed(() => [
-  { label: 'Фильтровать', icon: 'pi pi-filter', command: () => emit('open-filter', currentHeader.value?.id), disabled: props?.disableEditing },
-  { label: 'Переименовать', icon: 'pi pi-pencil', command: () => emitHeaderAction('rename'), disabled: props?.disableEditing },
+  { label: 'Фильтровать', icon: 'fi fi-rr-filter', command: () => emit('open-filter', currentHeader.value?.id), disabled: props?.disableEditing },
+  { label: 'Переименовать', icon: 'fi fi-rr-pencil', command: () => emitHeaderAction('rename'), disabled: props?.disableEditing },
   ...(props?.disableTypeEditing ? [] : [
-    { label: 'Изменить тип', icon: 'pi pi-sync', command: e => showTypeOverlay(e.originalEvent), disabled: props?.disableEditing }
+    { label: 'Изменить тип', icon: 'fi fi-rr-refresh', command: e => showTypeOverlay(e.originalEvent), disabled: props?.disableEditing }
   ]),
-  { label: 'Удалить', icon: 'pi pi-trash', command: () => deleteColumn(), class: 'text-red-500', disabled: props?.disableEditing },
+  { label: 'Удалить', icon: 'fi fi-rr-trash', command: () => deleteColumn(), class: 'text-red-500', disabled: props?.disableEditing },
   {
     label: currentGroupColumns.value.includes(currentHeader.value?.id)
       ? 'Убрать из группировки'
       : 'Сгруппировать',
-    icon: 'pi pi-objects-column',
+    icon: 'fi fi-rr-objects-column',
     command: () => {
       const headerId = currentHeader.value.id
 
@@ -1857,7 +1857,7 @@ const headerMenuItems = computed(() => [
   },
   {
     label: 'Добавить к группировке',
-    icon: 'pi pi-plus',
+    icon: 'fi fi-rr-plus',
     visible: currentGroupColumns.value.length > 0 &&
              !currentGroupColumns.value.includes(currentHeader.value?.id),
     command: () => {
@@ -1868,7 +1868,7 @@ const headerMenuItems = computed(() => [
   },
   {
     label: 'Очистить группировку',
-    icon: 'pi pi-times',
+    icon: 'fi fi-rr-cross-small',
     visible: currentGroupColumns.value.length > 0,
     command: () => {
       // Убрать всю группировку
@@ -1878,12 +1878,12 @@ const headerMenuItems = computed(() => [
   { separator: true },
   {
     label: '🎨 Условное форматирование',
-    icon: 'pi pi-palette',
+    icon: 'fi fi-rr-palette',
     command: () => openFormattingDialog(currentHeader.value?.id)
   },
   {
     label: '⚡ Настроить действие кнопки',
-    icon: 'pi pi-bolt',
+    icon: 'fi fi-rr-bolt',
     visible: currentHeader.value?.type === 7,
     command: () => openButtonActionDialog(currentHeader.value),
     disabled: props?.disableEditing
@@ -1893,41 +1893,41 @@ const headerMenuItems = computed(() => [
     label: pinnedColumns.value.has(currentHeader.value?.id)
       ? 'Открепить колонку'
       : '📌 Закрепить колонку',
-    icon: pinnedColumns.value.has(currentHeader.value?.id) ? 'pi pi-times' : 'pi pi-lock',
+    icon: pinnedColumns.value.has(currentHeader.value?.id) ? 'fi fi-rr-cross-small' : 'fi fi-rr-lock',
     command: () => togglePinColumn(currentHeader.value?.id)
   },
   { separator: true },
   {
     label: 'Сортировать A→Z',
-    icon: 'pi pi-arrow-up',
+    icon: 'fi fi-rr-arrow-up',
     command: () => {
       sortColumns.value = [{ headerId: currentHeader.value?.id, direction: 'asc' }]
     }
   },
   {
     label: 'Сортировать Z→A',
-    icon: 'pi pi-arrow-down',
+    icon: 'fi fi-rr-arrow-down',
     command: () => {
       sortColumns.value = [{ headerId: currentHeader.value?.id, direction: 'desc' }]
     }
   },
   {
     label: 'Очистить сортировку',
-    icon: 'pi pi-times',
+    icon: 'fi fi-rr-cross-small',
     command: () => clearSort(),
     disabled: sortColumns.value.length === 0
   }
 ])
 
 const rowMenuItems = computed(() => [
-  { label: 'Копировать', icon: 'pi pi-copy', command: () => copyCellValue() },
-  { label: 'Вставить', icon: 'pi pi-paste', command: () => pasteCellValue(), disabled: !copiedCellValue.value || props?.disableEditing },
-  { label: 'Изменить строку', icon: 'pi pi-pencil', command: () => editRow(), disabled: props?.disableEditing },
-  { label: 'Переместить вверх', icon: 'pi pi-arrow-up', command: () => moveRowUp(), disabled: props?.disableEditing },
+  { label: 'Копировать', icon: 'fi fi-rr-copy', command: () => copyCellValue() },
+  { label: 'Вставить', icon: 'fi fi-rr-paste', command: () => pasteCellValue(), disabled: !copiedCellValue.value || props?.disableEditing },
+  { label: 'Изменить строку', icon: 'fi fi-rr-pencil', command: () => editRow(), disabled: props?.disableEditing },
+  { label: 'Переместить вверх', icon: 'fi fi-rr-arrow-up', command: () => moveRowUp(), disabled: props?.disableEditing },
   { separator: true },
-  { label: 'Изменить подчинённость...', icon: 'pi pi-sitemap', command: () => openChangeParentDialog(), disabled: props?.disableEditing },
+  { label: 'Изменить подчинённость...', icon: 'fi fi-rr-sitemap', command: () => openChangeParentDialog(), disabled: props?.disableEditing },
   { separator: true },
-  { label: 'Удалить строку', icon: 'pi pi-trash', command: () => deleteRow(), class: 'text-red-500', disabled: props?.disableEditing }
+  { label: 'Удалить строку', icon: 'fi fi-rr-trash', command: () => deleteRow(), class: 'text-red-500', disabled: props?.disableEditing }
 ])
 
 function moveRowUp() {
@@ -2629,12 +2629,12 @@ const formatCellValue = (value, type, rowId, headerId) => {
     // Replace phone numbers with clickable chips
     result = result.replace(phoneRegex, (match) => {
       const cleanPhone = match.replace(/[-.\s()]/g, '')
-      return `<a href="tel:${cleanPhone}" class="cell-chip cell-phone" title="Позвонить: ${match}" onclick="event.stopPropagation()"><i class="pi pi-phone"></i><span>${match}</span></a>`
+      return `<a href="tel:${cleanPhone}" class="cell-chip cell-phone" title="Позвонить: ${match}" onclick="event.stopPropagation()"><i class="fi fi-rr-phone"></i><span>${match}</span></a>`
     })
 
     // Replace emails with clickable chips
     result = result.replace(emailRegex, (match) => {
-      return `<a href="mailto:${match}" class="cell-chip cell-email" title="Написать: ${match}" onclick="event.stopPropagation()"><i class="pi pi-envelope"></i><span>${match}</span></a>`
+      return `<a href="mailto:${match}" class="cell-chip cell-email" title="Написать: ${match}" onclick="event.stopPropagation()"><i class="fi fi-rr-envelope"></i><span>${match}</span></a>`
     })
 
     return result
@@ -2661,22 +2661,22 @@ const formatCellValue = (value, type, rowId, headerId) => {
     case 5: {
       const val = parseInt(displayValue, 10)
       if (val === 0) {
-        return `<span class="cell-chip cell-grant cell-grant-editor" title="Редактор типов"><i class="pi pi-cog"></i><span>Type editor</span></span>`
+        return `<span class="cell-chip cell-grant cell-grant-editor" title="Редактор типов"><i class="fi fi-rr-settings"></i><span>Type editor</span></span>`
       }
       if (val === 1) {
-        return `<span class="cell-chip cell-grant cell-grant-all" title="Все объекты"><i class="pi pi-database"></i><span>All objects</span></span>`
+        return `<span class="cell-chip cell-grant cell-grant-all" title="Все объекты"><i class="fi fi-rr-database"></i><span>All objects</span></span>`
       }
       if (val === 10) {
-        return `<span class="cell-chip cell-grant cell-grant-files" title="Файлы"><i class="pi pi-folder"></i><span>Files</span></span>`
+        return `<span class="cell-chip cell-grant cell-grant-files" title="Файлы"><i class="fi fi-rr-folder"></i><span>Files</span></span>`
       }
       // Other grant values - show as ID
-      return `<span class="cell-chip cell-grant" title="Права доступа: ${val}"><i class="pi pi-shield"></i><span>Grant #${val}</span></span>`
+      return `<span class="cell-chip cell-grant" title="Права доступа: ${val}"><i class="fi fi-rr-shield"></i><span>Grant #${val}</span></span>`
     }
 
     // Type 6: PWD - Password (masked)
     case 6: {
       if (!displayValue || displayValue === '') return ''
-      return `<span class="cell-chip cell-password" title="Пароль скрыт"><i class="pi pi-lock"></i><span>******</span></span>`
+      return `<span class="cell-chip cell-password" title="Пароль скрыт"><i class="fi fi-rr-lock"></i><span>******</span></span>`
     }
 
     // Type 7: BUTTON - Action button with configurable actions
@@ -2708,7 +2708,7 @@ const formatCellValue = (value, type, rowId, headerId) => {
 
       // Check if this is a 'none' action
       if (endpoint === 'none' || !endpoint) {
-        return `<button class="cell-button cell-button-disabled" onclick="event.stopPropagation()" disabled title="Кнопка без действия"><i class="pi pi-ban"></i><span>${buttonLabel}</span></button>`
+        return `<button class="cell-button cell-button-disabled" onclick="event.stopPropagation()" disabled title="Кнопка без действия"><i class="fi fi-rr-ban"></i><span>${buttonLabel}</span></button>`
       }
 
       // Check if this is a custom URL (starts with http or is a full path)
@@ -2726,9 +2726,9 @@ const formatCellValue = (value, type, rowId, headerId) => {
       const dataAttrs = `data-row-id="${rowId}" data-header-id="${headerId}" data-action-type="${actionType}"`
       const isDanger = endpoint.includes('_m_del') || endpoint.includes('delete')
       const buttonClass = isDanger ? 'cell-button cell-button-danger' : 'cell-button cell-button-action'
-      const icon = isDanger ? 'pi-trash' : (actionType === 'custom-url' ? 'pi-external-link' : 'pi-bolt')
+      const icon = isDanger ? 'fi-rr-trash' : (actionType === 'custom-url' ? 'fi-rr-arrow-up-right-from-square' : 'fi-rr-bolt')
 
-      return `<button class="${buttonClass} data-table-action-button" ${dataAttrs} title="${buttonLabel}" onclick="event.stopPropagation()"><i class="pi ${icon}"></i><span>${buttonLabel}</span></button>`
+      return `<button class="${buttonClass} data-table-action-button" ${dataAttrs} title="${buttonLabel}" onclick="event.stopPropagation()"><i class="fi ${icon}"></i><span>${buttonLabel}</span></button>`
     }
 
     // Type 8: CHARS - Long string (like SHORT)
@@ -2770,14 +2770,14 @@ const formatCellValue = (value, type, rowId, headerId) => {
       const isVideo = ['mp4', 'avi', 'mov', 'mkv', 'webm', 'ogv'].includes(ext)
       const isAudio = ['mp3', 'wav', 'ogg', 'flac', 'aac', 'm4a'].includes(ext)
 
-      let icon = 'pi-file'
-      if (isImage) icon = 'pi-image'
-      else if (['pdf'].includes(ext)) icon = 'pi-file-pdf'
-      else if (['doc', 'docx', 'odt', 'rtf'].includes(ext)) icon = 'pi-file-word'
-      else if (['xls', 'xlsx', 'ods', 'csv'].includes(ext)) icon = 'pi-file-excel'
-      else if (['zip', 'rar', '7z', 'tar', 'gz'].includes(ext)) icon = 'pi-box'
-      else if (isAudio) icon = 'pi-volume-up'
-      else if (isVideo) icon = 'pi-video'
+      let icon = 'fi-rr-file'
+      if (isImage) icon = 'fi-rr-picture'
+      else if (['pdf'].includes(ext)) icon = 'fi-rr-file-pdf'
+      else if (['doc', 'docx', 'odt', 'rtf'].includes(ext)) icon = 'fi-rr-file-word'
+      else if (['xls', 'xlsx', 'ods', 'csv'].includes(ext)) icon = 'fi-rr-file-excel'
+      else if (['zip', 'rar', '7z', 'tar', 'gz'].includes(ext)) icon = 'fi-rr-box'
+      else if (isAudio) icon = 'fi-rr-volume'
+      else if (isVideo) icon = 'fi-rr-video-camera-alt'
 
       // Build full URL with API server prefix for relative paths
       const fullFileUrl = (fileUrl && fileUrl.startsWith('/') && props.serverUrl)
@@ -2788,24 +2788,24 @@ const formatCellValue = (value, type, rowId, headerId) => {
       if (isImage && fullFileUrl && (fullFileUrl.startsWith('/') || fullFileUrl.startsWith('http'))) {
         const escapedUrl = fullFileUrl.replace(/'/g, "\\'")
         const escapedFilename = filename.replace(/'/g, "\\'")
-        return `<a href="javascript:void(0)" class="cell-file cell-file-preview" title="Открыть: ${filename}" onclick="event.stopPropagation(); window.__dataTableOpenImagePreview && window.__dataTableOpenImagePreview('${escapedUrl}', '${escapedFilename}')"><img src="${fullFileUrl}" alt="${filename}" class="cell-file-thumbnail" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='inline-flex'"><span class="cell-file-fallback" style="display:none"><i class="pi ${icon}"></i><span>${filename}</span></span></a>`
+        return `<a href="javascript:void(0)" class="cell-file cell-file-preview" title="Открыть: ${filename}" onclick="event.stopPropagation(); window.__dataTableOpenImagePreview && window.__dataTableOpenImagePreview('${escapedUrl}', '${escapedFilename}')"><img src="${fullFileUrl}" alt="${filename}" class="cell-file-thumbnail" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='inline-flex'"><span class="cell-file-fallback" style="display:none"><i class="fi ${icon}"></i><span>${filename}</span></span></a>`
       }
 
       // For other files with URL - clickable link
       if (fullFileUrl && (fullFileUrl.startsWith('/') || fullFileUrl.startsWith('http'))) {
-        return `<a href="${fullFileUrl}" class="cell-chip cell-file" target="_blank" rel="noopener" title="Скачать: ${filename}" onclick="event.stopPropagation()"><i class="pi ${icon}"></i><span>${filename}</span></a>`
+        return `<a href="${fullFileUrl}" class="cell-chip cell-file" target="_blank" rel="noopener" title="Скачать: ${filename}" onclick="event.stopPropagation()"><i class="fi ${icon}"></i><span>${filename}</span></a>`
       }
 
       // No URL available - just display filename with icon
-      return `<span class="cell-chip cell-file" title="Файл: ${filename}"><i class="pi ${icon}"></i><span>${filename}</span></span>`
+      return `<span class="cell-chip cell-file" title="Файл: ${filename}"><i class="fi ${icon}"></i><span>${filename}</span></span>`
     }
 
     // Type 11: BOOLEAN - Checkbox
     case 11: {
       if (displayValue && displayValue !== '' && displayValue !== '0' && displayValue !== 'false') {
-        return `<span class="cell-boolean cell-boolean-true" title="Да"><i class="pi pi-check-circle"></i></span>`
+        return `<span class="cell-boolean cell-boolean-true" title="Да"><i class="fi fi-rr-check-circle"></i></span>`
       }
-      return `<span class="cell-boolean cell-boolean-false" title="Нет"><i class="pi pi-times-circle"></i></span>`
+      return `<span class="cell-boolean cell-boolean-false" title="Нет"><i class="fi fi-rr-cross-circle"></i></span>`
     }
 
     // Type 12: MEMO - Multiline text
@@ -2817,7 +2817,7 @@ const formatCellValue = (value, type, rowId, headerId) => {
       const parsed = parseContactInfo(truncated.replace(/\n/g, ' '))
 
       if (hasNewlines || strVal.length > 100) {
-        return `<span class="cell-memo" title="${strVal.replace(/"/g, '&quot;').substring(0, 500)}"><i class="pi pi-align-left"></i>${parsed}</span>`
+        return `<span class="cell-memo" title="${strVal.replace(/"/g, '&quot;').substring(0, 500)}"><i class="fi fi-rr-list"></i>${parsed}</span>`
       }
       return parsed
     }
@@ -2825,7 +2825,7 @@ const formatCellValue = (value, type, rowId, headerId) => {
     // Type 15: CALCULATABLE - Calculated/formula field
     case 15: {
       const strVal = String(displayValue)
-      return `<span class="cell-chip cell-calculated" title="Вычисляемое поле"><i class="pi pi-calculator"></i><span>${strVal}</span></span>`
+      return `<span class="cell-chip cell-calculated" title="Вычисляемое поле"><i class="fi fi-rr-calculator"></i><span>${strVal}</span></span>`
     }
 
     // Type 16: REPORT_COLUMN - Report column reference
@@ -2833,9 +2833,9 @@ const formatCellValue = (value, type, rowId, headerId) => {
       const strVal = String(displayValue)
       // Special values
       if (strVal === '0') {
-        return `<span class="cell-chip cell-report-col" title="Вычисляемая колонка отчёта"><i class="pi pi-table"></i><span>Вычисляемое</span></span>`
+        return `<span class="cell-chip cell-report-col" title="Вычисляемая колонка отчёта"><i class="fi fi-rr-table"></i><span>Вычисляемое</span></span>`
       }
-      return `<span class="cell-chip cell-report-col" title="Колонка отчёта: ${strVal}"><i class="pi pi-table"></i><span>${strVal}</span></span>`
+      return `<span class="cell-chip cell-report-col" title="Колонка отчёта: ${strVal}"><i class="fi fi-rr-table"></i><span>${strVal}</span></span>`
     }
 
     // Type 17: PATH - File path (clickable link)
@@ -2864,11 +2864,11 @@ const formatCellValue = (value, type, rowId, headerId) => {
 
       // If path starts with "/" or is full URL - it's valid, make it clickable
       if (path.startsWith('/') || fullPath.startsWith('http')) {
-        return `<a href="${fullPath}" class="cell-path-link" target="_blank" rel="noopener" title="Открыть: ${path}" onclick="event.stopPropagation()"><i class="pi pi-external-link"></i><span>${displayName}</span></a>`
+        return `<a href="${fullPath}" class="cell-path-link" target="_blank" rel="noopener" title="Открыть: ${path}" onclick="event.stopPropagation()"><i class="fi fi-rr-arrow-up-right-from-square"></i><span>${displayName}</span></a>`
       }
 
       // No valid path - just display as text
-      return `<span class="cell-path" title="Путь: ${strVal}"><i class="pi pi-folder-open"></i><span>${displayName}</span></span>`
+      return `<span class="cell-path" title="Путь: ${strVal}"><i class="fi fi-rr-folder-open"></i><span>${displayName}</span></span>`
     }
     case 9: {
       // Handle both numeric timestamps and string timestamps
@@ -3048,7 +3048,7 @@ const formatDateStyled = (timestamp, style) => {
       break
   }
 
-  return `<span class="cell-chip cell-date ${info.cssClass}" data-tooltip="${tooltip}"><i class="pi pi-calendar"></i><span>${displayText}</span></span>`
+  return `<span class="cell-chip cell-date ${info.cssClass}" data-tooltip="${tooltip}"><i class="fi fi-rr-calendar"></i><span>${displayText}</span></span>`
 }
 
 const formatDateTimeStyled = (timestamp, style) => {
@@ -3080,7 +3080,7 @@ const formatDateTimeStyled = (timestamp, style) => {
       break
   }
 
-  return `<span class="cell-chip cell-datetime ${info.cssClass}" data-tooltip="${tooltip}"><i class="pi pi-clock"></i><span>${displayText}</span></span>`
+  return `<span class="cell-chip cell-datetime ${info.cssClass}" data-tooltip="${tooltip}"><i class="fi fi-rr-clock"></i><span>${displayText}</span></span>`
 }
 
 const getHeaderDirTableId = headerId => localHeaders.value.find(h => h.id === headerId)?.dirTableId
@@ -3777,23 +3777,23 @@ const footerContextMenu = ref(null)
 const footerMenuItems = computed(() => [
   {
     label: 'Сумма (SUM)',
-    icon: 'pi pi-plus',
+    icon: 'fi fi-rr-plus',
     command: () => setAggregationType(currentFooterHeader.value?.id, 'sum')
   },
   {
     label: 'Среднее (AVG)',
-    icon: 'pi pi-chart-line',
+    icon: 'fi fi-rr-chart-line-up',
     command: () => setAggregationType(currentFooterHeader.value?.id, 'avg')
   },
   {
     label: 'Количество (COUNT)',
-    icon: 'pi pi-hashtag',
+    icon: 'fi fi-rr-hastag',
     command: () => setAggregationType(currentFooterHeader.value?.id, 'count')
   },
   { separator: true },
   {
     label: showFooter.value ? 'Скрыть футер' : 'Показать футер',
-    icon: showFooter.value ? 'pi pi-eye-slash' : 'pi pi-eye',
+    icon: showFooter.value ? 'fi fi-rr-eye-crossed' : 'fi fi-rr-eye',
     command: () => toggleFooter()
   }
 ])
@@ -5364,17 +5364,17 @@ const getDirValueIcon = (value, type) => {
   const strValue = String(value || '').trim().toLowerCase()
 
   // Check by type first
-  if (type === 4 || type === 5) return 'pi pi-calendar' // DateTime/Date
-  if (type === 6) return 'pi pi-clock' // Time
-  if (type === 7) return 'pi pi-check-square' // Boolean
+  if (type === 4 || type === 5) return 'fi fi-rr-calendar' // DateTime/Date
+  if (type === 6) return 'fi fi-rr-clock' // Time
+  if (type === 7) return 'fi fi-rr-checkbox' // Boolean
 
   // Check by value patterns
-  if (/^[\w.-]+@[\w.-]+\.\w+$/.test(strValue)) return 'pi pi-envelope' // Email
-  if (/^(\+?\d{1,3}[-.\s]?)?\(?\d{1,4}\)?[-.\s]?\d{1,4}[-.\s]?\d{1,9}$/.test(strValue)) return 'pi pi-phone' // Phone
-  if (/^https?:\/\//i.test(strValue)) return 'pi pi-link' // URL
-  if (/^\d+([.,]\d+)?$/.test(strValue)) return 'pi pi-hashtag' // Number
+  if (/^[\w.-]+@[\w.-]+\.\w+$/.test(strValue)) return 'fi fi-rr-envelope' // Email
+  if (/^(\+?\d{1,3}[-.\s]?)?\(?\d{1,4}\)?[-.\s]?\d{1,4}[-.\s]?\d{1,9}$/.test(strValue)) return 'fi fi-rr-phone' // Phone
+  if (/^https?:\/\//i.test(strValue)) return 'fi fi-rr-link' // URL
+  if (/^\d+([.,]\d+)?$/.test(strValue)) return 'fi fi-rr-hastag' // Number
 
-  return 'pi pi-circle-fill' // Default dot
+  return 'fi fi-sr-circle' // Default dot
 }
 
 

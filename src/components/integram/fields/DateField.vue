@@ -18,7 +18,7 @@
         class="flex-1"
       />
       <Button
-        icon="pi pi-pencil"
+        icon="fi fi-rr-pencil"
         @click="emit('toggle-mode')"
         size="small"
         text
@@ -26,7 +26,7 @@
         v-tooltip.top="'Переключить режим ввода'"
       />
       <Button
-        icon="pi pi-calendar-plus"
+        icon="fi fi-rr-calendar-plus"
         @click="toggleSpecialValues"
         size="small"
         text

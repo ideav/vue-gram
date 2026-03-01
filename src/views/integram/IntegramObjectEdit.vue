@@ -47,7 +47,7 @@
             <span>{{ typeData?.val || 'Объекты' }}</span>
             <div class="flex gap-2 align-items-center ml-auto">
               <Button
-                icon="pi pi-plus"
+                icon="fi fi-rr-plus"
                 label="Создать"
                 @click="addNewRow"
                 size="small"
@@ -55,7 +55,7 @@
               />
 
               <Button
-                icon="pi pi-pencil"
+                icon="fi fi-rr-pencil"
                 :outlined="!inlineEditMode"
                 :severity="inlineEditMode ? 'success' : 'secondary'"
                 @click="toggleInlineEdit"
@@ -65,7 +65,7 @@
               />
 
               <Button
-                icon="pi pi-cog"
+                icon="fi fi-rr-settings"
                 outlined
                 rounded
                 size="small"
@@ -74,7 +74,7 @@
               />
 
               <Button
-                icon="pi pi-refresh"
+                icon="fi fi-rr-refresh"
                 outlined
                 rounded
                 size="small"
@@ -89,18 +89,18 @@
           <!-- Help message for editing -->
           <Message v-if="!inlineEditMode" severity="info" :closable="true" class="mb-3">
             <div class="flex align-items-center gap-2">
-              <i class="pi pi-info-circle text-2xl"></i>
+              <i class="fi fi-rr-info text-2xl"></i>
               <div>
                 <p class="m-0 mb-2"><strong>🎯 ИНСТРУКЦИЯ: Как редактировать значения в таблице</strong></p>
                 <ul class="m-0 pl-4">
                   <li class="mb-1"><strong>Быстрое редактирование в таблице:</strong> Нажмите кнопку <strong>"Включить правку"</strong> выше, затем кликните на любую ячейку для редактирования</li>
-                  <li class="mb-1"><strong>Детальное редактирование записи:</strong> Нажмите <i class="pi pi-pencil"></i> в строке для открытия формы редактирования со всеми типами полей</li>
+                  <li class="mb-1"><strong>Детальное редактирование записи:</strong> Нажмите <i class="fi fi-rr-pencil"></i> в строке для открытия формы редактирования со всеми типами полей</li>
                   <li class="mb-1"><strong>Изменение структуры таблицы:</strong> Нажмите кнопку <strong>"Структура"</strong> для добавления/удаления колонок, изменения типов данных</li>
                   <li class="mb-1"><strong>Добавление новых записей:</strong> Нажмите кнопку <strong>"Добавить"</strong> для создания новой записи</li>
                 </ul>
                 <div class="mt-2 p-2 surface-50 border-round">
                   <small class="text-600">
-                    <i class="pi pi-lightbulb mr-1"></i>
+                    <i class="fi fi-rr-lightbulb-on mr-1"></i>
                     <strong>Совет:</strong> Все изменения сохраняются автоматически при выходе из ячейки. Последнее сохранение отображается внизу таблицы.
                   </small>
                 </div>
@@ -111,7 +111,7 @@
           <!-- Active Edit Mode Banner -->
           <Message v-else severity="success" :closable="false" class="mb-3">
             <div class="flex align-items-center gap-2">
-              <i class="pi pi-check-circle text-2xl"></i>
+              <i class="fi fi-rr-check-circle text-2xl"></i>
               <div>
                 <p class="m-0"><strong>✅ РЕЖИМ РЕДАКТИРОВАНИЯ АКТИВЕН</strong> - Кликните на любую ячейку для изменения значения</p>
               </div>
@@ -210,7 +210,7 @@
               <template #editor="{ data, field }">
                 <!-- Reference fields (including multiselect) can only be edited in form view -->
                 <div v-if="getRequisiteMetadata(reqId).isReference" class="text-sm text-500">
-                  <i class="pi pi-info-circle mr-1"></i>
+                  <i class="fi fi-rr-info mr-1"></i>
                   Редактируется только в форме
                 </div>
                 <component
@@ -238,7 +238,7 @@
                 <div class="integram-actions">
                   <!-- Primary actions -->
                   <Button
-                    icon="pi pi-pencil"
+                    icon="fi fi-rr-pencil"
                     @click="editObjectForm(data.id)"
                     size="small"
                     text
@@ -249,7 +249,7 @@
                   />
                   <!-- Destructive action (визуально отделена) -->
                   <Button
-                    icon="pi pi-trash"
+                    icon="fi fi-rr-trash"
                     @click="confirmDeleteRow(data.id)"
                     size="small"
                     text
@@ -306,21 +306,21 @@
       :style="{ width: '450px' }"
     >
       <div class="flex align-items-center gap-3">
-        <i class="pi pi-exclamation-triangle text-4xl text-warning"></i>
+        <i class="fi fi-rr-triangle-warning text-4xl text-warning"></i>
         <span>Вы уверены, что хотите удалить запись с ID <strong>{{ deleteDialog.objectId }}</strong>?</span>
       </div>
       <template #footer>
         <div class="integram-actions justify-content-end w-full">
           <Button
             label="Отмена"
-            icon="pi pi-times"
+            icon="fi fi-rr-cross-small"
             @click="deleteDialog.visible = false"
             text
             aria-label="Отменить удаление"
           />
           <Button
             label="Удалить"
-            icon="pi pi-trash"
+            icon="fi fi-rr-trash"
             severity="danger"
             @click="deleteRow"
             :loading="deleteDialog.loading"
@@ -396,28 +396,28 @@ const database = computed(() => route.params.database || sessionDatabase.value |
 // Note: Database ({db}) is automatically prepended by IntegramBreadcrumb's homeItem
 const breadcrumbItems = computed(() => {
   const items = [
-    { label: 'Таблицы', to: `/${database.value}/dict`, icon: 'pi pi-table' }
+    { label: 'Таблицы', to: `/${database.value}/dict`, icon: 'fi fi-rr-table' }
   ];
 
   if (isType.value && typeData.value?.val) {
     // Table view: {db} > Таблицы > {table name}
-    items.push({ label: typeData.value.val, icon: 'pi pi-bars' });
+    items.push({ label: typeData.value.val, icon: 'fi fi-rr-menu-burger' });
   } else if (!isType.value && singleObjectData.value) {
     // Single object edit: {db} > Таблицы > {table name} > (edit) {object name}
     if (singleObjectTypeName.value && singleObjectTypeId.value) {
       items.push({
         label: singleObjectTypeName.value,
         to: `/${database.value}/object/${singleObjectTypeId.value}`,
-        icon: 'pi pi-bars'
+        icon: 'fi fi-rr-menu-burger'
       });
     }
     items.push({
       label: singleObjectData.value.val || `#${singleObjectData.value.id}`,
-      icon: 'pi pi-pencil'
+      icon: 'fi fi-rr-pencil'
     });
   } else if (!isType.value) {
     // Loading state
-    items.push({ label: 'Загрузка...', icon: 'pi pi-spin pi-spinner' });
+    items.push({ label: 'Загрузка...', icon: 'fi fi-spin fi-rr-spinner' });
   }
 
   return items;

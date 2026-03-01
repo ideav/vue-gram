@@ -43,10 +43,10 @@
             >
               <template #header>
                 <div class="lesson-status-badge">
-                  <i v-if="lesson.completed" class="pi pi-check-circle text-green-500 text-2xl"></i>
-                  <i v-else-if="lesson.inProgress" class="pi pi-spin pi-spinner text-blue-500 text-2xl"></i>
-                  <i v-else-if="lesson.disabled" class="pi pi-lock text-gray-400 text-2xl"></i>
-                  <i v-else class="pi pi-play-circle text-primary text-2xl"></i>
+                  <i v-if="lesson.completed" class="fi fi-rr-check-circle text-green-500 text-2xl"></i>
+                  <i v-else-if="lesson.inProgress" class="fi fi-spin fi-rr-spinner text-blue-500 text-2xl"></i>
+                  <i v-else-if="lesson.disabled" class="fi fi-rr-lock text-gray-400 text-2xl"></i>
+                  <i v-else class="fi fi-rr-play-circle text-primary text-2xl"></i>
                 </div>
               </template>
               <template #title>
@@ -83,7 +83,7 @@
 
                 <!-- Completion Time -->
                 <div v-if="lesson.completedAt" class="mt-2 text-xs text-color-secondary">
-                  <i class="pi pi-calendar mr-1"></i>
+                  <i class="fi fi-rr-calendar mr-1"></i>
                   Завершено: {{ formatDate(lesson.completedAt) }}
                 </div>
               </template>
@@ -108,7 +108,7 @@
         <!-- Achievement Badges (when all lessons completed) -->
         <div v-if="allLessonsCompleted" class="mt-4 p-4 bg-green-50 border-round">
           <div class="flex align-items-center gap-3">
-            <i class="pi pi-trophy text-yellow-500 text-4xl"></i>
+            <i class="fi fi-rr-trophy text-yellow-500 text-4xl"></i>
             <div>
               <h3 class="m-0 mb-2">Поздравляем! 🎉</h3>
               <p class="m-0">
@@ -121,7 +121,7 @@
         <!-- Tips for Beginners -->
         <div class="mt-4">
           <a href="#" @click.prevent="showTips = !showTips" class="text-primary">
-            <i :class="showTips ? 'pi pi-chevron-down' : 'pi pi-chevron-right'" class="mr-1"></i>
+            <i :class="showTips ? 'fi fi-rr-angle-small-down' : 'fi fi-rr-angle-small-right'" class="mr-1"></i>
             Вы новичок в ИТ?
           </a>
           <Message v-if="showTips" severity="warn" class="mt-2">
@@ -168,7 +168,7 @@
         <div class="mt-4 pt-3 border-top-1 surface-border">
           <Button
             label="Сбросить прогресс"
-            icon="pi pi-refresh"
+            icon="fi fi-rr-refresh"
             severity="secondary"
             outlined
             size="small"
@@ -186,7 +186,7 @@
       :style="{ width: '450px' }"
     >
       <div class="flex flex-column align-items-center gap-3 p-3">
-        <i class="pi pi-check-circle text-green-500 text-6xl"></i>
+        <i class="fi fi-rr-check-circle text-green-500 text-6xl"></i>
         <h3 class="m-0">Поздравляем!</h3>
         <p class="text-center m-0">
           Вы успешно завершили урок "{{ completedLesson?.title }}".
@@ -199,7 +199,7 @@
         <Button
           v-if="nextLesson"
           label="Начать следующий урок"
-          icon="pi pi-arrow-right"
+          icon="fi fi-rr-arrow-right"
           @click="startNextLesson"
           autofocus
         />
@@ -233,7 +233,7 @@ const { setTimeout: setTimerTimeout } = useTimer()
 const breadcrumbItems = computed(() => [
   {
     label: 'Информация',
-    icon: 'pi pi-info-circle',
+    icon: 'fi fi-rr-info',
     to: undefined
   }
 ])
@@ -354,9 +354,9 @@ function getButtonSeverity(lesson) {
 }
 
 function getButtonIcon(lesson) {
-  if (lesson.completed) return 'pi pi-replay'
-  if (lesson.inProgress) return 'pi pi-arrow-right'
-  return 'pi pi-play'
+  if (lesson.completed) return 'fi fi-rr-rotate-right'
+  if (lesson.inProgress) return 'fi fi-rr-arrow-right'
+  return 'fi fi-rr-play'
 }
 
 function formatDate(dateString) {
@@ -420,7 +420,7 @@ function showLessonCompletionPrompt(lesson) {
     confirm.require({
       message: `Вы завершили урок "${lesson.title}"?`,
       header: 'Завершение урока',
-      icon: 'pi pi-question-circle',
+      icon: 'fi fi-rr-question',
       acceptLabel: 'Да, завершить',
       rejectLabel: 'Еще нет',
       accept: () => {
@@ -518,7 +518,7 @@ function resetProgress() {
   confirm.require({
     message: 'Вы уверены, что хотите сбросить весь прогресс обучения?',
     header: 'Подтверждение',
-    icon: 'pi pi-exclamation-triangle',
+    icon: 'fi fi-rr-triangle-warning',
     acceptLabel: 'Да, сбросить',
     rejectLabel: 'Отмена',
     acceptClass: 'p-button-danger',

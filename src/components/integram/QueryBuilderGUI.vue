@@ -4,7 +4,7 @@
     <div class="query-builder-header">
       <div class="flex justify-content-between align-items-center">
         <h4 class="m-0 flex align-items-center gap-2">
-          <i class="pi pi-cog"></i>
+          <i class="fi fi-rr-settings"></i>
           {{ $t('queryBuilder.title') }}
         </h4>
         <div class="flex gap-2 align-items-center">
@@ -28,10 +28,10 @@
             @update:modelValue="handleLimitChange"
           >
             <template #incrementbuttonicon>
-              <span class="pi pi-plus" />
+              <span class="fi fi-rr-plus" />
             </template>
             <template #decrementbuttonicon>
-              <span class="pi pi-minus" />
+              <span class="fi fi-rr-minus" />
             </template>
           </InputNumber>
         </div>
@@ -97,7 +97,7 @@
         <!-- Add Calculated Column -->
         <Button
           :label="$t('queryBuilder.addCalculated')"
-          icon="pi pi-calculator"
+          icon="fi fi-rr-calculator"
           outlined
           @click="addCalculatedColumn"
         />
@@ -105,7 +105,7 @@
         <!-- Add JOIN -->
         <Button
           :label="$t('queryBuilder.addJoin')"
-          icon="pi pi-link"
+          icon="fi fi-rr-link"
           outlined
           @click="showJoinDialog = true"
         />
@@ -206,14 +206,14 @@
           <template #body="{ data }">
             <div class="flex gap-1 align-items-center">
               <Button
-                icon="pi pi-sort-amount-up"
+                icon="fi fi-rr-sort-amount-up"
                 :severity="data.orderDir === 'ASC' ? 'primary' : 'secondary'"
                 :outlined="data.orderDir !== 'ASC'"
                 size="small"
                 @click="setColumnOrder(data, 'ASC')"
               />
               <Button
-                icon="pi pi-sort-amount-down"
+                icon="fi fi-rr-sort-amount-down"
                 :severity="data.orderDir === 'DESC' ? 'primary' : 'secondary'"
                 :outlined="data.orderDir !== 'DESC'"
                 size="small"
@@ -312,7 +312,7 @@
           <template #body="{ data, index }">
             <div class="flex gap-1">
               <Button
-                icon="pi pi-arrow-up"
+                icon="fi fi-rr-arrow-up"
                 size="small"
                 text
                 rounded
@@ -321,7 +321,7 @@
                 v-tooltip.top="$t('queryBuilder.moveUp')"
               />
               <Button
-                icon="pi pi-arrow-down"
+                icon="fi fi-rr-arrow-down"
                 size="small"
                 text
                 rounded
@@ -330,7 +330,7 @@
                 v-tooltip.top="$t('queryBuilder.moveDown')"
               />
               <Button
-                :icon="data.hidden ? 'pi pi-eye' : 'pi pi-eye-slash'"
+                :icon="data.hidden ? 'fi fi-rr-eye' : 'fi fi-rr-eye-crossed'"
                 size="small"
                 text
                 rounded
@@ -339,7 +339,7 @@
               />
               <Button
                 v-if="canAddIdColumn(data)"
-                icon="pi pi-id-card"
+                icon="fi fi-rr-id-badge"
                 size="small"
                 text
                 rounded
@@ -347,7 +347,7 @@
                 v-tooltip.top="$t('queryBuilder.addIdColumn')"
               />
               <Button
-                icon="pi pi-trash"
+                icon="fi fi-rr-trash"
                 severity="danger"
                 size="small"
                 text
@@ -363,7 +363,7 @@
 
     <!-- Empty State -->
     <div v-else class="empty-state text-center py-5">
-      <i class="pi pi-table text-6xl text-400 mb-3"></i>
+      <i class="fi fi-rr-table text-6xl text-400 mb-3"></i>
       <p class="text-xl text-500 mb-2">{{ $t('queryBuilder.noColumns') }}</p>
       <p class="text-muted">{{ $t('queryBuilder.noColumnsHint') }}</p>
     </div>
@@ -441,13 +441,13 @@
       <template #footer>
         <Button
           :label="$t('common.cancel')"
-          icon="pi pi-times"
+          icon="fi fi-rr-cross-small"
           @click="showJoinDialog = false"
           text
         />
         <Button
           :label="$t('common.add')"
-          icon="pi pi-check"
+          icon="fi fi-rr-check"
           @click="addJoin"
           :disabled="!isJoinConfigValid"
         />
@@ -462,14 +462,14 @@
           <div class="flex gap-2 mt-3">
             <Button
               :label="$t('queryBuilder.copySQL')"
-              icon="pi pi-copy"
+              icon="fi fi-rr-copy"
               outlined
               size="small"
               @click="copySQL"
             />
             <Button
               :label="$t('queryBuilder.executeQuery')"
-              icon="pi pi-play"
+              icon="fi fi-rr-play"
               severity="success"
               size="small"
               @click="executeQuery"

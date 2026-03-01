@@ -192,20 +192,20 @@ export function formatCompactNumber(number, options = {}) {
 }
 
 /**
- * Get currency icon class for PrimeIcons
+ * Get currency icon class for Flaticon Uicons
  */
 export function getCurrencyIcon(currency) {
   const icons = {
-    BTC: 'pi-bitcoin',
-    ETH: 'pi-ethereum',
-    USDT: 'pi-dollar',
-    USDC: 'pi-dollar',
-    BNB: 'pi-wallet',
-    TON: 'pi-send',
-    RUB: 'pi-ruble'
+    BTC: 'fi-rr-bitcoin-sign',
+    ETH: 'fi-rr-ethereum',
+    USDT: 'fi-rr-dollar',
+    USDC: 'fi-rr-dollar',
+    BNB: 'fi-rr-wallet',
+    TON: 'fi-rr-paper-plane',
+    RUB: 'fi-rr-ruble-sign'
   }
 
-  return icons[currency] || 'pi-circle'
+  return icons[currency] || 'fi-rr-circle'
 }
 
 /**
@@ -231,27 +231,27 @@ export function getTransactionStatusBadge(status) {
   const badges = {
     pending: {
       severity: 'warning',
-      icon: 'pi-clock',
+      icon: 'fi-rr-clock',
       label: 'Ожидание'
     },
     confirming: {
       severity: 'info',
-      icon: 'pi-spin pi-spinner',
+      icon: 'fi-spin fi-rr-spinner',
       label: 'Подтверждается'
     },
     confirmed: {
       severity: 'success',
-      icon: 'pi-check-circle',
+      icon: 'fi-rr-check-circle',
       label: 'Подтверждена'
     },
     failed: {
       severity: 'danger',
-      icon: 'pi-times-circle',
+      icon: 'fi-rr-cross-circle',
       label: 'Неудачная'
     },
     cancelled: {
       severity: 'secondary',
-      icon: 'pi-ban',
+      icon: 'fi-rr-ban',
       label: 'Отменена'
     }
   }
@@ -264,11 +264,11 @@ export function getTransactionStatusBadge(status) {
  */
 export function getTransactionTypeIcon(type) {
   const icons = {
-    incoming: 'pi-arrow-down',
-    outgoing: 'pi-arrow-up'
+    incoming: 'fi-rr-arrow-down',
+    outgoing: 'fi-rr-arrow-up'
   }
 
-  return icons[type] || 'pi-arrows-h'
+  return icons[type] || 'fi-rr-arrows-alt-h'
 }
 
 /**

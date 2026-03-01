@@ -93,7 +93,7 @@ export function useChatLogic() {
 
   // Methods - File & Image handling
   const isImage = (attachment) => /\.(jpg|jpeg|png|gif|webp)$/i.test(attachment.url || attachment.name || '')
-  const getAttachmentIcon = () => 'pi pi-file'
+  const getAttachmentIcon = () => 'fi fi-rr-file'
   const getAttachmentDisplayName = (attachment) => attachment.name || 'Файл'
   const formatFileSize = (bytes) => {
     if (!bytes) return '0 B'

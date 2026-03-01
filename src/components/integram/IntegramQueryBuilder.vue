@@ -15,14 +15,14 @@
           <div class="flex gap-2 align-items-center ml-auto">
             <Button
               label="Выполнить"
-              icon="pi pi-play"
+              icon="fi fi-rr-play"
               @click="executeQuery"
               :loading="executing"
               :disabled="!isQueryValid"
               size="small"
             />
             <Button
-              icon="pi pi-save"
+              icon="fi fi-rr-disk"
               @click="saveAsReport"
               :disabled="!isQueryValid"
               outlined
@@ -31,7 +31,7 @@
               v-tooltip.bottom="'Сохранить как отчет'"
             />
             <Button
-              icon="pi pi-times"
+              icon="fi fi-rr-cross-small"
               @click="clearQuery"
               outlined
               rounded
@@ -64,7 +64,7 @@
               />
               <Button
                 label="Добавить выражение"
-                icon="pi pi-plus"
+                icon="fi fi-rr-plus"
                 @click="addCustomExpression"
                 outlined
                 size="small"
@@ -89,7 +89,7 @@
                   style="width: 150px"
                 />
                 <Button
-                  icon="pi pi-trash"
+                  icon="fi fi-rr-trash"
                   @click="removeCustomExpression(index)"
                   text
                   rounded
@@ -142,7 +142,7 @@
                   style="min-width: 130px"
                 />
                 <Button
-                  icon="pi pi-trash"
+                  icon="fi fi-rr-trash"
                   @click="removeAggregateFunction(index)"
                   text
                   rounded
@@ -155,7 +155,7 @@
             <div class="flex gap-2 mt-2">
               <Button
                 label="Добавить функцию"
-                icon="pi pi-calculator"
+                icon="fi fi-rr-calculator"
                 @click="addAggregateFunction"
                 outlined
                 size="small"
@@ -185,7 +185,7 @@
               <label class="form-label font-semibold">JOIN (Связи)</label>
               <Button
                 label="Добавить JOIN"
-                icon="pi pi-plus"
+                icon="fi fi-rr-plus"
                 @click="addJoin"
                 outlined
                 size="small"
@@ -214,7 +214,7 @@
                     class="w-full"
                   />
                   <Button
-                    icon="pi pi-trash"
+                    icon="fi fi-rr-trash"
                     @click="removeJoin(index)"
                     text
                     rounded
@@ -245,7 +245,7 @@
               <label class="form-label font-semibold">WHERE (Условия)</label>
               <Button
                 label="Добавить условие"
-                icon="pi pi-plus"
+                icon="fi fi-rr-plus"
                 @click="addCondition"
                 outlined
                 size="small"
@@ -283,7 +283,7 @@
                   class="flex-1"
                 />
                 <Button
-                  icon="pi pi-trash"
+                  icon="fi fi-rr-trash"
                   @click="removeCondition(index)"
                   text
                   rounded
@@ -312,7 +312,7 @@
               <label class="form-label font-semibold">HAVING (Условия группировки)</label>
               <Button
                 label="Добавить условие"
-                icon="pi pi-plus"
+                icon="fi fi-rr-plus"
                 @click="addHavingCondition"
                 outlined
                 size="small"
@@ -362,7 +362,7 @@
                   style="width: 120px"
                 />
                 <Button
-                  icon="pi pi-trash"
+                  icon="fi fi-rr-trash"
                   @click="removeHavingCondition(index)"
                   text
                   rounded
@@ -382,7 +382,7 @@
               <label class="form-label font-semibold">SET (Вычисляемые присваивания)</label>
               <Button
                 label="Добавить SET"
-                icon="pi pi-plus"
+                icon="fi fi-rr-plus"
                 @click="addSetExpression"
                 outlined
                 size="small"
@@ -411,7 +411,7 @@
                   class="flex-1"
                 />
                 <Button
-                  icon="pi pi-trash"
+                  icon="fi fi-rr-trash"
                   @click="removeSetExpression(index)"
                   text
                   rounded
@@ -431,7 +431,7 @@
               <label class="form-label font-semibold">ORDER BY (Сортировка)</label>
               <Button
                 label="Добавить сортировку"
-                icon="pi pi-plus"
+                icon="fi fi-rr-plus"
                 @click="addOrderBy"
                 outlined
                 size="small"
@@ -457,7 +457,7 @@
                   style="width: 120px"
                 />
                 <Button
-                  icon="pi pi-trash"
+                  icon="fi fi-rr-trash"
                   @click="removeOrderBy(index)"
                   text
                   rounded
@@ -488,7 +488,7 @@
             <h4 class="m-0">Сгенерированный SQL</h4>
             <Button
               label="Копировать"
-              icon="pi pi-copy"
+              icon="fi fi-rr-copy"
               @click="copySqlToClipboard"
               outlined
               size="small"
@@ -569,13 +569,13 @@
       <template #footer>
         <Button
           label="Отмена"
-          icon="pi pi-times"
+          icon="fi fi-rr-cross-small"
           @click="showSaveDialog = false"
           text
         />
         <Button
           label="Сохранить"
-          icon="pi pi-check"
+          icon="fi fi-rr-check"
           @click="confirmSaveReport"
           :loading="saving"
         />
@@ -655,7 +655,7 @@ const ALL_COLUMNS_OPTION = Object.freeze({ value: '*', label: '* (все кол�
 
 // ✅ Extract constant breadcrumb to avoid recreation
 const QUERY_BUILDER_BREADCRUMB = Object.freeze([
-  Object.freeze({ label: 'Конструктор запросов', icon: 'pi pi-sliders-h' })
+  Object.freeze({ label: 'Конструктор запросов', icon: 'fi fi-rr-settings-sliders' })
 ])
 
 // Breadcrumb

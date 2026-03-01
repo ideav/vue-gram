@@ -21,7 +21,7 @@
           <span>Отчеты</span>
           <div class="flex gap-2 align-items-center ml-auto">
             <Button
-              :icon="infiniteScrollEnabled ? 'pi pi-arrows-v' : 'pi pi-list'"
+              :icon="infiniteScrollEnabled ? 'fi fi-rr-arrows-alt-v' : 'fi fi-rr-list'"
               size="small"
               :outlined="!infiniteScrollEnabled"
               rounded
@@ -30,7 +30,7 @@
               :class="{ 'button-on': infiniteScrollEnabled }"
             />
             <Button
-              icon="pi pi-refresh"
+              icon="fi fi-rr-refresh"
               @click="loadReportList(1, pageSize, false)"
               :loading="loading"
               outlined
@@ -50,7 +50,7 @@
 
       <!-- Empty State -->
       <div v-else-if="!loading && reports.length === 0" class="text-center p-5">
-        <i class="pi pi-file text-6xl text-400 mb-3"></i>
+        <i class="fi fi-rr-file text-6xl text-400 mb-3"></i>
         <p class="text-xl text-500">Отчеты не найдены</p>
       </div>
 
@@ -99,7 +99,7 @@
           <template #body="{ data }">
             <Button
               label="Открыть"
-              icon="pi pi-eye"
+              icon="fi fi-rr-eye"
               size="small"
               @click.stop="selectReport(data.id)"
               outlined
@@ -118,7 +118,7 @@
             </div>
             <div v-else class="text-sm text-500">
               <span v-if="hasMoreData">Прокрутите для загрузки...</span>
-              <span v-else><i class="pi pi-check-circle mr-1"></i>Все данные загружены</span>
+              <span v-else><i class="fi fi-rr-check-circle mr-1"></i>Все данные загружены</span>
             </div>
           </div>
         </template>
@@ -138,7 +138,7 @@
         <div class="flex align-items-center justify-content-between">
           <div class="flex align-items-center gap-2">
             <Button
-              icon="pi pi-arrow-left"
+              icon="fi fi-rr-arrow-left"
               @click="closeReport"
               outlined
               rounded
@@ -149,7 +149,7 @@
           </div>
           <div class="flex gap-2 align-items-center ml-auto">
             <Button
-              icon="pi pi-filter"
+              icon="fi fi-rr-filter"
               @click="showFilters = !showFilters"
               size="small"
               rounded
@@ -158,7 +158,7 @@
               v-tooltip.bottom="showFilters ? 'Скрыть фильтры' : 'Показать фильтры'"
             />
             <Button
-              icon="pi pi-arrows-h"
+              icon="fi fi-rr-arrows-alt-h"
               @click="compactMode = !compactMode"
               size="small"
               rounded
@@ -166,7 +166,7 @@
               v-tooltip.bottom="compactMode ? 'Обычный' : 'Компактный'"
             />
             <Button
-              icon="pi pi-download"
+              icon="fi fi-rr-download"
               @click="exportToExcel"
               size="small"
               rounded
@@ -176,7 +176,7 @@
               v-tooltip.bottom="'Excel'"
             />
             <Button
-              icon="pi pi-refresh"
+              icon="fi fi-rr-refresh"
               @click="executeReport"
               size="small"
               rounded
@@ -262,7 +262,7 @@
 
       <!-- Empty Result -->
       <div v-else class="text-center p-5">
-        <i class="pi pi-inbox text-6xl text-400 mb-3"></i>
+        <i class="fi fi-rr-inbox text-6xl text-400 mb-3"></i>
         <p class="text-xl text-500">Нет данных для отображения</p>
       </div>
       </template>
@@ -336,7 +336,7 @@ const breadcrumbItems = computed(() => {
 const reportListMenuItems = computed(() => [
   {
     label: 'Открыть',
-    icon: 'pi pi-eye',
+    icon: 'fi fi-rr-eye',
     command: () => {
       if (selectedContextReport.value) {
         selectReport(selectedContextReport.value.id)
@@ -345,7 +345,7 @@ const reportListMenuItems = computed(() => [
   },
   {
     label: 'Редактировать',
-    icon: 'pi pi-pencil',
+    icon: 'fi fi-rr-pencil',
     command: () => {
       if (selectedContextReport.value) {
         router.push(`/${database.value}/object/${selectedContextReport.value.id}?edit=1`)
@@ -357,7 +357,7 @@ const reportListMenuItems = computed(() => [
   },
   {
     label: 'Копировать ID',
-    icon: 'pi pi-copy',
+    icon: 'fi fi-rr-copy',
     command: () => {
       if (selectedContextReport.value) {
         navigator.clipboard.writeText(String(selectedContextReport.value.id))
@@ -372,7 +372,7 @@ const reportListMenuItems = computed(() => [
   },
   {
     label: 'Копировать название',
-    icon: 'pi pi-copy',
+    icon: 'fi fi-rr-copy',
     command: () => {
       if (selectedContextReport.value) {
         navigator.clipboard.writeText(selectedContextReport.value.name || '')
@@ -390,7 +390,7 @@ const reportListMenuItems = computed(() => [
   },
   {
     label: 'Удалить',
-    icon: 'pi pi-trash',
+    icon: 'fi fi-rr-trash',
     class: 'text-red-500',
     command: () => {
       if (selectedContextReport.value) {
@@ -404,7 +404,7 @@ const reportListMenuItems = computed(() => [
 const reportDataMenuItems = computed(() => [
   {
     label: 'Копировать строку',
-    icon: 'pi pi-copy',
+    icon: 'fi fi-rr-copy',
     command: () => {
       if (selectedContextRow.value) {
         const rowText = Object.values(selectedContextRow.value).join('\t')
@@ -420,7 +420,7 @@ const reportDataMenuItems = computed(() => [
   },
   {
     label: 'Копировать как JSON',
-    icon: 'pi pi-file',
+    icon: 'fi fi-rr-file',
     command: () => {
       if (selectedContextRow.value) {
         navigator.clipboard.writeText(JSON.stringify(selectedContextRow.value, null, 2))
@@ -438,7 +438,7 @@ const reportDataMenuItems = computed(() => [
   },
   {
     label: 'Экспорт в Excel',
-    icon: 'pi pi-download',
+    icon: 'fi fi-rr-download',
     command: () => {
       exportToExcel()
     }

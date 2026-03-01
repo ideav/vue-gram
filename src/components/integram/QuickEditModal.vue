@@ -51,7 +51,7 @@
       <div v-if="requisites.length > 0" class="field">
         <Divider align="left">
           <div class="inline-flex align-items-center">
-            <i class="pi pi-list mr-2"></i>
+            <i class="fi fi-rr-list mr-2"></i>
             <b>Реквизиты</b>
           </div>
         </Divider>
@@ -129,7 +129,7 @@
           <Button
             v-if="objectId"
             label="Удалить"
-            icon="pi pi-trash"
+            icon="fi fi-rr-trash"
             @click="confirmDelete"
             severity="danger"
             text
@@ -139,14 +139,14 @@
         <div class="flex gap-2">
           <Button
             label="Отмена"
-            icon="pi pi-times"
+            icon="fi fi-rr-cross-small"
             @click="handleCancel"
             text
             :disabled="saving"
           />
           <Button
             label="Сохранить"
-            icon="pi pi-check"
+            icon="fi fi-rr-check"
             @click="handleSave"
             :loading="saving"
             autofocus
@@ -164,7 +164,7 @@
     modal
   >
     <div class="flex align-items-center gap-3">
-      <i class="pi pi-exclamation-triangle text-4xl text-orange-500"></i>
+      <i class="fi fi-rr-triangle-warning text-4xl text-orange-500"></i>
       <span>
         Вы уверены, что хотите удалить объект
         <b>{{ formData.value }}</b>?

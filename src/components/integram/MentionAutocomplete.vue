@@ -21,7 +21,7 @@
         v-if="filteredUsers.length === 0"
         class="mention-item-empty"
       >
-        <i class="pi pi-user text-400 mr-2"></i>
+        <i class="fi fi-rr-user text-400 mr-2"></i>
         <span class="text-500">Пользователи не найдены</span>
       </div>
 
@@ -41,7 +41,7 @@
           class="mention-avatar"
         />
         <div v-else class="mention-avatar-default">
-          <i class="pi pi-user"></i>
+          <i class="fi fi-rr-user"></i>
         </div>
         <span class="mention-name">{{ user.name }}</span>
         <span class="mention-id text-400 text-xs ml-auto">ID: {{ user.id }}</span>

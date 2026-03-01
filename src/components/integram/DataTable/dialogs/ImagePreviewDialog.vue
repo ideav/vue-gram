@@ -18,8 +18,8 @@
       />
     </div>
     <template #footer>
-      <Button label="Скачать" icon="pi pi-download" @click="$emit('download')" />
-      <Button label="Закрыть" icon="pi pi-times" @click="$emit('update:visible', false)" text />
+      <Button label="Скачать" icon="fi fi-rr-download" @click="$emit('download')" />
+      <Button label="Закрыть" icon="fi fi-rr-cross-small" @click="$emit('update:visible', false)" text />
     </template>
   </Dialog>
 </template>

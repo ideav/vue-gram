@@ -4,7 +4,7 @@
     <div class="dict-header">
       <div class="dict-title">Таблицы</div>
       <Button
-        icon="pi pi-cog"
+        icon="fi fi-rr-settings"
         @click="showFilters = !showFilters"
         size="small"
         text
@@ -13,7 +13,7 @@
       />
       <IconField class="dict-search">
         <InputIcon>
-          <i class="pi pi-search" />
+          <i class="fi fi-rr-search" />
         </InputIcon>
         <InputText
           v-model="searchQuery"
@@ -30,7 +30,7 @@
         <span class="text-sm font-semibold">Режим отображения:</span>
         <div class="flex gap-2">
           <Button
-            :icon="viewMode === 'accordion' ? 'pi pi-check' : ''"
+            :icon="viewMode === 'accordion' ? 'fi fi-rr-check' : ''"
             label="Аккордеон"
             @click="viewMode = 'accordion'"
             size="small"
@@ -38,7 +38,7 @@
             :outlined="viewMode !== 'accordion'"
           />
           <Button
-            :icon="viewMode === 'list' ? 'pi pi-check' : ''"
+            :icon="viewMode === 'list' ? 'fi fi-rr-check' : ''"
             label="Таблица"
             @click="viewMode = 'list'"
             size="small"
@@ -71,7 +71,7 @@
               <span class="category-count">({{ getTypesCountInCategory(category.name) }})</span>
               <Button
                 v-if="category.isCustom"
-                icon="pi pi-pencil"
+                icon="fi fi-rr-pencil"
                 @click.stop="editCategory(category)"
                 size="small"
                 text
@@ -95,7 +95,7 @@
             >
               <span class="type-name">{{ type.name }}</span>
               <Button
-                :icon="isFavorite(type.id) ? 'pi pi-star-fill' : 'pi pi-star'"
+                :icon="isFavorite(type.id) ? 'fi fi-sr-star' : 'fi fi-rr-star'"
                 @click.stop="toggleFavorite(type.id)"
                 size="small"
                 text
@@ -110,7 +110,7 @@
 
       <!-- New Category Button -->
       <div class="new-category-btn" @click="showNewCategoryDialog = true">
-        <i class="pi pi-plus mr-2"></i>Новая категория
+        <i class="fi fi-rr-plus mr-2"></i>Новая категория
       </div>
     </div>
 
@@ -131,7 +131,7 @@
         <Column style="width: 3rem">
           <template #body="{ data }">
             <Button
-              :icon="isFavorite(data.id) ? 'pi pi-star-fill' : 'pi pi-star'"
+              :icon="isFavorite(data.id) ? 'fi fi-sr-star' : 'fi fi-rr-star'"
               @click="toggleFavorite(data.id)"
               size="small"
               text
@@ -155,14 +155,14 @@
           <template #body="{ data }">
             <div class="flex gap-1">
               <Button
-                icon="pi pi-table"
+                icon="fi fi-rr-table"
                 @click="emit('view-table', data.id)"
                 size="small"
                 text
                 v-tooltip="'Таблица объектов'"
               />
               <Button
-                icon="pi pi-info-circle"
+                icon="fi fi-rr-info"
                 @click="emit('view-metadata', data.id)"
                 size="small"
                 text
@@ -177,7 +177,7 @@
 
     <!-- Empty State -->
     <div v-else-if="filteredTypes.length === 0" class="text-center p-5">
-      <i class="pi pi-inbox text-4xl text-color-secondary mb-3"></i>
+      <i class="fi fi-rr-inbox text-4xl text-color-secondary mb-3"></i>
       <p class="text-color-secondary">Типы не найдены</p>
     </div>
 
@@ -611,16 +611,16 @@ function getTypeIcon(type) {
   const category = type.category
 
   const iconMap = {
-    'Пользователи': 'pi pi-users',
-    'Отчеты': 'pi pi-chart-bar',
-    'Формы': 'pi pi-list',
-    'Функции': 'pi pi-code',
-    'Файлы': 'pi pi-folder',
-    'Метки': 'pi pi-tags',
-    'Другое': 'pi pi-box'
+    'Пользователи': 'fi fi-rr-users',
+    'Отчеты': 'fi fi-rr-chart-histogram',
+    'Формы': 'fi fi-rr-list',
+    'Функции': 'fi fi-rr-code',
+    'Файлы': 'fi fi-rr-folder',
+    'Метки': 'fi fi-rr-tags',
+    'Другое': 'fi fi-rr-box'
   }
 
-  return iconMap[category] || 'pi pi-box'
+  return iconMap[category] || 'fi fi-rr-box'
 }
 
 function getCategorySeverity(category) {
@@ -783,7 +783,7 @@ function deleteCategory(category) {
   confirm.require({
     message: `Удалить категорию "${category.name}"? Типы из этой категории будут перемещены в "Другое".`,
     header: 'Подтверждение',
-    icon: 'pi pi-exclamation-triangle',
+    icon: 'fi fi-rr-triangle-warning',
     accept: () => {
       const index = customCategories.value.findIndex(c => c.id === category.id)
       if (index !== -1) {

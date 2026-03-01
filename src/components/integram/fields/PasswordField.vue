@@ -11,7 +11,7 @@
       />
       <Button
         v-if="showGenerator"
-        icon="pi pi-refresh"
+        icon="fi fi-rr-refresh"
         @click="emit('generate')"
         size="small"
         outlined
@@ -20,7 +20,7 @@
       />
       <Button
         v-if="showGenerator"
-        icon="pi pi-envelope"
+        icon="fi fi-rr-envelope"
         @click="emit('copy-invite')"
         size="small"
         outlined

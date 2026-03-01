@@ -11,7 +11,7 @@
             <span>Объекты</span>
             <Button
               v-if="canCreateTypes"
-              icon="pi pi-plus"
+              icon="fi fi-rr-plus"
               rounded
               outlined
               size="small"
@@ -22,7 +22,7 @@
           </div>
           <div class="flex align-items-center gap-2 ml-auto">
             <IconField iconPosition="left">
-              <InputIcon class="pi pi-search" />
+              <InputIcon class="fi fi-rr-search" />
               <InputText
                 ref="searchInputRef"
                 v-model="searchQuery"
@@ -61,7 +61,7 @@
                 <h3 class="m-0 category-title">{{ category.name }}</h3>
                 <Badge :value="category.tables.length" class="category-badge" />
               </div>
-              <i :class="category.open ? 'pi pi-chevron-down' : 'pi pi-chevron-right'" class="category-chevron"></i>
+              <i :class="category.open ? 'fi fi-rr-angle-small-down' : 'fi fi-rr-angle-small-right'" class="category-chevron"></i>
             </div>
 
             <!-- Grid View -->
@@ -93,16 +93,16 @@
                 :to="`/${database}/object/${table.id}`"
                 class="table-list-item"
               >
-                <i class="pi pi-table table-list-icon"></i>
+                <i class="fi fi-rr-table table-list-icon"></i>
                 <span class="table-list-name">{{ table.name }}</span>
-                <i class="pi pi-chevron-right table-list-arrow"></i>
+                <i class="fi fi-rr-angle-small-right table-list-arrow"></i>
               </router-link>
             </div>
           </div>
 
           <!-- No results -->
           <div v-if="filteredCategories.length === 0 && !loading" class="text-center py-5">
-            <i class="pi pi-inbox text-5xl text-color-secondary mb-3"></i>
+            <i class="fi fi-rr-inbox text-5xl text-color-secondary mb-3"></i>
             <p class="text-color-secondary">Таблицы не найдены</p>
           </div>
         </div>
@@ -189,8 +189,8 @@ const viewMode = ref('grid');
 
 // View options
 const viewOptions = [
-  { value: 'grid', icon: 'pi pi-th-large', label: 'Сетка' },
-  { value: 'list', icon: 'pi pi-list', label: 'Список' }
+  { value: 'grid', icon: 'fi fi-rr-grid', label: 'Сетка' },
+  { value: 'list', icon: 'fi fi-rr-list', label: 'Список' }
 ];
 
 // Dictionary data
@@ -252,7 +252,7 @@ const filteredCategories = computed(() => {
 
 // Breadcrumb items
 const breadcrumbItems = computed(() => [
-  { label: 'Таблицы', icon: 'pi pi-table' }
+  { label: 'Таблицы', icon: 'fi fi-rr-table' }
 ]);
 
 // Methods

@@ -30,16 +30,16 @@
       </div>
     </div>
     <template #footer>
-      <Button label="Отмена" icon="pi pi-times" @click="$emit('cancel')" text />
+      <Button label="Отмена" icon="fi fi-rr-cross-small" @click="$emit('cancel')" text />
       <Button
         label="Сделать независимой"
-        icon="pi pi-link"
+        icon="fi fi-rr-link"
         @click="$emit('make-independent')"
         severity="secondary"
       />
       <Button
         label="Переподчинить"
-        icon="pi pi-check"
+        icon="fi fi-rr-check"
         @click="$emit('confirm')"
         :disabled="!modelValue"
       />

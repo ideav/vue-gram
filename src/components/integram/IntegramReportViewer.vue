@@ -7,7 +7,7 @@
           <td class="text-left" style="width: 15%">
             <div class="flex gap-2 align-items-center">
               <Button
-                icon="pi pi-home"
+                icon="fi fi-rr-home"
                 @click="goHome"
                 text
                 size="small"
@@ -15,7 +15,7 @@
                 title="На главную"
               />
               <Button
-                icon="pi pi-file-export"
+                icon="fi fi-rr-file-export"
                 label=".HTML"
                 @click="exportToHTML"
                 size="small"
@@ -24,7 +24,7 @@
                 title="Экспорт в HTML"
               />
               <Button
-                icon="pi pi-file-excel"
+                icon="fi fi-rr-file-excel"
                 label=".XLS"
                 @click="exportToExcel"
                 size="small"
@@ -41,7 +41,7 @@
           <td class="text-right" style="width: 15%">
             <div class="flex gap-2 align-items-center justify-content-end">
               <Button
-                icon="pi pi-arrows-v"
+                icon="fi fi-rr-arrows-alt-v"
                 @click="toggleInfiniteScroll"
                 :outlined="!infiniteScrollEnabled"
                 rounded
@@ -50,14 +50,14 @@
                 :class="{ 'button-on': infiniteScrollEnabled }"
               />
               <Button
-                icon="pi pi-arrows-h"
+                icon="fi fi-rr-arrows-alt-h"
                 @click="toggleCompact"
                 text
                 size="small"
                 :title="compactMode ? 'Обычное представление' : 'Компактное представление'"
               />
               <Button
-                icon="pi pi-filter"
+                icon="fi fi-rr-filter"
                 @click="toggleFilter"
                 text
                 size="small"
@@ -66,14 +66,14 @@
               <Button
                 v-show="showFilters && hasFilters"
                 id="refresh-btn"
-                icon="pi pi-refresh"
+                icon="fi fi-rr-refresh"
                 @click="applyFilters"
                 size="small"
                 severity="primary"
                 :title="'Перестроить отчет по заданному фильтру'"
               />
               <Button
-                icon="pi pi-refresh"
+                icon="fi fi-rr-refresh"
                 @click="refreshReport"
                 :loading="loading"
                 outlined
@@ -82,7 +82,7 @@
                 :title="'Обновить данные'"
               />
               <Button
-                icon="pi pi-times-circle"
+                icon="fi fi-rr-cross-circle"
                 @click="clearFiltersAndRefresh"
                 text
                 size="small"
@@ -190,7 +190,7 @@
 
       <!-- All data loaded message -->
       <div v-if="infiniteScrollEnabled && !hasMoreData && displayedData.length > 0" class="mt-3 text-center py-2 text-sm text-500">
-        <i class="pi pi-check-circle mr-1"></i>Все данные загружены ({{ displayedData.length }} строк)
+        <i class="fi fi-rr-check-circle mr-1"></i>Все данные загружены ({{ displayedData.length }} строк)
       </div>
     </div>
 

@@ -66,23 +66,23 @@ export const getHeaderContextMenuItems = (header, options = {}) => {
   return [
     {
       label: 'Сортировать ↑',
-      icon: 'pi pi-sort-amount-up',
+      icon: 'fi fi-rr-sort-amount-up',
       command: onSortAsc
     },
     {
       label: 'Сортировать ↓',
-      icon: 'pi pi-sort-amount-down',
+      icon: 'fi fi-rr-sort-amount-down',
       command: onSortDesc
     },
     { separator: true },
     {
       label: 'Переименовать',
-      icon: 'pi pi-pencil',
+      icon: 'fi fi-rr-pencil',
       command: onRename
     },
     {
       label: isPinned ? '📌 Открепить колонку' : '📌 Закрепить колонку',
-      icon: isPinned ? 'pi pi-lock-open' : 'pi pi-lock',
+      icon: isPinned ? 'fi fi-rr-unlock' : 'fi fi-rr-lock',
       command: onPin
     },
     { separator: true },
@@ -90,13 +90,13 @@ export const getHeaderContextMenuItems = (header, options = {}) => {
       label: hasDuplicates
         ? `🔍 Скрыть дубликаты`
         : `🔍 Показать дубликаты${duplicateCount > 0 ? ` (${duplicateCount})` : ''}`,
-      icon: 'pi pi-copy',
+      icon: 'fi fi-rr-copy',
       command: onShowDuplicates
     },
     { separator: true },
     {
       label: 'Скрыть колонку',
-      icon: 'pi pi-eye-slash',
+      icon: 'fi fi-rr-eye-crossed',
       command: onHide
     }
   ]
@@ -117,35 +117,35 @@ export const getRowContextMenuItems = (options = {}) => {
   return [
     {
       label: 'Копировать значение',
-      icon: 'pi pi-copy',
+      icon: 'fi fi-rr-copy',
       command: onCopy
     },
     {
       label: 'Вставить значение',
-      icon: 'pi pi-clipboard',
+      icon: 'fi fi-rr-clipboard',
       disabled: !hasCopiedValue,
       command: onPaste
     },
     { separator: true },
     {
       label: 'Редактировать строку',
-      icon: 'pi pi-pencil',
+      icon: 'fi fi-rr-pencil',
       command: onEdit
     },
     {
       label: 'Переместить вверх',
-      icon: 'pi pi-arrow-up',
+      icon: 'fi fi-rr-arrow-up',
       command: onMoveUp
     },
     {
       label: 'Изменить родителя',
-      icon: 'pi pi-sitemap',
+      icon: 'fi fi-rr-sitemap',
       command: onChangeParent
     },
     { separator: true },
     {
       label: 'Удалить строку',
-      icon: 'pi pi-trash',
+      icon: 'fi fi-rr-trash',
       class: 'danger-menu-item',
       command: onDelete
     }

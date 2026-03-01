@@ -10,7 +10,7 @@
           <div class="flex gap-2 align-items-center ml-auto">
             <!-- Main controls -->
             <Button
-              icon="pi pi-plus"
+              icon="fi fi-rr-plus"
               label="Добавить"
               size="small"
               @click="addRecord"
@@ -19,7 +19,7 @@
             />
 
             <Button
-              icon="pi pi-filter"
+              icon="fi fi-rr-filter"
               size="small"
               outlined
               @click="showFilters = !showFilters"
@@ -27,7 +27,7 @@
             />
 
             <Button
-              icon="pi pi-filter-slash"
+              icon="fi fi-rr-filter-slash"
               size="small"
               outlined
               @click="clearFilters"
@@ -36,7 +36,7 @@
             />
 
             <Button
-              icon="pi pi-refresh"
+              icon="fi fi-rr-refresh"
               size="small"
               outlined
               @click="loadObjects"
@@ -45,7 +45,7 @@
             />
 
             <Button
-              icon="pi pi-pencil"
+              icon="fi fi-rr-pencil"
               size="small"
               outlined
               @click="toggleInlineEdit"
@@ -64,7 +64,7 @@
             />
 
             <Button
-              :icon="infiniteScrollEnabled ? 'pi pi-arrows-v' : 'pi pi-list'"
+              :icon="infiniteScrollEnabled ? 'fi fi-rr-arrows-alt-v' : 'fi fi-rr-list'"
               size="small"
               :outlined="!infiniteScrollEnabled"
               @click="toggleInfiniteScroll"
@@ -73,7 +73,7 @@
             />
 
             <Button
-              icon="pi pi-ellipsis-h"
+              icon="fi fi-rr-menu-dots"
               size="small"
               text
               @click="toggleExtraControls"
@@ -86,7 +86,7 @@
         <div v-if="showExtraControls" class="extra-controls-panel mt-2 p-2 surface-50 border-round flex gap-2 flex-wrap">
           <Button
             label="Скачать CSV"
-            icon="pi pi-file-export"
+            icon="fi fi-rr-file-export"
             size="small"
             outlined
             @click="exportToCSV"
@@ -94,7 +94,7 @@
           />
           <Button
             label="Экспорт BKI"
-            icon="pi pi-download"
+            icon="fi fi-rr-download"
             size="small"
             outlined
             @click="exportToBKI"
@@ -102,7 +102,7 @@
           />
           <Button
             label="Импорт BKI"
-            icon="pi pi-upload"
+            icon="fi fi-rr-upload"
             size="small"
             outlined
             @click="triggerBKIFileInput"
@@ -117,7 +117,7 @@
           />
           <Button
             label="Удалить по фильтру"
-            icon="pi pi-trash"
+            icon="fi fi-rr-trash"
             size="small"
             outlined
             severity="danger"
@@ -127,7 +127,7 @@
           />
           <Button
             label="Добавить колонку"
-            icon="pi pi-plus-circle"
+            icon="fi fi-rr-square-plus"
             size="small"
             outlined
             @click="showAddColumnDialog = true"
@@ -374,7 +374,7 @@
               <template #body="slotProps">
                 <div class="flex gap-1 justify-content-end action-buttons">
                   <Button
-                    icon="pi pi-arrow-up"
+                    icon="fi fi-rr-arrow-up"
                     text
                     rounded
                     size="small"
@@ -383,7 +383,7 @@
                     v-tooltip.bottom="'Переместить вверх'"
                   />
                   <Button
-                    icon="pi pi-link"
+                    icon="fi fi-rr-link"
                     text
                     rounded
                     size="small"
@@ -392,7 +392,7 @@
                     v-tooltip.bottom="'Показать ссылки'"
                   />
                   <Button
-                    icon="pi pi-pencil"
+                    icon="fi fi-rr-pencil"
                     text
                     rounded
                     size="small"
@@ -400,7 +400,7 @@
                     v-tooltip.bottom="'Редактировать'"
                   />
                   <Button
-                    icon="pi pi-trash"
+                    icon="fi fi-rr-trash"
                     text
                     rounded
                     size="small"
@@ -414,7 +414,7 @@
 
             <template #empty>
               <div class="text-center py-4">
-                <i class="pi pi-inbox text-4xl text-color-secondary mb-2"></i>
+                <i class="fi fi-rr-inbox text-4xl text-color-secondary mb-2"></i>
                 <p class="text-color-secondary">Объекты не найдены</p>
               </div>
             </template>
@@ -428,7 +428,7 @@
 
           <!-- Infinite Scroll: End of data indicator -->
           <div v-if="infiniteScrollEnabled && !hasMoreData && objectsList.length > 0" class="mt-3 text-center text-color-secondary text-sm py-2">
-            <i class="pi pi-check-circle mr-2"></i>Все данные загружены ({{ objectsList.length }} записей)
+            <i class="fi fi-rr-check-circle mr-2"></i>Все данные загружены ({{ objectsList.length }} записей)
           </div>
 
           <!-- Custom Pagination (hidden in infinite scroll mode) -->
@@ -441,7 +441,7 @@
             </div>
             <div class="flex gap-2 align-items-center">
               <Button
-                icon="pi pi-angle-left"
+                icon="fi fi-rr-angle-left"
                 size="small"
                 outlined
                 :disabled="currentPage === 1"
@@ -450,7 +450,7 @@
               />
               <span class="text-sm">{{ currentPage }}</span>
               <Button
-                icon="pi pi-angle-right"
+                icon="fi fi-rr-angle-right"
                 size="small"
                 outlined
                 :disabled="currentPage >= totalPages || objectsList.length < rowsPerPage"
@@ -503,7 +503,7 @@
           <label>Родитель</label>
           <div class="p-inputgroup">
             <span class="p-inputgroup-addon">
-              <i class="pi pi-link"></i>
+              <i class="fi fi-rr-link"></i>
             </span>
             <InputText
               :value="route.query.F_U || 'Не указан'"
@@ -512,10 +512,10 @@
             />
           </div>
           <small v-if="route.query.F_U" class="text-green-500">
-            <i class="pi pi-check"></i> Родитель определён автоматически из контекста
+            <i class="fi fi-rr-check"></i> Родитель определён автоматически из контекста
           </small>
           <small v-else class="text-orange-500">
-            <i class="pi pi-exclamation-triangle"></i> Откройте таблицу из родительской записи для создания подчинённых объектов
+            <i class="fi fi-rr-triangle-warning"></i> Откройте таблицу из родительской записи для создания подчинённых объектов
           </small>
         </div>
 
@@ -641,13 +641,13 @@
       <template #footer>
         <Button
           label="Отмена"
-          icon="pi pi-times"
+          icon="fi fi-rr-cross-small"
           @click="showDeleteByFilterDialog = false"
           text
         />
         <Button
           label="Удалить"
-          icon="pi pi-trash"
+          icon="fi fi-rr-trash"
           severity="danger"
           @click="executeDeleteByFilter"
           :disabled="deleteByFilterConfirmText !== 'УДАЛИТЬ'"
@@ -669,7 +669,7 @@
       </div>
 
       <div v-else-if="referencesData.length === 0" class="text-center py-4">
-        <i class="pi pi-check-circle text-4xl text-green-500 mb-3"></i>
+        <i class="fi fi-rr-check-circle text-4xl text-green-500 mb-3"></i>
         <p class="text-color-secondary">На этот объект нет ссылок</p>
         <p class="text-sm text-color-secondary">Объект можно безопасно удалить</p>
       </div>
@@ -705,7 +705,7 @@
       <template #footer>
         <Button
           label="Закрыть"
-          icon="pi pi-times"
+          icon="fi fi-rr-cross-small"
           @click="showReferencesDialog = false"
           text
         />
@@ -770,13 +770,13 @@
       <template #footer>
         <Button
           label="Отмена"
-          icon="pi pi-times"
+          icon="fi fi-rr-cross-small"
           @click="showAddColumnDialog = false"
           text
         />
         <Button
           label="Добавить"
-          icon="pi pi-plus"
+          icon="fi fi-rr-plus"
           @click="executeAddColumn"
           :disabled="!isAddColumnFormValid"
           :loading="addingColumn"
@@ -911,8 +911,8 @@ const breadcrumbItems = computed(() => {
   const tablePath = `/${database.value}/table`;
 
   return [
-    { label: 'Таблицы', to: tablePath, icon: 'pi pi-table' },
-    { label: typeData.value?.val || 'Объекты', icon: 'pi pi-bars' }
+    { label: 'Таблицы', to: tablePath, icon: 'fi fi-rr-table' },
+    { label: typeData.value?.val || 'Объекты', icon: 'fi fi-rr-menu-burger' }
   ];
 });
 
@@ -1903,7 +1903,7 @@ function confirmDelete(object) {
   confirm.require({
     message: `Вы уверены, что хотите удалить "${object.val}" (ID: ${object.id})?`,
     header: 'Подтверждение удаления',
-    icon: 'pi pi-exclamation-triangle',
+    icon: 'fi fi-rr-triangle-warning',
     acceptClass: 'p-button-danger',
     accept: () => {
       handleDelete(object.id);

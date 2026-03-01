@@ -77,7 +77,7 @@
         >
           <span>{{ existingRule.condition }} {{ existingRule.value }}</span>
           <Button
-            icon="pi pi-trash"
+            icon="fi fi-rr-trash"
             text
             severity="danger"
             size="small"
@@ -87,8 +87,8 @@
       </div>
     </div>
     <template #footer>
-      <Button label="Отмена" icon="pi pi-times" @click="$emit('cancel')" text />
-      <Button label="Применить" icon="pi pi-check" @click="$emit('save')" />
+      <Button label="Отмена" icon="fi fi-rr-cross-small" @click="$emit('cancel')" text />
+      <Button label="Применить" icon="fi fi-rr-check" @click="$emit('save')" />
     </template>
   </Dialog>
 </template>

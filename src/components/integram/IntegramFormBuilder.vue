@@ -14,7 +14,7 @@
           <span>Конструктор форм</span>
           <div class="flex gap-2 align-items-center ml-auto">
             <Button
-              icon="pi pi-refresh"
+              icon="fi fi-rr-refresh"
               @click="loadFormsList"
               :loading="loading.formsList"
               outlined
@@ -24,7 +24,7 @@
             />
             <Button
               label="Создать"
-              icon="pi pi-plus"
+              icon="fi fi-rr-plus"
               @click="showCreateFormDialog = true"
               severity="primary"
               size="small"
@@ -52,7 +52,7 @@
             <template #body="{ data }">
               <div class="flex gap-1">
                 <Button
-                  icon="pi pi-pencil"
+                  icon="fi fi-rr-pencil"
                   size="small"
                   text
                   severity="info"
@@ -60,7 +60,7 @@
                   v-tooltip="'Редактировать'"
                 />
                 <Button
-                  icon="pi pi-eye"
+                  icon="fi fi-rr-eye"
                   size="small"
                   text
                   severity="success"
@@ -68,7 +68,7 @@
                   v-tooltip="'Просмотр'"
                 />
                 <Button
-                  icon="pi pi-trash"
+                  icon="fi fi-rr-trash"
                   size="small"
                   text
                   severity="danger"
@@ -92,7 +92,7 @@
           <span>{{ currentForm.val }}</span>
           <div class="flex gap-2 align-items-center ml-auto">
             <Button
-              icon="pi pi-arrow-left"
+              icon="fi fi-rr-arrow-left"
               @click="closeFormEditor"
               size="small"
               outlined
@@ -126,7 +126,7 @@
             <h4 class="m-0">Панели формы</h4>
             <Button
               label="Добавить панель"
-              icon="pi pi-plus"
+              icon="fi fi-rr-plus"
               @click="showAddPanelDialog = true"
               size="small"
               severity="success"
@@ -148,7 +148,7 @@
                   </div>
                   <div class="flex gap-1">
                     <Button
-                      icon="pi pi-arrow-up"
+                      icon="fi fi-rr-arrow-up"
                       size="small"
                       text
                       @click="movePanelUp(index)"
@@ -156,7 +156,7 @@
                       v-tooltip="'Вверх'"
                     />
                     <Button
-                      icon="pi pi-arrow-down"
+                      icon="fi fi-rr-arrow-down"
                       size="small"
                       text
                       @click="movePanelDown(index)"
@@ -164,7 +164,7 @@
                       v-tooltip="'Вниз'"
                     />
                     <Button
-                      icon="pi pi-pencil"
+                      icon="fi fi-rr-pencil"
                       size="small"
                       text
                       severity="info"
@@ -172,7 +172,7 @@
                       v-tooltip="'Редактировать'"
                     />
                     <Button
-                      icon="pi pi-trash"
+                      icon="fi fi-rr-trash"
                       size="small"
                       text
                       severity="danger"
@@ -226,7 +226,7 @@
                     <h6 class="m-0">Поля панели</h6>
                     <Button
                       label="Добавить поле"
-                      icon="pi pi-plus"
+                      icon="fi fi-rr-plus"
                       size="small"
                       text
                       @click="openAddFieldDialog(panel)"
@@ -246,14 +246,14 @@
                         <template #body="{ data }">
                           <div class="flex gap-1">
                             <Button
-                              icon="pi pi-pencil"
+                              icon="fi fi-rr-pencil"
                               size="small"
                               text
                               @click="editField(panel, data)"
                               v-tooltip="'Редактировать'"
                             />
                             <Button
-                              icon="pi pi-trash"
+                              icon="fi fi-rr-trash"
                               size="small"
                               text
                               severity="danger"
@@ -274,7 +274,7 @@
                 <div class="mb-3" v-if="panel.report">
                   <div class="flex justify-content-between align-items-center mb-2">
                     <h6 class="m-0">
-                      <i class="pi pi-table mr-2"></i>Сводная таблица (Pivot)
+                      <i class="fi fi-rr-table mr-2"></i>Сводная таблица (Pivot)
                     </h6>
                     <div class="flex gap-1">
                       <Tag
@@ -285,7 +285,7 @@
                       />
                       <Button
                         :label="panel.pivotConfig ? 'Изменить' : 'Настроить'"
-                        :icon="panel.pivotConfig ? 'pi pi-pencil' : 'pi pi-cog'"
+                        :icon="panel.pivotConfig ? 'fi fi-rr-pencil' : 'fi fi-rr-settings'"
                         size="small"
                         :severity="panel.pivotConfig ? 'info' : 'secondary'"
                         text
@@ -293,7 +293,7 @@
                       />
                       <Button
                         v-if="panel.pivotConfig"
-                        icon="pi pi-trash"
+                        icon="fi fi-rr-trash"
                         size="small"
                         severity="danger"
                         text
@@ -328,7 +328,7 @@
                     <h6 class="m-0">Кнопки панели</h6>
                     <Button
                       label="Добавить кнопку"
-                      icon="pi pi-plus"
+                      icon="fi fi-rr-plus"
                       size="small"
                       text
                       @click="openAddButtonDialog(panel)"
@@ -348,14 +348,14 @@
                         <template #body="{ data }">
                           <div class="flex gap-1">
                             <Button
-                              icon="pi pi-pencil"
+                              icon="fi fi-rr-pencil"
                               size="small"
                               text
                               @click="editButton(panel, data)"
                               v-tooltip="'Редактировать'"
                             />
                             <Button
-                              icon="pi pi-trash"
+                              icon="fi fi-rr-trash"
                               size="small"
                               text
                               severity="danger"
@@ -400,10 +400,10 @@
         </div>
       </div>
       <template #footer>
-        <Button label="Отмена" icon="pi pi-times" @click="showCreateFormDialog = false" text />
+        <Button label="Отмена" icon="fi fi-rr-cross-small" @click="showCreateFormDialog = false" text />
         <Button
           label="Создать"
-          icon="pi pi-check"
+          icon="fi fi-rr-check"
           @click="createForm"
           :loading="loading.createForm"
           :disabled="!newFormData.name"
@@ -497,10 +497,10 @@
         </div>
       </div>
       <template #footer>
-        <Button label="Отмена" icon="pi pi-times" @click="closeAddPanelDialog" text />
+        <Button label="Отмена" icon="fi fi-rr-cross-small" @click="closeAddPanelDialog" text />
         <Button
           :label="editingPanel ? 'Сохранить' : 'Добавить'"
-          icon="pi pi-check"
+          icon="fi fi-rr-check"
           @click="savePanel"
           :loading="loading.savePanel"
           :disabled="!panelData.name || !panelData.typeId"
@@ -545,10 +545,10 @@
         </div>
       </div>
       <template #footer>
-        <Button label="Отмена" icon="pi pi-times" @click="closeAddFieldDialog" text />
+        <Button label="Отмена" icon="fi fi-rr-cross-small" @click="closeAddFieldDialog" text />
         <Button
           :label="editingField ? 'Сохранить' : 'Добавить'"
-          icon="pi pi-check"
+          icon="fi fi-rr-check"
           @click="saveField"
           :loading="loading.saveField"
           :disabled="!fieldData.fieldId"
@@ -594,10 +594,10 @@
         </div>
       </div>
       <template #footer>
-        <Button label="Отмена" icon="pi pi-times" @click="closeAddButtonDialog" text />
+        <Button label="Отмена" icon="fi fi-rr-cross-small" @click="closeAddButtonDialog" text />
         <Button
           :label="editingButton ? 'Сохранить' : 'Добавить'"
-          icon="pi pi-check"
+          icon="fi fi-rr-check"
           @click="saveButton"
           :loading="loading.saveButton"
           :disabled="!buttonData.buttonAlias || !buttonData.buttonAction"
@@ -633,7 +633,7 @@
           <div v-else class="text-muted">
             <Button
               label="Загрузить поля отчета"
-              icon="pi pi-download"
+              icon="fi fi-rr-download"
               @click="loadReportFields"
               :loading="loading.pivotFields"
               outlined
@@ -647,7 +647,7 @@
         <!-- Rows -->
         <div class="field">
           <label for="pivotRows" class="font-semibold mb-2 block">
-            <i class="pi pi-bars mr-2"></i>Строки (группировка по строкам)
+            <i class="fi fi-rr-menu-burger mr-2"></i>Строки (группировка по строкам)
           </label>
           <Chips
             id="pivotRows"
@@ -662,7 +662,7 @@
         <!-- Columns -->
         <div class="field">
           <label for="pivotCols" class="font-semibold mb-2 block">
-            <i class="pi pi-table mr-2"></i>Столбцы (группировка по столбцам)
+            <i class="fi fi-rr-table mr-2"></i>Столбцы (группировка по столбцам)
           </label>
           <Chips
             id="pivotCols"
@@ -677,7 +677,7 @@
         <!-- Values -->
         <div class="field">
           <label for="pivotVals" class="font-semibold mb-2 block">
-            <i class="pi pi-calculator mr-2"></i>Значения (агрегируемые поля)
+            <i class="fi fi-rr-calculator mr-2"></i>Значения (агрегируемые поля)
           </label>
           <Chips
             id="pivotVals"
@@ -772,10 +772,10 @@
       </div>
 
       <template #footer>
-        <Button label="Отмена" icon="pi pi-times" @click="closePivotConfigDialog" text />
+        <Button label="Отмена" icon="fi fi-rr-cross-small" @click="closePivotConfigDialog" text />
         <Button
           label="Сохранить"
-          icon="pi pi-check"
+          icon="fi fi-rr-check"
           @click="savePivotConfig"
           :loading="loading.savePivot"
         />
@@ -807,7 +807,7 @@ const toast = useToast()
 const breadcrumbItems = computed(() => [
   {
     label: 'Конструктор форм',
-    icon: 'pi pi-sliders-h',
+    icon: 'fi fi-rr-settings-sliders',
     to: undefined // Current page
   }
 ])

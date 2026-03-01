@@ -4,27 +4,27 @@
     <nav class="breadcrumb mb-3">
       <ol class="flex list-none p-2 m-0">
         <li class="mr-2">
-          <router-link :to="`/${database}`"><i class="pi pi-database mr-1"></i>{{ database }}</router-link>
+          <router-link :to="`/${database}`"><i class="fi fi-rr-database mr-1"></i>{{ database }}</router-link>
         </li>
         <li class="mr-2">
           <span class="text-500">/</span>
         </li>
         <li class="mr-2">
-          <router-link :to="`/${database}/dict`"><i class="pi pi-table mr-1"></i>{{ $t('tables') }}</router-link>
+          <router-link :to="`/${database}/dict`"><i class="fi fi-rr-table mr-1"></i>{{ $t('tables') }}</router-link>
         </li>
         <li v-if="parentType" class="mr-2">
           <span class="text-500">/</span>
         </li>
         <li v-if="parentType" class="mr-2">
           <router-link :to="`/${database}/object/${parentType.id}`">
-            <i class="pi pi-folder mr-1"></i>{{ parentType.val }}
+            <i class="fi fi-rr-folder mr-1"></i>{{ parentType.val }}
           </router-link>
         </li>
         <li class="mr-2">
           <span class="text-500">/</span>
         </li>
         <li class="font-bold">
-          <i class="pi pi-bars mr-1"></i>{{ typeInfo?.val || 'Loading...' }}
+          <i class="fi fi-rr-menu-burger mr-1"></i>{{ typeInfo?.val || 'Loading...' }}
         </li>
       </ol>
     </nav>
@@ -58,7 +58,7 @@
               />
               <Divider layout="vertical" class="mx-1" />
               <Button
-                icon="pi pi-align-left"
+                icon="fi fi-rr-list"
                 @click="toggleFullText"
                 :severity="fullTextMode ? 'primary' : 'secondary'"
                 :outlined="!fullTextMode"
@@ -68,14 +68,14 @@
               />
             </div>
             <Button
-              icon="pi pi-plus"
+              icon="fi fi-rr-plus"
               label="Добавить"
               @click="showAddDialog = true"
               size="small"
               v-tooltip.bottom="'Добавить запись в таблицу'"
             />
             <Button
-              icon="pi pi-refresh"
+              icon="fi fi-rr-refresh"
               @click="loadData"
               :loading="loading"
               outlined
@@ -160,13 +160,13 @@
             <div class="col-12">
               <Button
                 label="Применить"
-                icon="pi pi-filter"
+                icon="fi fi-rr-filter"
                 @click="applyFilters"
                 class="mr-2"
               />
               <Button
                 label="Очистить"
-                icon="pi pi-times"
+                icon="fi fi-rr-cross-small"
                 @click="resetFilters"
                 outlined
                 v-tooltip.bottom="'Очистить фильтр и сортировку'"
@@ -255,7 +255,7 @@
               <div class="col-header-wrapper flex align-items-center gap-1">
                 <span>{{ col.header }}</span>
                 <Button
-                  icon="pi pi-ellipsis-v"
+                  icon="fi fi-rr-menu-dots-vertical"
                   size="small"
                   text
                   rounded
@@ -308,7 +308,7 @@
                 </span>
                 <span v-else-if="col.isBoolean">
                   <i
-                    :class="data[col.field] ? 'pi pi-check text-green-500' : 'pi pi-times text-red-500'"
+                    :class="data[col.field] ? 'fi fi-rr-check text-green-500' : 'fi fi-rr-cross-small text-red-500'"
                   />
                 </span>
                 <span v-else>
@@ -341,7 +341,7 @@
                 <!-- Primary actions group -->
                 <div class="flex gap-1">
                   <Button
-                    icon="pi pi-arrow-up"
+                    icon="fi fi-rr-arrow-up"
                     @click="moveObjectUp(data)"
                     text
                     rounded
@@ -350,7 +350,7 @@
                     class="p-button-sm"
                   />
                   <Button
-                    icon="pi pi-pencil"
+                    icon="fi fi-rr-pencil"
                     @click="editObject(data)"
                     text
                     rounded
@@ -358,7 +358,7 @@
                     class="p-button-sm"
                   />
                   <Button
-                    icon="pi pi-external-link"
+                    icon="fi fi-rr-arrow-up-right-from-square"
                     @click="quickEditObject(data)"
                     text
                     rounded
@@ -367,7 +367,7 @@
                     class="p-button-sm"
                   />
                   <Button
-                    icon="pi pi-copy"
+                    icon="fi fi-rr-copy"
                     @click="duplicateObject(data)"
                     text
                     rounded
@@ -378,7 +378,7 @@
                 </div>
                 <!-- Destructive action (separated) -->
                 <Button
-                  icon="pi pi-trash"
+                  icon="fi fi-rr-trash"
                   @click="confirmDelete(data)"
                   text
                   rounded
@@ -393,7 +393,7 @@
           <!-- Empty State -->
           <template #empty>
             <div class="text-center py-4">
-              <i class="pi pi-inbox text-4xl text-400 mb-3"></i>
+              <i class="fi fi-rr-inbox text-4xl text-400 mb-3"></i>
               <p class="text-500">Ничего не найдено.</p>
             </div>
           </template>
@@ -412,7 +412,7 @@
               <!-- Primary bulk actions -->
               <Button
                 label="Изменить"
-                icon="pi pi-pencil"
+                icon="fi fi-rr-pencil"
                 @click="showBulkEditDialog = true"
                 severity="info"
                 size="small"
@@ -421,14 +421,14 @@
               />
               <Button
                 label="Экспорт"
-                icon="pi pi-download"
+                icon="fi fi-rr-download"
                 @click="exportSelected"
                 size="small"
                 outlined
                 v-tooltip.top="'Скачать выбранные записи'"
               />
               <Button
-                icon="pi pi-times"
+                icon="fi fi-rr-cross-small"
                 @click="selectedObjects = []"
                 size="small"
                 text
@@ -438,7 +438,7 @@
               <!-- Destructive action (separated) -->
               <Button
                 label="Удалить"
-                icon="pi pi-trash"
+                icon="fi fi-rr-trash"
                 @click="confirmMassDelete"
                 severity="danger"
                 size="small"
@@ -454,14 +454,14 @@
         <div class="mt-3 flex gap-2 flex-wrap">
           <Button
             label="Скачать CSV"
-            icon="pi pi-file"
+            icon="fi fi-rr-file"
             @click="exportCSV"
             outlined
             v-tooltip.bottom="'Скачать данные в формате CSV'"
           />
           <Button
             label="Экспорт BKI"
-            icon="pi pi-file-excel"
+            icon="fi fi-rr-file-excel"
             @click="exportExcel"
             outlined
             v-tooltip.bottom="'Экспорт данных в формате Excel'"
@@ -469,7 +469,7 @@
           <div class="ml-auto">
             <Button
               label="Удалить по фильтру"
-              icon="pi pi-filter-slash"
+              icon="fi fi-rr-filter-slash"
               @click="showDeleteByFilterDialog = true"
               severity="danger"
               outlined
@@ -557,7 +557,7 @@
       modal
     >
       <div class="flex align-items-center gap-3">
-        <i class="pi pi-exclamation-triangle text-4xl text-orange-500"></i>
+        <i class="fi fi-rr-triangle-warning text-4xl text-orange-500"></i>
         <span>
           Удалить запись <b>{{ objectToDelete?.val }}</b>?
         </span>
@@ -583,7 +583,7 @@
       modal
     >
       <div class="flex align-items-center gap-3">
-        <i class="pi pi-exclamation-triangle text-4xl text-orange-500"></i>
+        <i class="fi fi-rr-triangle-warning text-4xl text-orange-500"></i>
         <span>
           Удалить выбранные записи (<b>{{ selectedObjects.length }}</b> шт.)?
           Это действие нельзя отменить.
@@ -611,7 +611,7 @@
     >
       <div class="flex flex-column gap-3">
         <div class="flex align-items-center gap-3">
-          <i class="pi pi-exclamation-triangle text-4xl text-red-500"></i>
+          <i class="fi fi-rr-triangle-warning text-4xl text-red-500"></i>
           <div>
             <p class="m-0 font-bold text-red-600">Внимание! Опасное действие!</p>
             <p class="m-0 mt-2">
@@ -748,13 +748,13 @@
       <template #footer>
         <Button
           label="Отмена"
-          icon="pi pi-times"
+          icon="fi fi-rr-cross-small"
           @click="showRenameColumnDialog = false"
           severity="secondary"
         />
         <Button
           label="Сохранить"
-          icon="pi pi-check"
+          icon="fi fi-rr-check"
           @click="saveColumnAlias"
           :loading="savingColumn"
         />
@@ -861,10 +861,10 @@ const displayMode = ref(localStorage.getItem('integram-display-mode') || '2')
 const fullTextMode = ref(localStorage.getItem('integram-full-text') === '1')
 
 const displayModeOptions = [
-  { mode: '1', icon: 'pi pi-window-maximize', label: 'Просторный', tooltip: 'Просторный режим ячеек' },
-  { mode: '2', icon: 'pi pi-window-minimize', label: 'Компактный', tooltip: 'Компактный режим ячеек' },
-  { mode: '3', icon: 'pi pi-arrows-v', label: 'Фикс. высота', tooltip: 'Фиксированная высота ячеек' },
-  { mode: '4', icon: 'pi pi-arrows-h', label: 'Фикс. ширина', tooltip: 'Ограниченная ширина ячеек' }
+  { mode: '1', icon: 'fi fi-rr-window-maximize', label: 'Просторный', tooltip: 'Просторный режим ячеек' },
+  { mode: '2', icon: 'fi fi-rr-window-minimize', label: 'Компактный', tooltip: 'Компактный режим ячеек' },
+  { mode: '3', icon: 'fi fi-rr-arrows-alt-v', label: 'Фикс. высота', tooltip: 'Фиксированная высота ячеек' },
+  { mode: '4', icon: 'fi fi-rr-arrows-alt-h', label: 'Фикс. ширина', tooltip: 'Ограниченная ширина ячеек' }
 ]
 
 function setDisplayMode(mode) {
@@ -904,12 +904,12 @@ const contextMenuItems = computed(() => {
   return [
     {
       label: 'Редактировать',
-      icon: 'pi pi-pencil',
+      icon: 'fi fi-rr-pencil',
       command: () => editObject(contextMenuObject.value)
     },
     {
       label: 'Режим правки',
-      icon: 'pi pi-external-link',
+      icon: 'fi fi-rr-arrow-up-right-from-square',
       command: () => quickEditObject(contextMenuObject.value)
     },
     {
@@ -917,7 +917,7 @@ const contextMenuItems = computed(() => {
     },
     {
       label: 'Дублировать',
-      icon: 'pi pi-copy',
+      icon: 'fi fi-rr-copy',
       command: () => duplicateObject(contextMenuObject.value)
     },
     {
@@ -925,7 +925,7 @@ const contextMenuItems = computed(() => {
     },
     {
       label: 'Удалить',
-      icon: 'pi pi-trash',
+      icon: 'fi fi-rr-trash',
       command: () => confirmDelete(contextMenuObject.value),
       class: 'text-red-500'
     }
@@ -948,14 +948,14 @@ const columnMenuItems = computed(() => {
   // Move left (decrease order)
   items.push({
     label: 'Переместить влево',
-    icon: 'pi pi-arrow-left',
+    icon: 'fi fi-rr-arrow-left',
     command: () => moveColumnLeft(col)
   })
 
   // Rename column
   items.push({
     label: 'Переименовать',
-    icon: 'pi pi-pencil',
+    icon: 'fi fi-rr-pencil',
     command: () => {
       newColumnAlias.value = col.header
       showRenameColumnDialog.value = true
@@ -967,7 +967,7 @@ const columnMenuItems = computed(() => {
   // Toggle mandatory (NOT NULL)
   items.push({
     label: col.mandatory ? 'Сделать необязательным' : 'Сделать обязательным',
-    icon: col.mandatory ? 'pi pi-times-circle' : 'pi pi-check-circle',
+    icon: col.mandatory ? 'fi fi-rr-cross-circle' : 'fi fi-rr-check-circle',
     command: () => toggleColumnMandatory(col)
   })
 
@@ -978,7 +978,7 @@ const columnMenuItems = computed(() => {
     // Toggle multiselect
     items.push({
       label: col.isMulti ? 'Отключить мультивыбор' : 'Включить мультивыбор',
-      icon: col.isMulti ? 'pi pi-list' : 'pi pi-tags',
+      icon: col.isMulti ? 'fi fi-rr-list' : 'fi fi-rr-tags',
       command: () => toggleColumnMulti(col)
     })
 
@@ -986,7 +986,7 @@ const columnMenuItems = computed(() => {
     if (col.refTypeId) {
       items.push({
         label: 'Перейти к справочнику',
-        icon: 'pi pi-external-link',
+        icon: 'fi fi-rr-arrow-up-right-from-square',
         command: () => goToReferenceTable(col)
       })
     }
@@ -997,7 +997,7 @@ const columnMenuItems = computed(() => {
   // Delete column
   items.push({
     label: 'Удалить колонку',
-    icon: 'pi pi-trash',
+    icon: 'fi fi-rr-trash',
     command: () => confirmDeleteColumn(col),
     class: 'text-red-500'
   })

@@ -33,7 +33,7 @@
         <div v-if="activeQuiz && !quizCompleted">
           <div class="mb-3">
             <Button
-              icon="pi pi-arrow-left"
+              icon="fi fi-rr-arrow-left"
               label="Назад к выбору"
               @click="resetQuiz"
               text
@@ -117,7 +117,7 @@
           <div class="flex justify-content-between">
             <Button
               label="Назад"
-              icon="pi pi-arrow-left"
+              icon="fi fi-rr-arrow-left"
               @click="previousQuestion"
               :disabled="currentQuestion === 0"
               outlined
@@ -125,14 +125,14 @@
             <Button
               v-if="currentQuestion < activeQuiz.questions.length - 1"
               label="Далее"
-              icon="pi pi-arrow-right"
+              icon="fi fi-rr-arrow-right"
               iconPos="right"
               @click="nextQuestion"
             />
             <Button
               v-else
               label="Завершить"
-              icon="pi pi-check"
+              icon="fi fi-rr-check"
               @click="submitQuiz"
               severity="success"
             />
@@ -141,7 +141,7 @@
 
         <!-- Quiz Results -->
         <div v-if="quizCompleted" class="text-center py-5">
-          <i class="pi pi-check-circle text-6xl text-green-500 mb-3"></i>
+          <i class="fi fi-rr-check-circle text-6xl text-green-500 mb-3"></i>
           <h3>Опрос завершен!</h3>
           <p class="text-500 mb-3">Спасибо за ваши ответы</p>
 
@@ -158,7 +158,7 @@
 
           <Button
             label="Пройти другой опрос"
-            icon="pi pi-refresh"
+            icon="fi fi-rr-refresh"
             @click="resetQuiz"
             class="mt-3"
           />
@@ -166,7 +166,7 @@
 
         <!-- Empty State -->
         <div v-if="!activeQuiz && availableQuizzes.length === 0" class="text-center py-5">
-          <i class="pi pi-inbox text-5xl text-400 mb-3"></i>
+          <i class="fi fi-rr-inbox text-5xl text-400 mb-3"></i>
           <p class="text-500">Опросы не найдены</p>
         </div>
       </template>
@@ -194,7 +194,7 @@ const toast = useToast()
 const breadcrumbItems = computed(() => [
   {
     label: 'Квиз',
-    icon: 'pi pi-question-circle',
+    icon: 'fi fi-rr-question',
     to: undefined // Current page
   }
 ])
