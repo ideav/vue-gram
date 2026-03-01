@@ -366,17 +366,23 @@
 <script setup>
 import IntegramBreadcrumb from '@/components/integram/IntegramBreadcrumb.vue'
 import { ref, reactive, computed, onMounted } from 'vue';
+import { useRoute } from 'vue-router';
 import { useToast } from 'primevue/usetoast';
 import axios from 'axios';
+import integramApiClient from '@/services/integramApiClient';
 
-const props = defineProps({
-  session: {
-    type: Object,
-    required: true
+const route = useRoute();
+const toast = useToast();
+
+// Self-source session data instead of expecting it as a prop
+const session = computed(() => {
+  const database = route.params.database || integramApiClient.getDatabase() || 'my'
+  const authInfo = integramApiClient.getAuthInfo()
+  return {
+    sessionId: authInfo.token || '',
+    database
   }
 });
-
-const toast = useToast();
 
 // Breadcrumb navigation
 const breadcrumbItems = computed(() => [
@@ -436,7 +442,7 @@ async function loadDirectoryContents() {
 
   try {
     const response = await axios.get(
-      `${API_BASE}/integram-test/dir_admin/${props.session.sessionId}`,
+      `${API_BASE}/integram-test/dir_admin/${session.value.sessionId}`,
       {
         params: {
           folder: currentFolder.value,
@@ -492,7 +498,7 @@ async function handleFileUpload(event) {
     formData.append('path', currentPath.value);
 
     const response = await axios.post(
-      `${API_BASE}/integram-test/dir_admin/${props.session.sessionId}/upload`,
+      `${API_BASE}/integram-test/dir_admin/${session.value.sessionId}/upload`,
       formData,
       {
         headers: {
@@ -529,7 +535,7 @@ async function handleFileUpload(event) {
 async function createFolder() {
   try {
     const response = await axios.post(
-      `${API_BASE}/integram-test/dir_admin/${props.session.sessionId}/mkdir`,
+      `${API_BASE}/integram-test/dir_admin/${session.value.sessionId}/mkdir`,
       {
         folder: currentFolder.value,
         path: currentPath.value,
@@ -564,7 +570,7 @@ async function createBackup() {
 
   try {
     const response = await axios.post(
-      `${API_BASE}/integram-test/backup/${props.session.sessionId}`
+      `${API_BASE}/integram-test/backup/${session.value.sessionId}`
     );
 
     if (response.data.success) {
@@ -611,7 +617,7 @@ async function executeRestore() {
     // Integram API format: GET /{database}/restore/?backup_file={NAME}
     // The proxy rewrites /integram-test → dronedoc.ru
     const response = await axios.get(
-      `/integram-test/${props.session.database}/restore/`,
+      `/integram-test/${session.value.database}/restore/`,
       {
         params: {
           backup_file: restoreDialog.file.name
@@ -670,7 +676,7 @@ async function executeDelete() {
 
   try {
     const response = await axios.post(
-      `${API_BASE}/integram-test/dir_admin/${props.session.sessionId}/delete`,
+      `${API_BASE}/integram-test/dir_admin/${session.value.sessionId}/delete`,
       {
         folder: currentFolder.value,
         path: currentPath.value,
@@ -748,7 +754,7 @@ function formatFileSize(bytes) {
 
 // Lifecycle
 onMounted(() => {
-  if (props.session.sessionId) {
+  if (session.value.sessionId) {
     loadDirectoryContents();
   }
 });
