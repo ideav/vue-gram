@@ -73,180 +73,185 @@
         </Message>
 
         <!-- Tabs (if configured) -->
-        <TabView v-if="tabs.length > 0" v-model:activeIndex="activeTab">
-          <TabPanel v-for="tab in tabs" :key="tab.id" :header="tab.name">
-            <div class="grid gap-3" :class="{ 'grid-list-mode': gridMode }">
-              <div
-                v-for="req in getRequisitesForTab(tab.id)"
-                :key="req.id"
-                :class="gridMode ? 'col-12' : getFieldClass(req)"
-              >
-                <div class="integram-field">
-                  <label :for="`req_${req.id}`" class="block mb-2">
-                    <span v-if="req.required" class="text-red-500 mr-1">*</span>
-                    {{ req.name }}
-                  </label>
+        <Tabs v-if="tabs.length > 0" :value="activeTab" @update:value="activeTab = $event">
+          <TabList>
+            <Tab v-for="(tab, idx) in tabs" :key="tab.id" :value="idx">{{ tab.name }}</Tab>
+          </TabList>
+          <TabPanels>
+            <TabPanel v-for="(tab, idx) in tabs" :key="tab.id" :value="idx">
+              <div class="grid gap-3" :class="{ 'grid-list-mode': gridMode }">
+                <div
+                  v-for="req in getRequisitesForTab(tab.id)"
+                  :key="req.id"
+                  :class="gridMode ? 'col-12' : getFieldClass(req)"
+                >
+                  <div class="integram-field">
+                    <label :for="`req_${req.id}`" class="block mb-2">
+                      <span v-if="req.required" class="text-red-500 mr-1">*</span>
+                      {{ req.name }}
+                    </label>
 
-                  <!-- Reference Field with Search -->
-                  <div v-if="req.isReference">
-                    <ReferenceField
-                      :id="`req_${req.id}`"
-                      v-model="formData[`t${req.id}`]"
-                      :req-id="req.id"
-                      :ref-type-id="req.refTypeId"
-                      :database="database"
-                      :object-id="objectData.id"
-                      :multi="req.multi"
-                      :allow-create="req.allowCreate"
-                      :restrict="req.restrict"
-                      :current-display-name="req.currentDisplayName"
-                      :initial-multiselect-items="req.multiselectItems"
-                      @update:modelValue="onReferenceChange(req.id, $event)"
-                    />
-                  </div>
-
-                  <!-- Array/Subordinate Link -->
-                  <div v-else-if="req.isArray">
-                    <div class="flex gap-2 align-items-center">
-                      <router-link
-                        v-if="req.refTypeId"
-                        :to="`/${database}/object/${req.refTypeId}?F_U=${objectData.id}`"
-                        class="text-primary font-semibold"
-                      >
-                        <Badge :value="req.count || 0" /> Перейти к списку
-                      </router-link>
-                      <Button
-                        v-if="req.refTypeId"
-                        icon="pi pi-plus"
-                        label="Добавить"
-                        @click="addSubordinateItem(req)"
-                        size="small"
-                        outlined
-                        v-tooltip.top="'Добавить запись в подчиненную таблицу'"
+                    <!-- Reference Field with Search -->
+                    <div v-if="req.isReference">
+                      <ReferenceField
+                        :id="`req_${req.id}`"
+                        v-model="formData[`t${req.id}`]"
+                        :req-id="req.id"
+                        :ref-type-id="req.refTypeId"
+                        :database="database"
+                        :object-id="objectData.id"
+                        :multi="req.multi"
+                        :allow-create="req.allowCreate"
+                        :restrict="req.restrict"
+                        :current-display-name="req.currentDisplayName"
+                        :initial-multiselect-items="req.multiselectItems"
+                        @update:modelValue="onReferenceChange(req.id, $event)"
                       />
                     </div>
-                    <InputText
-                      v-if="req.showValue"
-                      v-model="formData[`t${req.id}`]"
-                      class="w-full mt-2"
-                    />
-                  </div>
 
-                  <!-- File Upload -->
-                  <div v-else-if="req.baseType === 'FILE'">
-                    <FileField
-                      :id="`req_${req.id}`"
-                      v-model="formData[`t${req.id}`]"
-                      :current-file="req.currentFile"
-                      :object-id="objectData.id"
-                      :req-id="req.id"
-                      :database="database"
-                      @delete="deleteFile(req.id)"
-                    />
-                  </div>
-
-                  <!-- Date Field with Mode Switcher -->
-                  <div v-else-if="req.baseType === 'DATE'">
-                    <DateField
-                      :id="`req_${req.id}`"
-                      v-model="formData[`t${req.id}`]"
-                      :mode="dateMode[req.id] || 'calendar'"
-                      @toggle-mode="toggleDateMode(req.id)"
-                    />
-                  </div>
-
-                  <!-- DateTime Field -->
-                  <div v-else-if="req.baseType === 'DATETIME'">
-                    <DateTimeField
-                      :id="`req_${req.id}`"
-                      v-model="formData[`t${req.id}`]"
-                    />
-                  </div>
-
-                  <!-- Password with Generator -->
-                  <div v-else-if="req.baseType === 'PWD'">
-                    <PasswordField
-                      :id="`req_${req.id}`"
-                      v-model="formData[`t${req.id}`]"
-                      :show-generator="true"
-                      @generate="generatePassword(req.id)"
-                      @copy-invite="copyInvite"
-                    />
-                  </div>
-
-                  <!-- Boolean -->
-                  <div v-else-if="req.baseType === 'BOOLEAN'">
-                    <Checkbox
-                      :id="`req_${req.id}`"
-                      v-model="formData[`t${req.id}`]"
-                      :binary="true"
-                    />
-                    <input type="hidden" :name="`b${req.id}`" value="1" />
-                  </div>
-
-                  <!-- HTML Editor -->
-                  <div v-else-if="req.baseType === 'HTML'">
-                    <Editor
-                      :id="`req_${req.id}`"
-                      v-model="formData[`t${req.id}`]"
-                      editorStyle="height: 200px"
-                    />
-                  </div>
-
-                  <!-- Memo/Textarea -->
-                  <div v-else-if="req.baseType === 'MEMO'">
-                    <Textarea
-                      :id="`req_${req.id}`"
-                      v-model="formData[`t${req.id}`]"
-                      rows="5"
-                      class="w-full"
-                    />
-                  </div>
-
-                  <!-- Short Text -->
-                  <div v-else-if="req.baseType === 'SHORT'">
-                    <InputText
-                      :id="`req_${req.id}`"
-                      v-model="formData[`t${req.id}`]"
-                      class="w-full"
-                    />
-                  </div>
-
-                  <!-- Number Types -->
-                  <div v-else-if="['NUMBER', 'SIGNED'].includes(req.baseType)">
-                    <InputNumber
-                      :id="`req_${req.id}`"
-                      v-model="formData[`t${req.id}`]"
-                      :min-fraction-digits="req.baseType === 'NUMBER' ? 2 : 0"
-                      :max-fraction-digits="req.baseType === 'NUMBER' ? 2 : 0"
-                      class="w-full"
-                    />
-                  </div>
-
-                  <!-- Calculatable (Read-only) -->
-                  <div v-else-if="req.baseType === 'CALCULATABLE'">
-                    <div class="p-3 surface-100 border-round">
-                      {{ formData[`t${req.id}`] }}
+                    <!-- Array/Subordinate Link -->
+                    <div v-else-if="req.isArray">
+                      <div class="flex gap-2 align-items-center">
+                        <router-link
+                          v-if="req.refTypeId"
+                          :to="`/${database}/object/${req.refTypeId}?F_U=${objectData.id}`"
+                          class="text-primary font-semibold"
+                        >
+                          <Badge :value="req.count || 0" /> Перейти к списку
+                        </router-link>
+                        <Button
+                          v-if="req.refTypeId"
+                          icon="pi pi-plus"
+                          label="Добавить"
+                          @click="addSubordinateItem(req)"
+                          size="small"
+                          outlined
+                          v-tooltip.top="'Добавить запись в подчиненную таблицу'"
+                        />
+                      </div>
+                      <InputText
+                        v-if="req.showValue"
+                        v-model="formData[`t${req.id}`]"
+                        class="w-full mt-2"
+                      />
                     </div>
-                  </div>
 
-                  <!-- Default: Text Input -->
-                  <div v-else>
-                    <InputText
-                      :id="`req_${req.id}`"
-                      v-model="formData[`t${req.id}`]"
-                      class="w-full"
-                    />
-                  </div>
+                    <!-- File Upload -->
+                    <div v-else-if="req.baseType === 'FILE'">
+                      <FileField
+                        :id="`req_${req.id}`"
+                        v-model="formData[`t${req.id}`]"
+                        :current-file="req.currentFile"
+                        :object-id="objectData.id"
+                        :req-id="req.id"
+                        :database="database"
+                        @delete="deleteFile(req.id)"
+                      />
+                    </div>
 
-                  <small v-if="req.hint" class="block mt-1 text-500">
-                    {{ req.hint }}
-                  </small>
+                    <!-- Date Field with Mode Switcher -->
+                    <div v-else-if="req.baseType === 'DATE'">
+                      <DateField
+                        :id="`req_${req.id}`"
+                        v-model="formData[`t${req.id}`]"
+                        :mode="dateMode[req.id] || 'calendar'"
+                        @toggle-mode="toggleDateMode(req.id)"
+                      />
+                    </div>
+
+                    <!-- DateTime Field -->
+                    <div v-else-if="req.baseType === 'DATETIME'">
+                      <DateTimeField
+                        :id="`req_${req.id}`"
+                        v-model="formData[`t${req.id}`]"
+                      />
+                    </div>
+
+                    <!-- Password with Generator -->
+                    <div v-else-if="req.baseType === 'PWD'">
+                      <PasswordField
+                        :id="`req_${req.id}`"
+                        v-model="formData[`t${req.id}`]"
+                        :show-generator="true"
+                        @generate="generatePassword(req.id)"
+                        @copy-invite="copyInvite"
+                      />
+                    </div>
+
+                    <!-- Boolean -->
+                    <div v-else-if="req.baseType === 'BOOLEAN'">
+                      <Checkbox
+                        :id="`req_${req.id}`"
+                        v-model="formData[`t${req.id}`]"
+                        :binary="true"
+                      />
+                      <input type="hidden" :name="`b${req.id}`" value="1" />
+                    </div>
+
+                    <!-- HTML Editor -->
+                    <div v-else-if="req.baseType === 'HTML'">
+                      <Editor
+                        :id="`req_${req.id}`"
+                        v-model="formData[`t${req.id}`]"
+                        editorStyle="height: 200px"
+                      />
+                    </div>
+
+                    <!-- Memo/Textarea -->
+                    <div v-else-if="req.baseType === 'MEMO'">
+                      <Textarea
+                        :id="`req_${req.id}`"
+                        v-model="formData[`t${req.id}`]"
+                        rows="5"
+                        class="w-full"
+                      />
+                    </div>
+
+                    <!-- Short Text -->
+                    <div v-else-if="req.baseType === 'SHORT'">
+                      <InputText
+                        :id="`req_${req.id}`"
+                        v-model="formData[`t${req.id}`]"
+                        class="w-full"
+                      />
+                    </div>
+
+                    <!-- Number Types -->
+                    <div v-else-if="['NUMBER', 'SIGNED'].includes(req.baseType)">
+                      <InputNumber
+                        :id="`req_${req.id}`"
+                        v-model="formData[`t${req.id}`]"
+                        :min-fraction-digits="req.baseType === 'NUMBER' ? 2 : 0"
+                        :max-fraction-digits="req.baseType === 'NUMBER' ? 2 : 0"
+                        class="w-full"
+                      />
+                    </div>
+
+                    <!-- Calculatable (Read-only) -->
+                    <div v-else-if="req.baseType === 'CALCULATABLE'">
+                      <div class="p-3 surface-100 border-round">
+                        {{ formData[`t${req.id}`] }}
+                      </div>
+                    </div>
+
+                    <!-- Default: Text Input -->
+                    <div v-else>
+                      <InputText
+                        :id="`req_${req.id}`"
+                        v-model="formData[`t${req.id}`]"
+                        class="w-full"
+                      />
+                    </div>
+
+                    <small v-if="req.hint" class="block mt-1 text-500">
+                      {{ req.hint }}
+                    </small>
+                  </div>
                 </div>
               </div>
-            </div>
-          </TabPanel>
-        </TabView>
+            </TabPanel>
+          </TabPanels>
+        </Tabs>
 
         <!-- No Tabs: Single Form -->
         <div v-else class="grid gap-3" :class="{ 'grid-list-mode': gridMode }">

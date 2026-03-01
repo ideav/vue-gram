@@ -43,8 +43,14 @@ import Select from 'primevue/select'
 import SelectButton from 'primevue/selectbutton'
 import Tag from 'primevue/tag'
 import Textarea from 'primevue/textarea'
+import Tabs from 'primevue/tabs'
+import TabList from 'primevue/tablist'
+import Tab from 'primevue/tab'
+import TabPanels from 'primevue/tabpanels'
+import TabPanel from 'primevue/tabpanel'
 import Toast from 'primevue/toast'
 import ToggleButton from 'primevue/togglebutton'
+import Editor from 'primevue/editor'
 
 async function initApp() {
   const app = createApp(App)
@@ -104,8 +110,14 @@ async function initApp() {
   app.component('SelectButton', SelectButton)
   app.component('Tag', Tag)
   app.component('Textarea', Textarea)
+  app.component('Tabs', Tabs)
+  app.component('TabList', TabList)
+  app.component('Tab', Tab)
+  app.component('TabPanels', TabPanels)
+  app.component('TabPanel', TabPanel)
   app.component('Toast', Toast)
   app.component('ToggleButton', ToggleButton)
+  app.component('Editor', Editor)
 
   app.mount('#app')
 }

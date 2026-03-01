@@ -31,6 +31,7 @@
     "primeicons": "^7.0.0",
     "primevue": "^4.5.4",
     "prismjs": "^1.30.0",
+    "quill": "^2.0.3",
     "sortablejs": "^1.15.7",
     "vue": "^3.5.29",
     "vue-i18n": "^11.2.8",

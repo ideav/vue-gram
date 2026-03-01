@@ -48,6 +48,41 @@ class IntegramService {
   async updateObject(objectId, typeId, value, requisites = {}) {
     return integramApiClient.saveObject(objectId, typeId, value, requisites);
   }
+
+  setSession(sessionData) {
+    if (sessionData.token) {
+      this.authToken = sessionData.token
+      integramApiClient.token = sessionData.token
+    }
+    if (sessionData.xsrf) {
+      this.xsrfToken = sessionData.xsrf
+      integramApiClient.xsrfToken = sessionData.xsrf
+    }
+    if (sessionData.database) {
+      this.authDatabase = sessionData.database
+      integramApiClient.setDatabase(sessionData.database)
+    }
+  }
+
+  async getEditObject(objectId) {
+    return integramApiClient.getObjectEditData(objectId);
+  }
+
+  async getMetadata(typeId) {
+    return integramApiClient.getTypeMetadata(typeId);
+  }
+
+  async getReferenceOptions(requisiteId, objectId, restrict = null, query = null) {
+    return integramApiClient.getReferenceOptions(requisiteId, objectId, restrict, query);
+  }
+
+  async setRequisites(objectId, requisites = {}) {
+    return integramApiClient.setObjectRequisites(objectId, requisites);
+  }
+
+  async saveObject(objectId, formData) {
+    return integramApiClient.saveObject(objectId, formData);
+  }
 }
 
 const integramService = new IntegramService();
