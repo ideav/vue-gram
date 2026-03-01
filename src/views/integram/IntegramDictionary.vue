@@ -534,21 +534,29 @@ onUnmounted(() => {
 .table-card-link {
   text-decoration: none;
   color: inherit;
+  display: flex;
 }
 
 .table-card {
   transition: all 0.3s ease;
   border: 1px solid var(--surface-border);
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.table-card :deep(.p-card-body) {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 1rem;
 }
 
 .table-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   border-color: var(--primary-color);
-}
-
-.table-card :deep(.p-card-body) {
-  padding: 1rem;
 }
 
 .table-card :deep(.p-card-content) {
