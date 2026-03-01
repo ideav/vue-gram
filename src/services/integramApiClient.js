@@ -673,8 +673,11 @@ class IntegramApiClient {
   }
 
   async getObjectCount(typeId) {
-    const result = await this.get(`object/${typeId}`, { cnt: 1 })
-    return { count: result.count ?? result.cnt ?? 0 }
+    const result = await this.get(`object/${typeId}`, { _count: '' })
+    return {
+      typeId,
+      count: parseInt(result.count, 10) || 0
+    }
   }
 
   async getObjectEditData(objectId) {
