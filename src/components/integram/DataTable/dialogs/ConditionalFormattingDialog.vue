@@ -10,7 +10,7 @@
     <div class="formatting-dialog-content" v-if="rule">
       <div class="field mb-3">
         <label class="block mb-2 font-semibold">Условие</label>
-        <Dropdown
+        <Select
           :modelValue="rule.condition"
           @update:modelValue="updateRule('condition', $event)"
           :options="conditionOptions"
@@ -96,7 +96,7 @@
 <script setup>
 import { computed } from 'vue'
 import Dialog from 'primevue/dialog'
-import Dropdown from 'primevue/dropdown'
+import Select from 'primevue/select'
 import InputText from 'primevue/inputtext'
 import Button from 'primevue/button'
 

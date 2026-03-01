@@ -61,7 +61,7 @@
           </label>
           <div class="flex gap-2">
             <!-- Table Dropdown -->
-            <Dropdown
+            <Select
               v-if="!selectedTableForColumns"
               v-model="selectedTable"
               :options="availableTables"
@@ -81,7 +81,7 @@
                 @remove="clearTableSelection"
                 class="mr-2"
               />
-              <Dropdown
+              <Select
                 v-model="selectedColumn"
                 :options="columnsForSelectedTable"
                 optionLabel="name"
@@ -169,7 +169,7 @@
           :header="$t('queryBuilder.format')"
         >
           <template #body="{ data }">
-            <Dropdown
+            <Select
               v-model="data.format"
               :options="formatOptions"
               optionLabel="label"
@@ -186,7 +186,7 @@
           :header="$t('queryBuilder.function')"
         >
           <template #body="{ data }">
-            <Dropdown
+            <Select
               v-model="data.function"
               :options="functionOptions"
               optionLabel="label"
@@ -237,7 +237,7 @@
           :header="$t('queryBuilder.totals')"
         >
           <template #body="{ data }">
-            <Dropdown
+            <Select
               v-model="data.totals"
               :options="totalsOptions"
               optionLabel="label"
@@ -378,7 +378,7 @@
       <div class="join-dialog-content">
         <div class="mb-3">
           <label class="block mb-2 font-semibold">{{ $t('queryBuilder.joinDialog.leftTable') }}</label>
-          <Dropdown
+          <Select
             v-model="joinConfig.leftTable"
             :options="availableTables"
             optionLabel="name"
@@ -400,7 +400,7 @@
         <div class="mb-3 grid">
           <div class="col-5">
             <label class="block mb-2 font-semibold">{{ $t('queryBuilder.joinDialog.leftField') }}</label>
-            <Dropdown
+            <Select
               v-model="joinConfig.leftField"
               :options="joinFieldOptions"
               optionLabel="label"
@@ -414,7 +414,7 @@
           </div>
           <div class="col-5">
             <label class="block mb-2 font-semibold">{{ $t('queryBuilder.joinDialog.rightField') }}</label>
-            <Dropdown
+            <Select
               v-model="joinConfig.rightField"
               :options="joinFieldOptions"
               optionLabel="label"
@@ -427,7 +427,7 @@
 
         <div class="mb-3">
           <label class="block mb-2 font-semibold">{{ $t('queryBuilder.joinDialog.rightColumn') }}</label>
-          <Dropdown
+          <Select
             v-model="joinConfig.rightTable"
             :options="availableColumnsForJoin"
             optionLabel="name"

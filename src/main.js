@@ -23,7 +23,7 @@ import ContextMenu from 'primevue/contextmenu'
 import DataTable from 'primevue/datatable'
 import Dialog from 'primevue/dialog'
 import Divider from 'primevue/divider'
-import Dropdown from 'primevue/dropdown'
+// Dropdown removed — use Select (PrimeVue v4)
 import FileUpload from 'primevue/fileupload'
 import IconField from 'primevue/iconfield'
 import InputIcon from 'primevue/inputicon'
@@ -37,6 +37,7 @@ import Panel from 'primevue/panel'
 import Password from 'primevue/password'
 import ProgressBar from 'primevue/progressbar'
 import ProgressSpinner from 'primevue/progressspinner'
+import Popover from 'primevue/popover'
 import Select from 'primevue/select'
 import SelectButton from 'primevue/selectbutton'
 import Tag from 'primevue/tag'
@@ -83,7 +84,7 @@ async function initApp() {
   app.component('DataTable', DataTable)
   app.component('Dialog', Dialog)
   app.component('Divider', Divider)
-  app.component('Dropdown', Dropdown)
+  app.component('Dropdown', Select) // backward compat alias
   app.component('FileUpload', FileUpload)
   app.component('IconField', IconField)
   app.component('InputIcon', InputIcon)
@@ -97,6 +98,7 @@ async function initApp() {
   app.component('Password', Password)
   app.component('ProgressBar', ProgressBar)
   app.component('ProgressSpinner', ProgressSpinner)
+  app.component('Popover', Popover)
   app.component('Select', Select)
   app.component('SelectButton', SelectButton)
   app.component('Tag', Tag)

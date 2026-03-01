@@ -63,7 +63,7 @@
               v-tooltip.bottom="'Редактировать ячейки'"
             />
 
-            <Dropdown
+            <Select
               v-model="compactMode"
               :options="compactModes"
               optionLabel="label"
@@ -385,7 +385,7 @@
                 @click="goToPage(currentPage + 1)"
                 v-tooltip.bottom="'Следующая страница'"
               />
-              <Dropdown
+              <Select
                 v-model="rowsPerPage"
                 :options="[10, 20, 25, 50, 100]"
                 @change="handleRowsPerPageChange"

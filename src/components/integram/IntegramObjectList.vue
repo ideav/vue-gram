@@ -676,7 +676,7 @@
 
       <div class="field mb-3">
         <label for="bulkEditField">Поле для изменения</label>
-        <Dropdown
+        <Select
           id="bulkEditField"
           v-model="bulkEdit.field"
           :options="bulkEditableFields"

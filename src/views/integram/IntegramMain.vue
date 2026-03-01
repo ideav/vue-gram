@@ -20,7 +20,7 @@
       <template #end>
         <div class="flex align-items-center gap-2">
           <!-- Issue #5112: Database Selector -->
-          <Dropdown
+          <Select
             v-model="selectedDatabase"
             :options="availableDatabases"
             optionLabel="label"
@@ -44,7 +44,7 @@
                 <Tag v-else-if="slotProps.option.isOwned" severity="info" value="Owned" size="small" />
               </div>
             </template>
-          </Dropdown>
+          </Select>
 
           <Button
             :icon="isDarkTheme ? 'pi pi-sun' : 'pi pi-moon'"
@@ -164,7 +164,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { useToast } from 'primevue/usetoast'
 import Menubar from 'primevue/menubar'
 import Menu from 'primevue/menu'
-import Dropdown from 'primevue/dropdown'
+import Select from 'primevue/select'
 import Tag from 'primevue/tag'
 import ProgressSpinner from 'primevue/progressspinner'
 import Button from 'primevue/button'

@@ -107,7 +107,7 @@
                 :key="'agg-' + index"
                 class="flex gap-2 mb-2 p-2 surface-ground border-round flex-wrap"
               >
-                <Dropdown
+                <Select
                   v-model="agg.func"
                   :options="aggregateFunctionTypes"
                   optionLabel="label"
@@ -116,7 +116,7 @@
                   class="w-auto"
                   style="min-width: 130px"
                 />
-                <Dropdown
+                <Select
                   v-model="agg.column"
                   :options="availableColumnsForAggregate"
                   optionLabel="label"
@@ -132,7 +132,7 @@
                   placeholder="Алиас"
                   style="width: 120px"
                 />
-                <Dropdown
+                <Select
                   v-model="agg.format"
                   :options="columnFormatTypes"
                   optionLabel="label"
@@ -167,7 +167,7 @@
           <!-- FROM Table -->
           <div class="form-section mb-4">
             <label class="form-label font-semibold">FROM (Таблица)</label>
-            <Dropdown
+            <Select
               v-model="selectedTable"
               :options="availableTables"
               optionLabel="label"
@@ -198,13 +198,13 @@
                 class="join-row mb-3 p-3 border-1 surface-border border-round"
               >
                 <div class="flex gap-2 mb-2">
-                  <Dropdown
+                  <Select
                     v-model="join.type"
                     :options="joinTypes"
                     placeholder="Тип JOIN"
                     class="w-full"
                   />
-                  <Dropdown
+                  <Select
                     v-model="join.table"
                     :options="availableTables"
                     optionLabel="label"
@@ -257,7 +257,7 @@
                 :key="index"
                 class="condition-row mb-2 flex gap-2"
               >
-                <Dropdown
+                <Select
                   v-if="index > 0"
                   v-model="condition.logic"
                   :options="['AND', 'OR']"
@@ -270,7 +270,7 @@
                   placeholder="Поле"
                   class="flex-1"
                 />
-                <Dropdown
+                <Select
                   v-model="condition.operator"
                   :options="operators"
                   placeholder="Оператор"
@@ -326,7 +326,7 @@
                 :key="'having-' + index"
                 class="having-row mb-2 flex gap-2 p-2 surface-ground border-round"
               >
-                <Dropdown
+                <Select
                   v-if="index > 0"
                   v-model="having.logic"
                   :options="['AND', 'OR']"
@@ -334,7 +334,7 @@
                   class="w-auto"
                   style="width: 100px"
                 />
-                <Dropdown
+                <Select
                   v-model="having.aggregate"
                   :options="havingAggregateOptions"
                   optionLabel="label"
@@ -342,7 +342,7 @@
                   placeholder="Агрегатная функция"
                   class="flex-1"
                 />
-                <Dropdown
+                <Select
                   v-model="having.operator"
                   :options="operators"
                   placeholder="Оператор"
@@ -394,7 +394,7 @@
                 :key="'set-' + index"
                 class="flex gap-2 mb-2 p-2 surface-ground border-round"
               >
-                <Dropdown
+                <Select
                   v-model="set.column"
                   :options="availableColumns"
                   optionLabel="label"
@@ -443,13 +443,13 @@
                 :key="index"
                 class="flex gap-2 mb-2"
               >
-                <Dropdown
+                <Select
                   v-model="order.column"
                   :options="selectedColumns"
                   placeholder="Колонка"
                   class="flex-1"
                 />
-                <Dropdown
+                <Select
                   v-model="order.direction"
                   :options="['ASC', 'DESC']"
                   placeholder="Направление"

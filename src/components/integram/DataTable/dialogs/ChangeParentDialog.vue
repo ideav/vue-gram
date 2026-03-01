@@ -13,7 +13,7 @@
       </p>
       <div class="field mb-4">
         <label for="newParentSelect" class="block mb-2">Выберите родительскую запись:</label>
-        <Dropdown
+        <Select
           id="newParentSelect"
           :modelValue="modelValue"
           @update:modelValue="$emit('update:modelValue', $event)"
@@ -50,7 +50,7 @@
 <script setup>
 import { computed } from 'vue'
 import Dialog from 'primevue/dialog'
-import Dropdown from 'primevue/dropdown'
+import Select from 'primevue/select'
 import Button from 'primevue/button'
 
 const props = defineProps({

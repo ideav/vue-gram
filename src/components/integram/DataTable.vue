@@ -155,7 +155,7 @@
 
           <template v-else-if="header.dirTableId">
             <MultiSelect v-if="header.columnType === 'multi'" v-model="header.dirValues" :options="getDirectoryOptions(header.dirTableId)" option-label="value" option-value="id" :multiple="true" :loading="isDirectoryLoading(header.dirTableId)" :disabled="isDirectoryLoading(header.dirTableId)" :placeholder="isDirectoryLoading(header.dirTableId) ? 'Загрузка...' : 'Выберите...'" class="w-full" @change="updateMultiDirValue(header)" />
-            <Dropdown v-else v-model="header.dirRowId" :options="getDirectoryOptions(header.dirTableId)" option-label="value" option-value="id" :filter="true" :show-clear="true" :loading="isDirectoryLoading(header.dirTableId)" :disabled="isDirectoryLoading(header.dirTableId)" :placeholder="isDirectoryLoading(header.dirTableId) ? 'Загрузка...' : 'Выберите...'" class="w-full" @change="updateDirValue(header)" />
+            <Select v-else v-model="header.dirRowId" :options="getDirectoryOptions(header.dirTableId)" option-label="value" option-value="id" :filter="true" :show-clear="true" :loading="isDirectoryLoading(header.dirTableId)" :disabled="isDirectoryLoading(header.dirTableId)" :placeholder="isDirectoryLoading(header.dirTableId) ? 'Загрузка...' : 'Выберите...'" class="w-full" @change="updateDirValue(header)" />
           </template>
 
           <template v-else>
@@ -548,10 +548,10 @@
                       @click="handleDropdownClick"
                     />
 
-                    <Dropdown v-else-if="currentEditingHeader?.dirTableId" v-model="editingValue" :options="editingOptions" optionLabel="value" optionValue="id" :filter="true" :showClear="true" :loading="isLoadingDirectory" :disabled="isLoadingDirectory" :placeholder="isLoadingDirectory ? 'Загрузка...' : 'Выберите...'" class="cell-editor seamless-editor" @keydown="handleDropdownKeydown" @show="isDropdownOpen = true" @hide="handleDropDownHide" @click="handleDropdownClick" />
+                    <Select v-else-if="currentEditingHeader?.dirTableId" v-model="editingValue" :options="editingOptions" optionLabel="value" optionValue="id" :filter="true" :showClear="true" :loading="isLoadingDirectory" :disabled="isLoadingDirectory" :placeholder="isLoadingDirectory ? 'Загрузка...' : 'Выберите...'" class="cell-editor seamless-editor" @keydown="handleDropdownKeydown" @show="isDropdownOpen = true" @hide="handleDropDownHide" @click="handleDropdownClick" />
 
                     <!-- GRANT (5) - GRANT access dropdown with system grants, tables, and requisites -->
-                    <Dropdown
+                    <Select
                       v-else-if="header.type === 5"
                       ref="cellEditorInput"
                       v-model="editingValue"
@@ -587,7 +587,7 @@
                         </div>
                         <span v-else class="grant-placeholder">Выберите уровень доступа...</span>
                       </template>
-                    </Dropdown>
+                    </Select>
 
                     <!-- FILE (10) - File upload (seamless style like dropdown) -->
                     <div v-else-if="header.type === 10" class="cell-editor seamless-editor file-editor-seamless">
@@ -740,7 +740,7 @@ import Calendar from 'primevue/calendar'
 import Checkbox from 'primevue/checkbox'
 import InputNumber from 'primevue/inputnumber'
 import Textarea from 'primevue/textarea'
-import Dropdown from 'primevue/dropdown'
+import Select from 'primevue/select'
 import MultiSelect from 'primevue/multiselect'
 import Badge from 'primevue/badge'
 
@@ -5144,7 +5144,7 @@ const openNestedFromRowEdit = (header) => {
 }
 const getEditorComponent = (type, dirTableId, columnType) => {
   if (dirTableId && columnType === 'multi') return MultiSelect
-  else if (dirTableId) return Dropdown
+  else if (dirTableId) return Select
 
   const componentMap = {
     3: MentionAutocomplete,  // SHORT text - with @mentions support

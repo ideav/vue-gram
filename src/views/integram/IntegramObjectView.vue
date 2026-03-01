@@ -53,7 +53,7 @@
               v-tooltip.bottom="'Редактировать ячейки'"
             />
 
-            <Dropdown
+            <Select
               v-model="compactMode"
               :options="compactModes"
               optionLabel="label"
@@ -250,7 +250,7 @@
                 >
                   <template v-if="editingCell?.rowId === slotProps.data.id && editingCell?.field === `req_${req.id}`">
                     <!-- GRANT type - special dropdown with system grants + tables -->
-                    <Dropdown
+                    <Select
                       v-if="req.base === 'GRANT' || req.baseId === 5"
                       v-model="editingValue"
                       :options="grantOptions"
@@ -271,9 +271,9 @@
                           <span>{{ slotProps.option.label }}</span>
                         </div>
                       </template>
-                    </Dropdown>
+                    </Select>
                     <!-- Reference/Directory field - show Dropdown -->
-                    <Dropdown
+                    <Select
                       v-else-if="req.refType"
                       v-model="editingValue"
                       :options="referenceOptions[req.refType] || []"
@@ -457,7 +457,7 @@
                 @click="goToPage(currentPage + 1)"
                 v-tooltip.bottom="'Следующая'"
               />
-              <Dropdown
+              <Select
                 v-model="rowsPerPage"
                 :options="[10, 20, 25, 50, 100]"
                 @change="handleRowsPerPageChange"
@@ -525,7 +525,7 @@
           <label :for="'req_' + req.id">{{ req.val }}</label>
 
           <!-- GRANT type - special dropdown -->
-          <Dropdown
+          <Select
             v-if="req.base === 'GRANT' || req.baseId === 5"
             :id="'req_' + req.id"
             v-model="createForm.requisites[req.id]"
@@ -544,7 +544,7 @@
                 <span>{{ slotProps.option.label }}</span>
               </div>
             </template>
-          </Dropdown>
+          </Select>
           <InputNumber
             v-else-if="req.base === 'NUMBER' || req.base === 'SIGNED'"
             :id="'req_' + req.id"
@@ -733,7 +733,7 @@
 
         <div class="field">
           <label class="font-semibold mb-2 block">Тип данных</label>
-          <Dropdown
+          <Select
             v-model="addColumnForm.baseTypeId"
             :options="columnBaseTypes"
             optionLabel="name"

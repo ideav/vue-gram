@@ -359,7 +359,7 @@
 
         <div class="field">
           <label for="newColumnType" class="font-bold block mb-2">Тип данных</label>
-          <Dropdown
+          <Select
             id="newColumnType"
             v-model="newColumnType"
             :options="columnTypeOptions"
@@ -459,7 +459,7 @@
           <div class="condition-fields">
             <div class="field mb-3">
               <label :for="`column-${index}`">Столбец</label>
-              <Dropdown
+              <Select
                 :id="`column-${index}`"
                 v-model="condition.headerId"
                 :options="filterableHeaders"
@@ -473,7 +473,7 @@
 
             <div class="field mb-3">
               <label :for="`operator-${index}`">Оператор</label>
-              <Dropdown
+              <Select
                 :id="`operator-${index}`"
                 v-model="condition.operator"
                 :options="getOperatorsForType(condition.type)"

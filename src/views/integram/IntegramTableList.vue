@@ -119,7 +119,7 @@
               </div>
 
               <!-- Sort Dropdown -->
-              <Dropdown
+              <Select
                 v-model="sortBy"
                 :options="sortOptions"
                 optionLabel="label"
