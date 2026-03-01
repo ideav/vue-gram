@@ -526,7 +526,7 @@ onUnmounted(() => {
 
 .tables-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 0.75rem;
   padding: 1rem 0;
 }
@@ -557,10 +557,9 @@ onUnmounted(() => {
 
 .table-name {
   max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
   line-height: 1.3;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 /* Center search icon vertically */
