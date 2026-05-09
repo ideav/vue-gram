@@ -11,7 +11,7 @@
 
 import axios from 'axios'
 
-function formatRequisiteValue(value) {
+export function formatRequisiteValue(value) {
   if (value === null || value === undefined || value === '') return value
 
   const isDateObject = value instanceof Date ||
@@ -46,7 +46,7 @@ function formatRequisiteValue(value) {
   return value
 }
 
-class IntegramApiClient {
+export class IntegramApiClient {
   constructor() {
     const savedServer = localStorage.getItem('integram_server')
     let initialURL = savedServer || import.meta.env.VITE_INTEGRAM_URL || 'https://app.integram.io'
@@ -649,6 +649,16 @@ class IntegramApiClient {
       data[`t${reqId}`] = formatted !== null && formatted !== undefined ? formatted : ''
     }
     return this.post(`_m_set/${objectId}`, data)
+  }
+
+  async addMultiselectItem(objectId, requisiteId, referencedObjectId) {
+    return this.post(`_m_set/${objectId}`, {
+      [`t${requisiteId}`]: referencedObjectId
+    })
+  }
+
+  async removeMultiselectItem(multiselectItemId) {
+    return this.post(`_m_del/${multiselectItemId}`)
   }
 
   async deleteObject(objectId) {
