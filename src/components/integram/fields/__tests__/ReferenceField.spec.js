@@ -10,39 +10,72 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { mount } from '@vue/test-utils'
+import { flushPromises, mount } from '@vue/test-utils'
 import { nextTick } from 'vue'
 import ReferenceField from '../ReferenceField.vue'
 import integramApiClient from '@/services/integramApiClient'
 import PrimeVue from 'primevue/config'
+
+const mockToast = vi.hoisted(() => ({
+  add: vi.fn()
+}))
+
+vi.mock('primevue/usetoast', () => ({
+  useToast: () => mockToast
+}))
 
 // Mock integramApiClient
 vi.mock('@/services/integramApiClient', () => ({
   default: {
     setDatabase: vi.fn(),
     getReferenceOptions: vi.fn(),
-    createObject: vi.fn()
+    createObject: vi.fn(),
+    addMultiselectItem: vi.fn(),
+    removeMultiselectItem: vi.fn()
   }
 }))
 
-// Mock PrimeVue toast
-const mockToast = {
-  add: vi.fn()
+const stubs = {
+  Button: {
+    template: '<button type="button" @click="$emit(\'click\', $event)"><slot /></button>'
+  },
+  Dialog: {
+    template: '<div><slot /><slot name="footer" /></div>'
+  },
+  InputText: {
+    props: ['modelValue'],
+    emits: ['update:modelValue'],
+    template: '<input :value="modelValue" @input="$emit(\'update:modelValue\', $event.target.value)" />'
+  }
+}
+
+const defaultProps = {
+  modelValue: null,
+  reqId: 100,
+  refTypeId: 100,
+  database: 'a2025',
+  objectId: 285,
+  multi: false,
+  allowCreate: false,
+  restrict: null,
+  currentDisplayName: null
+}
+
+function mountField(props = {}) {
+  return mount(ReferenceField, {
+    props: {
+      ...defaultProps,
+      ...props
+    },
+    global: {
+      plugins: [PrimeVue],
+      stubs
+    }
+  })
 }
 
 describe('ReferenceField', () => {
   let wrapper
-
-  const defaultProps = {
-    modelValue: null,
-    refTypeId: 100,
-    database: 'a2025',
-    objectId: 285,
-    multi: false,
-    allowCreate: false,
-    restrict: null,
-    currentDisplayName: null
-  }
 
   beforeEach(() => {
     vi.clearAllMocks()
@@ -53,40 +86,26 @@ describe('ReferenceField', () => {
       '2': 'Option 2',
       '3': 'Option 3'
     })
+    integramApiClient.addMultiselectItem.mockResolvedValue({ id: 9001 })
+    integramApiClient.removeMultiselectItem.mockResolvedValue({ ok: true })
   })
 
   it('renders select component', async () => {
-    wrapper = mount(ReferenceField, {
-      props: defaultProps,
-      global: {
-        plugins: [PrimeVue],
-        mocks: {
-          $toast: mockToast
-        }
-      }
-    })
+    wrapper = mountField()
 
-    await nextTick()
+    await flushPromises()
 
     expect(wrapper.find('select').exists()).toBe(true)
   })
 
   it('loads reference options on mount', async () => {
-    wrapper = mount(ReferenceField, {
-      props: defaultProps,
-      global: {
-        plugins: [PrimeVue],
-        mocks: {
-          $toast: mockToast
-        }
-      }
-    })
+    wrapper = mountField()
 
-    await nextTick()
+    await flushPromises()
 
     expect(integramApiClient.setDatabase).toHaveBeenCalledWith('a2025')
     expect(integramApiClient.getReferenceOptions).toHaveBeenCalledWith(
-      100, // refTypeId
+      100, // reqId
       285, // objectId
       null, // restrict
       '' // searchTerm
@@ -100,61 +119,36 @@ describe('ReferenceField', () => {
       '5': 'Currently Selected'
     })
 
-    wrapper = mount(ReferenceField, {
-      props: {
-        ...defaultProps,
-        modelValue: 5,
-        currentDisplayName: 'Currently Selected'
-      },
-      global: {
-        plugins: [PrimeVue],
-        mocks: {
-          $toast: mockToast
-        }
-      }
+    wrapper = mountField({
+      modelValue: 5,
+      currentDisplayName: 'Currently Selected'
     })
 
-    await nextTick()
-    await nextTick() // Wait for async loading
+    await flushPromises()
 
     // Component should have loaded the current value
     expect(wrapper.vm.localValue).toBe(5)
   })
 
   it('handles multi-select mode', async () => {
-    wrapper = mount(ReferenceField, {
-      props: {
-        ...defaultProps,
-        multi: true,
-        modelValue: [1, 2]
-      },
-      global: {
-        plugins: [PrimeVue],
-        mocks: {
-          $toast: mockToast
-        }
-      }
+    wrapper = mountField({
+      multi: true,
+      initialMultiselectItems: [
+        { id: 1, text: 'Option 1', msId: 101 },
+        { id: 2, text: 'Option 2', msId: 102 }
+      ]
     })
 
-    await nextTick()
-    await nextTick() // Wait for async loading
+    await flushPromises()
 
     // Should display selected items as tags
     expect(wrapper.vm.selectedItems.length).toBe(2)
   })
 
   it('emits update:modelValue when selection changes', async () => {
-    wrapper = mount(ReferenceField, {
-      props: defaultProps,
-      global: {
-        plugins: [PrimeVue],
-        mocks: {
-          $toast: mockToast
-        }
-      }
-    })
+    wrapper = mountField()
 
-    await nextTick()
+    await flushPromises()
 
     // Simulate selecting an option
     wrapper.vm.onChange({ value: 2 })
@@ -166,17 +160,9 @@ describe('ReferenceField', () => {
   })
 
   it('filters options based on search term', async () => {
-    wrapper = mount(ReferenceField, {
-      props: defaultProps,
-      global: {
-        plugins: [PrimeVue],
-        mocks: {
-          $toast: mockToast
-        }
-      }
-    })
+    wrapper = mountField()
 
-    await nextTick()
+    await flushPromises()
 
     // Simulate search
     await wrapper.vm.onFilter({ value: 'test' })
@@ -195,20 +181,11 @@ describe('ReferenceField', () => {
       obj: { id: 99 }
     })
 
-    wrapper = mount(ReferenceField, {
-      props: {
-        ...defaultProps,
-        allowCreate: true
-      },
-      global: {
-        plugins: [PrimeVue],
-        mocks: {
-          $toast: mockToast
-        }
-      }
+    wrapper = mountField({
+      allowCreate: true
     })
 
-    await nextTick()
+    await flushPromises()
 
     // Set new value and create
     wrapper.vm.newRefValue = 'New Item'
@@ -236,18 +213,9 @@ describe('ReferenceField', () => {
       new Error('API Error')
     )
 
-    wrapper = mount(ReferenceField, {
-      props: defaultProps,
-      global: {
-        plugins: [PrimeVue],
-        mocks: {
-          $toast: mockToast
-        }
-      }
-    })
+    wrapper = mountField()
 
-    await nextTick()
-    await nextTick() // Wait for async error handling
+    await flushPromises()
 
     expect(mockToast.add).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -258,28 +226,23 @@ describe('ReferenceField', () => {
   })
 
   it('removes item in multi-select mode', async () => {
-    wrapper = mount(ReferenceField, {
-      props: {
-        ...defaultProps,
-        multi: true,
-        modelValue: [1, 2, 3]
-      },
-      global: {
-        plugins: [PrimeVue],
-        mocks: {
-          $toast: mockToast
-        }
-      }
+    wrapper = mountField({
+      multi: true,
+      initialMultiselectItems: [
+        { id: 1, text: 'Option 1', msId: 101 },
+        { id: 2, text: 'Option 2', msId: 102 },
+        { id: 3, text: 'Option 3', msId: 103 }
+      ]
     })
 
-    await nextTick()
-    await nextTick() // Wait for async loading
+    await flushPromises()
 
     // Remove item
-    wrapper.vm.removeItem(2)
+    await wrapper.vm.removeItem(2)
 
     await nextTick()
 
+    expect(integramApiClient.removeMultiselectItem).toHaveBeenCalledWith(102)
     expect(wrapper.emitted('update:modelValue')).toBeTruthy()
     const emittedValue = wrapper.emitted('update:modelValue').slice(-1)[0][0]
     expect(emittedValue).not.toContain(2)
@@ -287,17 +250,9 @@ describe('ReferenceField', () => {
   })
 
   it('reloads options when restrict prop changes', async () => {
-    wrapper = mount(ReferenceField, {
-      props: defaultProps,
-      global: {
-        plugins: [PrimeVue],
-        mocks: {
-          $toast: mockToast
-        }
-      }
-    })
+    wrapper = mountField()
 
-    await nextTick()
+    await flushPromises()
 
     const initialCallCount = integramApiClient.getReferenceOptions.mock.calls.length
 
@@ -311,15 +266,7 @@ describe('ReferenceField', () => {
   })
 
   it('generates correct color for badge based on ID', () => {
-    wrapper = mount(ReferenceField, {
-      props: defaultProps,
-      global: {
-        plugins: [PrimeVue],
-        mocks: {
-          $toast: mockToast
-        }
-      }
-    })
+    wrapper = mountField()
 
     const color1 = wrapper.vm.getColor(0)
     const color2 = wrapper.vm.getColor(1)
@@ -336,22 +283,12 @@ describe('ReferenceField', () => {
       '2': 'Option 2'
     })
 
-    wrapper = mount(ReferenceField, {
-      props: {
-        ...defaultProps,
-        modelValue: 999,
-        currentDisplayName: 'Custom Display Name'
-      },
-      global: {
-        plugins: [PrimeVue],
-        mocks: {
-          $toast: mockToast
-        }
-      }
+    wrapper = mountField({
+      modelValue: 999,
+      currentDisplayName: 'Custom Display Name'
     })
 
-    await nextTick()
-    await nextTick() // Wait for async loading
+    await flushPromises()
 
     // Should have added the current value with display name to options
     const optionWith999 = wrapper.vm.options.find(opt => opt.id === 999)
