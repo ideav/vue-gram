@@ -60,6 +60,24 @@ const routes = [
         component: () => import('../views/integram/IntegramDataTableView.vue')
       },
       {
+        path: 'kanban/:sourceId?',
+        name: 'IntegramKanbanWorkspace',
+        component: () => import('../views/integram/IntegramCrmWorkspace.vue'),
+        meta: { workspace: 'kanban' }
+      },
+      {
+        path: 'funnel/:sourceId?',
+        name: 'IntegramFunnelWorkspace',
+        component: () => import('../views/integram/IntegramCrmWorkspace.vue'),
+        meta: { workspace: 'funnel' }
+      },
+      {
+        path: 'cards/:typeId?',
+        name: 'IntegramCardsWorkspace',
+        component: () => import('../views/integram/IntegramCrmWorkspace.vue'),
+        meta: { workspace: 'cards' }
+      },
+      {
         path: 'edit_obj/:objectId',
         name: 'IntegramObjectEdit',
         component: () => import('../views/integram/IntegramObjectEdit.vue')
