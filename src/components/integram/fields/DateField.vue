@@ -42,6 +42,7 @@
 
 <script setup>
 import { ref, computed } from 'vue'
+import { parseIntegramDateValue } from '@/utils/integramDateValues'
 
 const props = defineProps({
   id: String,
@@ -82,7 +83,7 @@ const computedModelValue = computed(() => {
     // Special value - resolve to actual date for calendar display
     return resolveSpecialValue(props.modelValue)
   }
-  return props.modelValue
+  return parseIntegramDateValue(props.modelValue)
 })
 
 function toggleSpecialValues(event) {
