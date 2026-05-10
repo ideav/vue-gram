@@ -48,6 +48,22 @@ describe('tableWorkspace helpers', () => {
     ])
   })
 
+  it('normalizes the API client terms wrapper without losing table metadata', () => {
+    expect(normalizeTableList({
+      terms: [
+        { id: 42, type: 3, name: 'Role' },
+        { id: 422, type: 9, name: 'Payment Date' },
+      ],
+      termById: {
+        42: 'Role',
+        422: 'Payment Date',
+      },
+    })).toEqual([
+      { id: '422', type: 9, name: 'Payment Date' },
+      { id: '42', type: 3, name: 'Role' },
+    ])
+  })
+
   it('falls back to the legacy default folders when settings are missing or invalid', () => {
     expect(normalizeFolderConfig(null)).toEqual(DEFAULT_TABLE_FOLDERS)
     expect(normalizeFolderConfig('not-json')).toEqual(DEFAULT_TABLE_FOLDERS)
