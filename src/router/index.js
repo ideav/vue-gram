@@ -136,6 +136,11 @@ const routes = [
         component: () => import('../views/integram/IntegramCalendarView.vue')
       },
       {
+        path: 'procvac',
+        name: 'IntegramProcVac',
+        component: () => import('../views/integram/IntegramProcVacView.vue')
+      },
+      {
         path: 'report/:reportId/embed',
         name: 'IntegramReportEmbed',
         component: () => import('../components/integram/IntegramReportEmbed.vue'),
