@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import integramApiClient from '../services/integramApiClient'
 
 const routes = [
   {
@@ -104,18 +105,15 @@ const router = createRouter({
 })
 
 // Auth guard
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to) => {
   if (to.matched.some(record => record.meta.requiresAuth)) {
-    const token = localStorage.getItem('token')
-    const session = localStorage.getItem('integram_session')
-    if (!token && !session) {
-      next({ path: '/login', query: { redirect: to.fullPath } })
-    } else {
-      next()
+    const database = typeof to.params.database === 'string' ? to.params.database : null
+    const restored = await integramApiClient.restoreSession(database)
+    if (!restored) {
+      return { path: '/login', query: { redirect: to.fullPath } }
     }
-  } else {
-    next()
   }
+  return true
 })
 
 export default router

@@ -715,57 +715,18 @@ onMounted(async () => {
   document.addEventListener('click', handleDocumentClick)
   window.addEventListener('resize', updateViewportWidth)
 
-  integramApiClient.tryRestoreSession()
+  await integramApiClient.restoreSession(database.value, { validate: false })
 
   const authInfo = integramApiClient.getAuthInfo()
-  if (!authInfo.token || !authInfo.xsrf) {
-    const serverURL = import.meta.env.VITE_INTEGRAM_URL || `${window.location.protocol}//${window.location.hostname}`
-    const defaultDatabase = database.value || 'my'
-    const defaultUsername = 'd'
-    const defaultPassword = 'd'
-
-    try {
-      integramApiClient.setServer(serverURL)
-      await integramApiClient.authenticate(defaultDatabase, defaultUsername, defaultPassword)
-
-      try {
-        const response = await integramApiClient.get('auth')
-        if (response.data) {
-          const dbSession = integramApiClient.databases[defaultDatabase]
-          if (dbSession) {
-            dbSession.userName = response.data.login || defaultUsername
-            dbSession.userRole = response.data.role || 'user'
-            dbSession.authInfo = {
-              userName: response.data.login || defaultUsername,
-              userRole: response.data.role || 'user',
-              token: dbSession.token,
-              xsrf: dbSession.xsrfToken
-            }
-            if (response.data.bases && Array.isArray(response.data.bases)) {
-              dbSession.ownedDatabases = response.data.bases
-            }
-          }
-        }
-      } catch {
-        // User metadata is optional for the shell; the authenticated session is enough.
-      }
-
-      integramApiClient.saveSession()
-    } catch (error) {
-      toast.add({
-        severity: 'error',
-        summary: 'Ошибка автоматической авторизации',
-        detail: error.message || 'Не удалось войти в систему',
-        life: 5000
-      })
-      return
-    }
+  if (!authInfo.token) {
+    router.replace({ path: '/login', query: { redirect: route.fullPath } })
+    return
   }
 
-  try {
-    await integramApiClient.validateSession()
-  } catch (e) {
-    console.warn('Session validation skipped:', e.message)
+  const validSession = await integramApiClient.validateSession()
+  if (!validSession) {
+    router.replace({ path: '/login', query: { redirect: route.fullPath } })
+    return
   }
 
   const savedLocale = localStorage.getItem('integram_locale')

@@ -8,6 +8,24 @@ import { ref, computed } from 'vue'
 import axios from 'axios'
 import { setItemSafe, removeItemSafe } from '@/utils/localStorage'
 
+function firstPayload(data) {
+  if (Array.isArray(data)) return data[0] || {}
+  return data || {}
+}
+
+function getAuthMessage(data) {
+  const payload = firstPayload(data)
+  return payload.error || payload.message || payload.msg || payload.warning || payload.hint || 'Authentication failed'
+}
+
+function shouldUseCredentials(baseURL) {
+  try {
+    return new URL(baseURL, window.location.origin).origin === window.location.origin
+  } catch (error) {
+    return false
+  }
+}
+
 export const useAuthStore = defineStore('auth', () => {
   const primaryToken = ref(null)
   const primaryUser = ref(null)
@@ -32,6 +50,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   async function authenticateToDatabase(login, password, apiBase, database) {
     const formData = new URLSearchParams()
+    formData.append('db', database)
     formData.append('login', login)
     formData.append('pwd', password)
 
@@ -45,25 +64,25 @@ export const useAuthStore = defineStore('auth', () => {
     const client = axios.create({
       baseURL,
       timeout: 30000,
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      withCredentials: shouldUseCredentials(baseURL)
     })
 
     const response = await client.post('/auth', formData, {
-      params: { JSON_KV: true }
+      params: { JSON: '' }
     })
 
-    let data = response.data
-    if (Array.isArray(data) && data.length > 0) data = data[0]
+    const data = firstPayload(response.data)
 
     if (!data.token) {
-      throw new Error(data.error || data.warning || 'Authentication failed')
+      throw new Error(getAuthMessage(data))
     }
 
     return {
       token: data.token,
-      _xsrf: data._xsrf,
+      _xsrf: data._xsrf || data.xsrf,
       id: data.id,
-      user: login
+      user: data.user || login
     }
   }
 
