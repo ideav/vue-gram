@@ -84,6 +84,10 @@ export function normalizeFolderConfig(rawConfig) {
 }
 
 export function normalizeTableList(payload) {
+  if (Array.isArray(payload?.terms)) {
+    return normalizeTableList(payload.terms)
+  }
+
   if (Array.isArray(payload)) {
     return payload
       .map(table => ({
@@ -96,10 +100,6 @@ export function normalizeTableList(payload) {
   }
 
   if (payload && typeof payload === 'object') {
-    if (Array.isArray(payload.terms)) {
-      return normalizeTableList(payload.terms)
-    }
-
     if (payload.termById && typeof payload.termById === 'object') {
       const termsById = new Map(
         Array.isArray(payload.terms)
@@ -120,7 +120,11 @@ export function normalizeTableList(payload) {
         .sort(compareTablesByName)
     }
 
-    return Object.entries(payload)
+    const dictionary = payload.terms && typeof payload.terms === 'object'
+      ? payload.terms
+      : payload
+
+    return Object.entries(dictionary)
       .map(([id, name]) => ({
         id: String(id),
         type: 3,

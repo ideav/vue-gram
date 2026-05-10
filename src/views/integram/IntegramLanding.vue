@@ -146,6 +146,8 @@ function t(key) {
       formsDesc: 'Работа с пользовательскими формами',
       myforms: 'Мои формы',
       myformsDesc: 'Конструктор пользовательских форм',
+      cabinet: 'Личный кабинет',
+      cabinetDesc: 'Профиль, базы данных, тариф и баланс',
       flexibleStructure: 'Гибкая структура',
       flexibleStructureDesc: 'Создавайте собственные типы данных и связи между ними',
       powerfulSQL: 'Мощный SQL',
@@ -184,6 +186,8 @@ function t(key) {
       formsDesc: 'Work with custom forms',
       myforms: 'My Forms',
       myformsDesc: 'Custom form builder',
+      cabinet: 'Cabinet',
+      cabinetDesc: 'Profile, databases, plan, and balance',
       flexibleStructure: 'Flexible Structure',
       flexibleStructureDesc: 'Create your own data types and relationships',
       powerfulSQL: 'Powerful SQL',
@@ -251,6 +255,12 @@ const quickAccessItems = computed(() => [
     description: t('myformsDesc'),
     icon: 'fi fi-rr-settings-sliders',
     path: `/${database.value}/myform`
+  },
+  {
+    name: t('cabinet'),
+    description: t('cabinetDesc'),
+    icon: 'fi fi-rr-user',
+    path: `/${database.value}/cabinet`
   }
 ])
 

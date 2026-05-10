@@ -1090,6 +1090,50 @@ export class IntegramApiClient {
     }
   }
 
+  async postForm(endpoint, data = null, options = {}) {
+    try {
+      if (!this.isAuthenticated()) {
+        throw new Error('Not authenticated. Call authenticate() first.')
+      }
+
+      const url = this.buildURL(endpoint)
+      const formData = data instanceof FormData ? data : new FormData()
+
+      if (data && !(data instanceof FormData)) {
+        for (const [key, value] of Object.entries(data)) {
+          if (value !== null && value !== undefined) {
+            formData.append(key, value)
+          }
+        }
+      }
+
+      if (!formData.has('_xsrf')) formData.append('_xsrf', this.xsrfToken)
+
+      const authHeaders = this.getAuthHeaders(this.database)
+      const { jsonMode = 'JSON_KV', normalize = null, params: optionParams = {}, ...axiosOptions } = options
+      const requestParams = {
+        ...(jsonMode ? { [jsonMode]: '' } : {}),
+        ...optionParams
+      }
+
+      const response = await axios.post(url, formData, {
+        timeout: 30000,
+        withCredentials: this.shouldUseCredentials(url),
+        ...axiosOptions,
+        params: requestParams,
+        headers: {
+          ...authHeaders,
+          ...(axiosOptions.headers || {})
+        }
+      })
+
+      const responseData = normalizeApiResponse(response.data)
+      return normalize ? normalize(responseData) : responseData
+    } catch (error) {
+      throw this.handleError(error)
+    }
+  }
+
   async postJson(endpoint, data = {}, jsonFlag = 'JSON_KV', options = {}) {
     return this.post(endpoint, data, { ...options, jsonMode: jsonFlag })
   }

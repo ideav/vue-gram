@@ -83,10 +83,14 @@
             data-testid="user-menu-dropdown"
             @click.stop
           >
-            <a href="/my" target="my" class="user-menu-item">
+            <router-link
+              :to="{ name: 'IntegramCabinet', params: { database } }"
+              class="user-menu-item"
+              @click="closeUserMenu"
+            >
               <i class="user-menu-icon fi fi-rr-user"></i>
               <span>Личный кабинет</span>
-            </a>
+            </router-link>
 
             <div class="user-menu-divider"></div>
 
