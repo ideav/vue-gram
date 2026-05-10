@@ -50,6 +50,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   async function authenticateToDatabase(login, password, apiBase, database) {
     const formData = new URLSearchParams()
+    formData.append('db', database)
     formData.append('login', login)
     formData.append('pwd', password)
 
@@ -79,9 +80,9 @@ export const useAuthStore = defineStore('auth', () => {
 
     return {
       token: data.token,
-      _xsrf: data._xsrf,
+      _xsrf: data._xsrf || data.xsrf,
       id: data.id,
-      user: login
+      user: data.user || login
     }
   }
 
