@@ -15,6 +15,20 @@ import {
   normalizeAddPath,
   normalizeDirAdminFolder
 } from '@/utils/integramDirAdmin'
+import {
+  MIGRATION_EXPORT_LIMIT,
+  MIGRATION_QUERY_COLUMNS_TABLE_ID,
+  MIGRATION_QUERY_TABLE_ID,
+  MIGRATION_SETTINGS_TABLE_ID,
+  MIGRATION_SETTINGS_TYPE,
+  basename as migrationBasename,
+  dirname as migrationDirname,
+  normalizeMigrationConfig,
+  normalizeMigrationQueriesResponse,
+  normalizeMigrationSettingsResponse,
+  normalizeMigrationTablesResponse,
+  parseMigrationFilterParams
+} from '@/utils/integramMigration'
 
 const LEGACY_AUTH_STORAGE_KEYS = [
   'token',
@@ -1577,6 +1591,121 @@ export class IntegramApiClient {
     }
 
     return this.get(endpoint, requestParams, { jsonMode: jsonFlag, normalize: normalizeReportResponse })
+  }
+
+  async getMigrationTables() {
+    return this.get('metadata', {}, {
+      jsonMode: 'JSON',
+      normalize: normalizeMigrationTablesResponse
+    })
+  }
+
+  async getMigrationQueries(limit = '0,1000') {
+    return this.get(`object/${MIGRATION_QUERY_TABLE_ID}`, { LIMIT: limit }, {
+      jsonMode: 'JSON_OBJ',
+      normalize: normalizeMigrationQueriesResponse
+    })
+  }
+
+  async getMigrationSettings() {
+    return this.get(`object/${MIGRATION_SETTINGS_TABLE_ID}`, { F_271: MIGRATION_SETTINGS_TYPE }, {
+      jsonMode: 'JSON_OBJ',
+      normalize: normalizeMigrationSettingsResponse
+    })
+  }
+
+  async saveMigrationSettings(config, settingsId = null) {
+    const normalized = normalizeMigrationConfig(config)
+    const payload = {
+      t269: normalized.name,
+      t271: MIGRATION_SETTINGS_TYPE,
+      t273: JSON.stringify(normalized)
+    }
+
+    if (settingsId) {
+      return this.post(`_m_save/${encodeURIComponent(String(settingsId))}`, payload, {
+        jsonMode: 'JSON',
+        normalize: normalizeMutationResponse
+      })
+    }
+
+    return this.post(`_m_new/${MIGRATION_SETTINGS_TABLE_ID}`, payload, {
+      jsonMode: 'JSON',
+      params: { up: '1' },
+      normalize: normalizeMutationResponse
+    })
+  }
+
+  async getMigrationQueryColumns(queryId) {
+    return this.get(`object/${MIGRATION_QUERY_COLUMNS_TABLE_ID}`, {
+      F_U: queryId,
+      LIMIT: '1000'
+    }, { jsonMode: 'JSON_OBJ' })
+  }
+
+  async getMigrationTableMetadata(typeId) {
+    return this.get(`metadata/${encodeURIComponent(String(typeId))}`, {}, { jsonMode: 'JSON' })
+  }
+
+  async getMigrationTableData(table) {
+    const tableId = typeof table === 'object' ? table.id : table
+    const filterParams = parseMigrationFilterParams(typeof table === 'object' ? table.filter : '')
+    return this.get(`object/${encodeURIComponent(String(tableId))}`, {
+      LIMIT: MIGRATION_EXPORT_LIMIT,
+      ...filterParams
+    }, { jsonMode: 'JSON_OBJ' })
+  }
+
+  async getMigrationQueryRecord(queryId) {
+    return this.get(`object/${MIGRATION_QUERY_TABLE_ID}/${encodeURIComponent(String(queryId))}`, {}, {
+      jsonMode: 'JSON_OBJ'
+    })
+  }
+
+  async getMigrationReport(queryId) {
+    return this.get(`report/${encodeURIComponent(String(queryId))}`, {}, { jsonMode: 'JSON' })
+  }
+
+  async getMigrationFileContent(file = {}) {
+    const root = file.root || 'templates'
+    const path = file.path || ''
+    const dir = file.dir ?? migrationDirname(path)
+    const name = file.name || migrationBasename(path)
+    return this.get('dir_admin', buildDirAdminParams(root, dir, { gf: name }), {
+      jsonMode: null,
+      responseType: 'text',
+      transformResponse: [data => data]
+    })
+  }
+
+  async getMigrationQueryPackage(query) {
+    const id = typeof query === 'object' ? query.id : query
+    const name = typeof query === 'object' ? query.name : String(query)
+    const entry = {
+      id: String(id),
+      name,
+      record: null,
+      columns: null,
+      report: null
+    }
+
+    try {
+      entry.record = await this.getMigrationQueryRecord(id)
+    } catch (error) {
+      entry.recordError = error.message
+    }
+    try {
+      entry.columns = await this.getMigrationQueryColumns(id)
+    } catch (error) {
+      entry.columnsError = error.message
+    }
+    try {
+      entry.report = await this.getMigrationReport(id)
+    } catch (error) {
+      entry.reportError = error.message
+    }
+
+    return entry
   }
 
   async sendAiChatMessage(payload = {}) {
