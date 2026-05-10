@@ -63,6 +63,7 @@ describe('integram menu adapter', () => {
   it('maps legacy menu hrefs to compatible Vue routes', () => {
     expect(buildLegacyMenuPath('my', 'tables/42')).toBe('/my/table/42')
     expect(buildLegacyMenuPath('my', '/my/forms')).toBe('/my/form')
+    expect(buildLegacyMenuPath('my', 'iquiz/801')).toBe('/my/quiz/801')
     expect(buildLegacyMenuPath('my', 'query/77?x=1#top')).toBe('/my/report/77?x=1#top')
     expect(buildLegacyMenuPath('my', 'https://example.test/docs')).toBe('https://example.test/docs')
   })

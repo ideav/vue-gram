@@ -20,6 +20,7 @@ import Calendar from 'primevue/calendar'
 import Card from 'primevue/card'
 import Checkbox from 'primevue/checkbox'
 import Chip from 'primevue/chip'
+import Chips from 'primevue/chips'
 import Column from 'primevue/column'
 import ConfirmDialog from 'primevue/confirmdialog'
 import ContextMenu from 'primevue/contextmenu'
@@ -43,6 +44,7 @@ import Password from 'primevue/password'
 import ProgressBar from 'primevue/progressbar'
 import ProgressSpinner from 'primevue/progressspinner'
 import Popover from 'primevue/popover'
+import RadioButton from 'primevue/radiobutton'
 import Select from 'primevue/select'
 import SelectButton from 'primevue/selectbutton'
 import Tag from 'primevue/tag'
@@ -89,6 +91,7 @@ async function initApp() {
   app.component('Card', Card)
   app.component('Checkbox', Checkbox)
   app.component('Chip', Chip)
+  app.component('Chips', Chips)
   app.component('Column', Column)
   app.component('ConfirmDialog', ConfirmDialog)
   app.component('ContextMenu', ContextMenu)
@@ -112,6 +115,7 @@ async function initApp() {
   app.component('ProgressBar', ProgressBar)
   app.component('ProgressSpinner', ProgressSpinner)
   app.component('Popover', Popover)
+  app.component('RadioButton', RadioButton)
   app.component('Select', Select)
   app.component('SelectButton', SelectButton)
   app.component('Tag', Tag)

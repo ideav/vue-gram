@@ -1,5 +1,6 @@
 const LEGACY_ROUTE_ALIASES = Object.freeze({
   forms: 'form',
+  iquiz: 'quiz',
   query: 'report',
   tables: 'table'
 })
@@ -13,6 +14,7 @@ export const DEFAULT_LEGACY_MENU_DATA = Object.freeze([
   { menu_id: 'report', menu_up: '', name: 'Запросы', href: 'report', icon: '<i class="fi fi-rr-chart-histogram"></i>' },
   { menu_id: 'form', menu_up: '', name: 'Формы', href: 'form', icon: '<i class="fi fi-rr-file"></i>' },
   { menu_id: 'myform', menu_up: '', name: 'Мои формы', href: 'myform', icon: '<i class="fi fi-rr-settings-sliders"></i>' },
+  { menu_id: 'quiz', menu_up: '', name: 'Опросы', href: 'quiz', icon: '<i class="fi fi-rr-question"></i>' },
   { menu_id: 'upload', menu_up: '', name: 'Загрузка', href: 'upload', icon: '<i class="fi fi-rr-upload"></i>' },
   { menu_id: 'dir_admin', menu_up: '', name: 'Файлы', href: 'dir_admin', icon: '<i class="fi fi-rr-folder"></i>' },
   { menu_id: 'info', menu_up: '', name: 'Информация', href: 'info', icon: '<i class="fi fi-rr-info"></i>' }

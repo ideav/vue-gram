@@ -125,7 +125,7 @@ describe('IntegramApiClient', () => {
   it('creates objects with normalized form-style requisite keys and parent id', async () => {
     axios.post.mockResolvedValue({ data: { id: 901 } })
 
-    await client.createObject(77, 'Copy source', {
+    const result = await client.createObject(77, 'Copy source', {
       t100: 'text value',
       101: false
     }, 285)
@@ -140,6 +140,37 @@ describe('IntegramApiClient', () => {
     expect(body.get('b101')).toBe('1')
     expect(body.get('tt100')).toBeNull()
     expect(axios.post.mock.calls[0][2].params).toEqual({ JSON: '' })
+    expect(result.objectId).toBe(901)
+  })
+
+  it('normalizes legacy obj mutation identifiers', async () => {
+    axios.post.mockResolvedValue({ data: { obj: '902' } })
+
+    const result = await client.createObject(77, 'Legacy response', {}, 1)
+
+    expect(result).toMatchObject({
+      id: 902,
+      objectId: 902,
+      obj: '902',
+      ok: true
+    })
+  })
+
+  it('uses multipart payloads when form submissions include files', async () => {
+    const file = new File(['file body'], 'doc.txt', { type: 'text/plain' })
+    axios.post.mockResolvedValue({ data: { obj: 903 } })
+
+    await client.createObject(42, 'With file', {
+      104: file
+    }, 1)
+
+    const [, body, config] = axios.post.mock.calls[0]
+
+    expect(body).toBeInstanceOf(FormData)
+    expect(body.get('_xsrf')).toBe('xsrf-token')
+    expect(body.get('t42')).toBe('With file')
+    expect(body.get('t104')).toBe(file)
+    expect(config.headers['Content-Type']).toBeUndefined()
   })
 
   it('restores legacy localStorage sessions for the saved database', () => {

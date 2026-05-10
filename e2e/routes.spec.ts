@@ -344,23 +344,31 @@ test.describe('Route smoke tests', () => {
   })
 
   // 12. /my/upload
-  test('12. /my/upload loads without errors', async () => {
+  test('12. /my/quiz loads without errors', async () => {
+    const errors = collectErrors(page)
+    await page.goto('/my/quiz')
+    await waitForSettle(page)
+    expect(errors.map(e => e.text())).toEqual([])
+  })
+
+  // 13. /my/upload
+  test('13. /my/upload loads without errors', async () => {
     const errors = collectErrors(page)
     await page.goto('/my/upload')
     await waitForSettle(page)
     expect(errors.map(e => e.text())).toEqual([])
   })
 
-  // 13. /my/dir_admin
-  test('13. /my/dir_admin loads without errors', async () => {
+  // 14. /my/dir_admin
+  test('14. /my/dir_admin loads without errors', async () => {
     const errors = collectErrors(page)
     await page.goto('/my/dir_admin')
     await waitForSettle(page)
     expect(errors.map(e => e.text())).toEqual([])
   })
 
-  // 14. /my/info
-  test('14. /my/info loads without errors', async () => {
+  // 15. /my/info
+  test('15. /my/info loads without errors', async () => {
     const errors = collectErrors(page)
     await page.goto('/my/info')
     await waitForSettle(page)
