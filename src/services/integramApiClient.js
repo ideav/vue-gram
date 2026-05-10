@@ -170,17 +170,17 @@ export function normalizeMetadataResponse(data = {}) {
 
 export function normalizeTermsResponse(data = {}) {
   const rawTerms = Array.isArray(data) ? data : data.terms ?? {}
+  const payload = Array.isArray(data) ? { terms: data } : data
   const termById = Array.isArray(rawTerms)
     ? Object.fromEntries(rawTerms.map(term => [String(term.id), term.val ?? term.name ?? '']))
     : { ...rawTerms }
-  const baseTypes = toArray(Array.isArray(data) ? [] : data.base_types ?? data.baseTypes).map(type => ({
+  const baseTypes = toArray(payload.base_types ?? payload.baseTypes).map(type => ({
     id: toOptionalNumber(type.id),
     name: type.name ?? type.val ?? ''
   }))
 
   return {
-    ...(Array.isArray(data) ? {} : data),
-    terms: rawTerms,
+    ...payload,
     termById,
     baseTypes
   }

@@ -30,19 +30,19 @@ describe('tableWorkspace helpers', () => {
     ])
   })
 
-  it('normalizes the API client terms wrapper without leaking helper keys as tables', () => {
-    expect(
-      normalizeTableList({
-        terms: [
-          { id: 18, type: 3, name: 'User' },
-          { id: 42, type: 3, name: 'Role' },
-        ],
-        termById: { 18: 'User', 42: 'Role' },
-        baseTypes: [],
-      })
-    ).toEqual([
+  it('normalizes the API client terms wrapper without losing table metadata', () => {
+    expect(normalizeTableList({
+      terms: [
+        { id: 42, type: 3, name: 'Role' },
+        { id: 422, type: 9, name: 'Payment Date' },
+      ],
+      termById: {
+        42: 'Role',
+        422: 'Payment Date',
+      },
+    })).toEqual([
+      { id: '422', type: 9, name: 'Payment Date' },
       { id: '42', type: 3, name: 'Role' },
-      { id: '18', type: 3, name: 'User' },
     ])
   })
 

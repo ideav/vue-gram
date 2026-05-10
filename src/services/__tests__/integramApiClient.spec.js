@@ -231,6 +231,10 @@ describe('IntegramApiClient', () => {
   it('normalizes metadata and terms fixtures into stable arrays and maps', () => {
     const metadata = normalizeMetadataResponse(metadataFixture)
     const terms = normalizeTermsResponse(termsFixture)
+    const arrayTerms = normalizeTermsResponse([
+      { id: 18, type: 3, name: 'User' },
+      { id: 422, type: 9, name: 'Payment Date' }
+    ])
 
     expect(metadata.types).toHaveLength(2)
     expect(metadata.requisites[0]).toEqual(expect.objectContaining({
@@ -241,6 +245,8 @@ describe('IntegramApiClient', () => {
     }))
     expect(terms.termById['3']).toBe('SHORT')
     expect(terms.baseTypes[1]).toEqual({ id: 9, name: 'Date' })
+    expect(arrayTerms.terms).toHaveLength(2)
+    expect(arrayTerms.termById['422']).toBe('Payment Date')
   })
 
   it('normalizes raw array terms without turning array indexes into payload keys', () => {
