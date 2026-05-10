@@ -60,11 +60,17 @@ async function mockIntegramApi(page: Page) {
 
 async function seedLegacyShellState(page: Page) {
   await page.addInitScript((seededSession) => {
+    const hasCookie = (name: string) => document.cookie
+      .split(';')
+      .some(cookie => cookie.trim().startsWith(`${name}=`))
+
     localStorage.setItem('token', 'auth-token')
-    localStorage.setItem('theme', 'dark')
+    if (!localStorage.getItem('theme')) localStorage.setItem('theme', 'dark')
     localStorage.setItem('integram_session', JSON.stringify(seededSession))
-    document.cookie = `integram-table-font-settings=${encodeURIComponent(JSON.stringify({ pageFontSize: 'larger' }))}; path=/`
-    document.cookie = 'brand-bg-my=0.4; path=/'
+    if (!hasCookie('integram-table-font-settings')) {
+      document.cookie = `integram-table-font-settings=${encodeURIComponent(JSON.stringify({ pageFontSize: 'larger' }))}; path=/`
+    }
+    if (!hasCookie('brand-bg-my')) document.cookie = 'brand-bg-my=0.4; path=/'
   }, session)
 }
 
@@ -99,6 +105,12 @@ test.describe('Integram Vue shell parity', () => {
     }
 
     await page.getByTitle('Шрифт меньше').click()
+    await expect.poll(() => page.evaluate(() => document.documentElement.style.fontSize)).toBe('0.7rem')
+
+    await page.reload()
+    await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
+    await expect(page.locator('body')).toHaveClass(/brand-bg-on/)
+    await expect(page.locator('#cookie-consent')).toHaveCount(0)
     await expect.poll(() => page.evaluate(() => document.documentElement.style.fontSize)).toBe('0.7rem')
   })
 
