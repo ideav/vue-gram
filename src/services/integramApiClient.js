@@ -10,6 +10,11 @@
  */
 
 import axios from 'axios'
+import {
+  buildDirAdminParams,
+  normalizeAddPath,
+  normalizeDirAdminFolder
+} from '@/utils/integramDirAdmin'
 
 const LEGACY_AUTH_STORAGE_KEYS = [
   'token',
@@ -169,7 +174,9 @@ export function normalizeMetadataResponse(data = {}) {
 }
 
 export function normalizeTermsResponse(data = {}) {
-  const rawTerms = Array.isArray(data) ? data : data.terms ?? {}
+  const isDictionaryPayload = data && typeof data === 'object' && !Array.isArray(data)
+    && Object.keys(data).some(key => /^\d+$/.test(key))
+  const rawTerms = Array.isArray(data) ? data : data.terms ?? data.termById ?? (isDictionaryPayload ? data : {})
   const payload = Array.isArray(data) ? { terms: data } : data
   const termById = Array.isArray(rawTerms)
     ? Object.fromEntries(rawTerms.map(term => [String(term.id), term.val ?? term.name ?? '']))
@@ -1382,8 +1389,61 @@ export class IntegramApiClient {
     return this.get(endpoint, requestParams, { jsonMode: jsonFlag, normalize: normalizeReportResponse })
   }
 
-  async getDirAdmin(path = '') {
-    return this.get('dir_admin', { path })
+  async getDirAdmin(options = {}) {
+    const request = typeof options === 'string' ? { addPath: options } : options
+    return this.get('dir_admin', buildDirAdminParams(request.folder, request.addPath ?? request.path), {
+      jsonMode: null,
+      responseType: 'text',
+      transformResponse: [data => data]
+    })
+  }
+
+  async createDirAdminFolder({ folder = 'templates', addPath = '', name }) {
+    const normalizedFolder = normalizeDirAdminFolder(folder)
+    const data = new URLSearchParams()
+    data.append(normalizedFolder, '1')
+    data.append('add_path', normalizeAddPath(addPath))
+    data.append('dir_name', name)
+    data.append('mkdir', 'Создать')
+
+    return this.post('dir_admin', data, {
+      jsonMode: null,
+      params: buildDirAdminParams(normalizedFolder, addPath),
+      responseType: 'text',
+      transformResponse: [responseData => responseData]
+    })
+  }
+
+  async createDirAdminFile({ folder = 'templates', addPath = '', name }) {
+    const normalizedFolder = normalizeDirAdminFolder(folder)
+    const data = new URLSearchParams()
+    data.append(normalizedFolder, '1')
+    data.append('add_path', normalizeAddPath(addPath))
+    data.append('dir_name', name)
+    data.append('touch', 'Создать')
+
+    return this.post('dir_admin', data, {
+      jsonMode: null,
+      params: buildDirAdminParams(normalizedFolder, addPath),
+      responseType: 'text',
+      transformResponse: [responseData => responseData]
+    })
+  }
+
+  async deleteDirAdminItems({ folder = 'templates', addPath = '', items = [] }) {
+    const normalizedFolder = normalizeDirAdminFolder(folder)
+    const data = new URLSearchParams()
+    data.append(normalizedFolder, '1')
+    data.append('add_path', normalizeAddPath(addPath))
+    data.append('delete', 'Удалить выбранные')
+    for (const item of items) data.append('del[]', item)
+
+    return this.post('dir_admin', data, {
+      jsonMode: null,
+      params: buildDirAdminParams(normalizedFolder, addPath),
+      responseType: 'text',
+      transformResponse: [responseData => responseData]
+    })
   }
 
   async getReferenceOptions(requisiteId, objectId, restrict = null, query = null) {
@@ -1420,6 +1480,29 @@ export class IntegramApiClient {
       jsonMode: 'JSON',
       normalize: data => normalizeUploadResponse(data, file)
     })
+  }
+
+  async uploadDirAdminFile({ file, folder = 'templates', addPath = '', rewrite = false }) {
+    const normalizedFolder = normalizeDirAdminFolder(folder)
+    const formData = new FormData()
+    formData.append('_xsrf', this.xsrfToken)
+    formData.append(normalizedFolder, '1')
+    formData.append('add_path', normalizeAddPath(addPath))
+    formData.append('upload', 'Загрузить')
+    if (rewrite) formData.append('rewrite', '1')
+    formData.append('userfile', file)
+
+    const url = this.buildURL('dir_admin')
+    const response = await axios.post(url, formData, {
+      timeout: 30000,
+      withCredentials: this.shouldUseCredentials(url),
+      params: buildDirAdminParams(normalizedFolder, addPath),
+      headers: this.getAuthHeaders(this.database),
+      responseType: 'text',
+      transformResponse: [responseData => responseData]
+    })
+
+    return normalizeApiResponse(response.data)
   }
 
   async register(data) {

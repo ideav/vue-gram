@@ -25,6 +25,7 @@ import uploadSuccessFixture from '../__fixtures__/integramApi/upload-success.jso
 import uploadErrorFixture from '../__fixtures__/integramApi/upload-error.json'
 import { INTEGRAM_API_CONTRACTS } from '../integramApiContracts'
 import { integramApiFixtures } from '../__fixtures__/integramApi'
+import { dirAdminDirectoryHtml } from '../../components/integram/__fixtures__/dirAdminFixtures'
 
 vi.mock('axios', () => ({
   default: {
@@ -339,6 +340,31 @@ describe('IntegramApiClient', () => {
     })
   })
 
+  it('normalizes dictionary-shaped legacy terms responses into a term map', () => {
+    const terms = normalizeTermsResponse({
+      18: 'User',
+      42: 'Role',
+    })
+
+    expect(terms.termById).toEqual({
+      18: 'User',
+      42: 'Role',
+    })
+  })
+
+  it('does not treat metadata-only terms payload fields as term entries', () => {
+    const terms = normalizeTermsResponse({
+      base_types: [
+        { id: 3, val: 'Short text' },
+      ],
+    })
+
+    expect(terms.termById).toEqual({})
+    expect(terms.baseTypes).toEqual([
+      { id: 3, name: 'Short text' },
+    ])
+  })
+
   it('normalizes object JSON_DATA and JSON_OBJ fixtures without dropping legacy fields', () => {
     const list = normalizeObjectListResponse(objectListFixture)
     const record = normalizeObjectRecordResponse(objectRecordFixture)
@@ -420,6 +446,50 @@ describe('IntegramApiClient', () => {
     expect(axios.get).toHaveBeenCalledTimes(1)
     expect(axios.get.mock.calls[0][0]).toBe('https://app.integram.io/api/my/edit_obj/5001')
     expect(axios.get.mock.calls[0][1].params).toEqual({ JSON_KV: '' })
+  })
+
+  it('loads dir_admin through the legacy HTML endpoint without JSON flags', async () => {
+    axios.get.mockResolvedValue({ data: dirAdminDirectoryHtml })
+
+    const html = await client.getDirAdmin({ folder: 'download', addPath: '/assets' })
+
+    expect(html).toBe(dirAdminDirectoryHtml)
+    expect(axios.get).toHaveBeenCalledTimes(1)
+
+    const [url, config] = axios.get.mock.calls[0]
+    expect(url).toBe('https://app.integram.io/api/my/dir_admin')
+    expect(config.params).toEqual({
+      download: '1',
+      add_path: '/assets'
+    })
+    expect(config.responseType).toBe('text')
+    expect(config.params.JSON_KV).toBeUndefined()
+  })
+
+  it('posts dir_admin deletes using the legacy form fields and repeated del[] values', async () => {
+    axios.post.mockResolvedValue({ data: '' })
+
+    await client.deleteDirAdminItems({
+      folder: 'templates',
+      addPath: '/emails',
+      items: ['layout.html', 'partials']
+    })
+
+    expect(axios.post).toHaveBeenCalledTimes(1)
+    const [url, body, config] = axios.post.mock.calls[0]
+
+    expect(url).toBe('https://app.integram.io/api/my/dir_admin')
+    expect(body).toBeInstanceOf(URLSearchParams)
+    expect(body.get('_xsrf')).toBe('xsrf-token')
+    expect(body.get('templates')).toBe('1')
+    expect(body.get('add_path')).toBe('/emails')
+    expect(body.get('delete')).toBe('Удалить выбранные')
+    expect(body.getAll('del[]')).toEqual(['layout.html', 'partials'])
+    expect(config.params).toEqual({
+      templates: '1',
+      add_path: '/emails'
+    })
+    expect(config.responseType).toBe('text')
   })
 
   it('normalizes _m_new and _m_set backend errors into one UI error shape', async () => {
