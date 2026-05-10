@@ -169,17 +169,19 @@ export function normalizeMetadataResponse(data = {}) {
 }
 
 export function normalizeTermsResponse(data = {}) {
-  const rawTerms = data.terms ?? {}
+  const source = Array.isArray(data) ? {} : data
+  const rawTerms = Array.isArray(data) ? data : source.terms ?? {}
   const termById = Array.isArray(rawTerms)
     ? Object.fromEntries(rawTerms.map(term => [String(term.id), term.val ?? term.name ?? '']))
     : { ...rawTerms }
-  const baseTypes = toArray(data.base_types ?? data.baseTypes).map(type => ({
+  const baseTypes = toArray(source.base_types ?? source.baseTypes).map(type => ({
     id: toOptionalNumber(type.id),
     name: type.name ?? type.val ?? ''
   }))
 
   return {
-    ...data,
+    ...source,
+    terms: rawTerms,
     termById,
     baseTypes
   }
@@ -1282,6 +1284,10 @@ export class IntegramApiClient {
     }
 
     return this.get(endpoint, requestParams, { jsonMode: jsonFlag, normalize: normalizeReportResponse })
+  }
+
+  async sendAiChatMessage(payload = {}) {
+    return this.post('ai-chat', payload, { jsonMode: 'JSON' })
   }
 
   async getDirAdmin(path = '') {

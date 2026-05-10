@@ -84,6 +84,28 @@ export function normalizeFolderConfig(rawConfig) {
 }
 
 export function normalizeTableList(payload) {
+  if (payload && typeof payload === 'object' && !Array.isArray(payload)) {
+    if (Array.isArray(payload.terms)) {
+      return normalizeTableList(payload.terms)
+    }
+
+    if (payload.termById && typeof payload.termById === 'object') {
+      const typeById = new Map(
+        (Array.isArray(payload.terms) ? payload.terms : [])
+          .map(term => [String(term.id), Number(term.type ?? term.t ?? term.baseType ?? 3)])
+      )
+
+      return Object.entries(payload.termById)
+        .map(([id, name]) => ({
+          id: String(id),
+          type: typeById.get(String(id)) ?? 3,
+          name: String(name ?? '').replace(/&nbsp;/g, ' ').trim()
+        }))
+        .filter(table => table.id && table.name)
+        .sort(compareTablesByName)
+    }
+  }
+
   if (Array.isArray(payload)) {
     return payload
       .map(table => ({

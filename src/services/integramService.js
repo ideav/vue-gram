@@ -69,6 +69,23 @@ class IntegramService {
     return integramApiClient.executeReport(reportId, params);
   }
 
+  async sendAiChatMessage({ message, history = [], reportId = null, database = null } = {}) {
+    const payload = {
+      message,
+      history: JSON.stringify(history)
+    }
+
+    if (reportId !== null && reportId !== undefined) {
+      payload.report_id = reportId
+    }
+
+    if (database) {
+      payload.database = database
+    }
+
+    return integramApiClient.sendAiChatMessage(payload);
+  }
+
   async createObject(typeId, value, requisites = {}, parentId = null) {
     return integramApiClient.createObject(typeId, value, requisites, parentId);
   }

@@ -1,7 +1,7 @@
 <template>
-  <IntegramQueryBuilder />
+  <IntegramSmartQuery />
 </template>
 
 <script setup>
-import IntegramQueryBuilder from '@/components/integram/IntegramQueryBuilder.vue'
+import IntegramSmartQuery from '@/components/integram/IntegramSmartQuery.vue'
 </script>
