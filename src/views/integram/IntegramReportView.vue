@@ -785,8 +785,8 @@ function selectReport(reportId) {
 
   // Update URL
   router.push({
-    name: 'Integram Report',
-    params: { reportId },
+    name: 'IntegramReport',
+    params: { database: database.value, reportId },
   })
 
   // Execute the report
@@ -800,7 +800,8 @@ function closeReport() {
 
   // Update URL
   router.push({
-    name: 'Integram Report',
+    name: 'IntegramReport',
+    params: { database: database.value },
   })
 }
 

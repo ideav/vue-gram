@@ -242,9 +242,9 @@
               <template #body="slotProps">
                 <div
                   :class="{
-                    'editable-cell': inlineEditEnabled,
+                    'editable-cell': inlineEditEnabled && !req.arrType,
                     'editing': editingCell?.rowId === slotProps.data.id && editingCell?.field === `req_${req.id}`,
-                    'cell-dir': req.refType
+                    'cell-dir': req.refType || req.arrType
                   }"
                   @click="handleCellClick(slotProps.data, `req_${req.id}`, getRequisiteValue(slotProps.data.id, req.id), req.base || 'TEXT', req)"
                 >
@@ -361,9 +361,14 @@
                     <span v-else-if="req.base === 'BOOLEAN'">
                       {{ getRequisiteValue(slotProps.data.id, req.id) === 'X' ? '✓' : '' }}
                     </span>
-                    <span v-else :class="{ 'dir': req.refType }">
-                      {{ getRequisiteValue(slotProps.data.id, req.id) }}
-                    </span>
+                    <ObjectValueCell
+                      v-else
+                      :database="database"
+                      :object-id="slotProps.data.id"
+                      :requisite="req"
+                      :raw-value="getRequisiteValue(slotProps.data.id, req.id)"
+                      :reference-value="getReferenceValue(slotProps.data.id, req.id)"
+                    />
                   </template>
                 </div>
               </template>
@@ -520,8 +525,8 @@
         </div>
 
         <!-- Requisites -->
-        <Divider v-if="requisites.length > 0" />
-        <div v-for="req in requisites" :key="req.id" class="field">
+        <Divider v-if="editableRequisites.length > 0" />
+        <div v-for="req in editableRequisites" :key="req.id" class="field">
           <label :for="'req_' + req.id">{{ req.val }}</label>
 
           <!-- GRANT type - special dropdown -->
@@ -795,6 +800,13 @@ import { useIntegramSession } from '@/composables/useIntegramSession';
 import { useGrants } from '@/composables/useGrants';
 import integramApiClient from '@/services/integramApiClient';
 import IntegramBreadcrumb from '@/components/integram/IntegramBreadcrumb.vue';
+import ObjectValueCell from '@/components/integram/ObjectValueCell.vue';
+import {
+  getObjectReferenceValue,
+  getObjectRequisiteValue,
+  normalizeObjectListResponse,
+  parseReferenceValue
+} from '@/components/integram/objectListCompat';
 
 // PrimeVue Components
 
@@ -925,6 +937,8 @@ const isAddColumnFormValid = computed(() => {
   return addColumnForm.value.name.trim().length > 0 && addColumnForm.value.baseTypeId;
 });
 
+const editableRequisites = computed(() => requisites.value.filter(req => !req.arrType));
+
 const filteredObjects = computed(() => {
   if (!hasActiveFilters.value) {
     return objectsList.value;
@@ -940,7 +954,7 @@ const filteredObjects = computed(() => {
     for (const key in filters.value) {
       if (key.startsWith('req_') && filters.value[key]) {
         const reqId = key.replace('req_', '');
-        const value = getRequisiteValue(obj.id, reqId);
+        const value = String(getRequisiteValue(obj.id, reqId) ?? '');
         if (!value || !value.toLowerCase().includes(filters.value[key].toLowerCase())) {
           return false;
         }
@@ -979,18 +993,20 @@ async function loadObjects(page = 1, append = false) {
     }
 
     const data = await integramApiClient.getObjectList(typeId.value, queryFilters);
+    const normalized = normalizeObjectListResponse(data);
     objectsData.value = data;
-    typeData.value = data.type;
+    typeData.value = normalized.type;
+    requisites.value = normalized.requisites;
 
     // Append mode: add to existing list
     if (append && infiniteScrollEnabled.value) {
-      const newObjects = data.object || [];
+      const newObjects = normalized.objects;
       if (newObjects.length === 0) {
         hasMoreData.value = false;
       } else {
         objectsList.value = [...objectsList.value, ...newObjects];
         // Merge requisites data
-        const newReqs = data.reqs || {};
+        const newReqs = normalized.reqs;
         requisitesData.value = { ...requisitesData.value, ...newReqs };
 
         // Check if we got less than requested - means no more data
@@ -1000,9 +1016,9 @@ async function loadObjects(page = 1, append = false) {
       }
     } else {
       // Replace mode
-      objectsList.value = data.object || [];
-      requisitesData.value = data.reqs || {};
-      hasMoreData.value = (data.object || []).length >= rowsPerPage.value;
+      objectsList.value = normalized.objects;
+      requisitesData.value = normalized.reqs;
+      hasMoreData.value = normalized.objects.length >= rowsPerPage.value;
     }
 
     // Update current page from response if available
@@ -1016,10 +1032,10 @@ async function loadObjects(page = 1, append = false) {
     } else {
       // Fallback: estimate based on current data
       // If we got a full page, assume there might be more
-      if ((data.object || []).length >= rowsPerPage.value) {
-        totalObjects.value = (data.object || []).length * 2; // Conservative estimate
+      if (normalized.objects.length >= rowsPerPage.value) {
+        totalObjects.value = normalized.objects.length * 2; // Conservative estimate
       } else {
-        totalObjects.value = (data.object || []).length;
+        totalObjects.value = normalized.objects.length;
       }
     }
 
@@ -1028,24 +1044,11 @@ async function loadObjects(page = 1, append = false) {
       totalPages.value = data.total_pages;
     } else if (rowsPerPage.value > 0 && totalObjects.value > 0) {
       totalPages.value = Math.ceil(totalObjects.value / rowsPerPage.value);
-    } else if ((data.object || []).length >= rowsPerPage.value) {
+    } else if (normalized.objects.length >= rowsPerPage.value) {
       // If we got a full page, assume there's at least one more page
       totalPages.value = page + 1;
     } else {
       totalPages.value = page;
-    }
-
-    // Extract requisites from response
-    if (data.req_type && data.req_order) {
-      requisites.value = data.req_order.map(reqId => ({
-        id: reqId,
-        val: data.req_type[reqId] || `Req ${reqId}`,
-        base: data.req_base?.[reqId] || 'TEXT',
-        baseId: data.req_base_id?.[reqId],
-        // Reference/directory type support
-        refType: data.ref_type?.[reqId] || null,
-        isMulti: data.req_attrs?.[reqId]?.includes(':MULTI:') || false
-      }));
     }
   } catch (err) {
     error.value = err.message;
@@ -1061,7 +1064,11 @@ async function loadObjects(page = 1, append = false) {
 }
 
 function getRequisiteValue(objectId, requisiteId) {
-  return requisitesData.value[objectId]?.[requisiteId] || '';
+  return getObjectRequisiteValue(requisitesData.value, objectId, requisiteId);
+}
+
+function getReferenceValue(objectId, requisiteId) {
+  return getObjectReferenceValue(requisitesData.value, objectId, requisiteId);
 }
 
 function clearFilters() {
@@ -1185,6 +1192,7 @@ async function handleCellClick(rowData, field, value, baseType, req = null) {
 
   // Don't allow editing ID or certain system fields
   if (field === 'id') return;
+  if (req?.arrType) return;
 
   editingCell.value = {
     rowId: rowData.id,
@@ -1196,13 +1204,8 @@ async function handleCellClick(rowData, field, value, baseType, req = null) {
   // If this is a reference field, load options
   if (req?.refType) {
     await loadReferenceOptions(req.refType);
-    // For reference fields, store the current value (object ID) if available
-    // The display text is shown, but we need the ID for saving
-    const objectId = rowData.id;
-    const reqId = req.id;
-    // Try to get the actual object ID from reqs data
-    const rawValue = requisitesData.value[objectId]?.[reqId];
-    editingValue.value = rawValue || '';
+    const reference = parseReferenceValue(getReferenceValue(rowData.id, req.id), req.refType);
+    editingValue.value = reference.ids[0] || '';
   } else if (baseType === 'BOOLEAN') {
     editingValue.value = value === 'X';
   } else if (baseType === 'DATE' || baseType === 'DATETIME') {
@@ -1293,7 +1296,16 @@ async function saveEdit(rowData, reqId = null) {
       if (!requisitesData.value[rowData.id]) {
         requisitesData.value[rowData.id] = {};
       }
-      requisitesData.value[rowData.id][reqId] = valueToSave;
+      const req = editingCell.value.req;
+      if (req?.refType) {
+        const selectedReference = referenceOptions.value[req.refType]?.find(option =>
+          String(option.id) === String(valueToSave)
+        );
+        requisitesData.value[rowData.id][reqId] = selectedReference?.val || valueToSave;
+        requisitesData.value[rowData.id][`ref_${reqId}`] = valueToSave ? `${req.refType}:${valueToSave}` : '';
+      } else {
+        requisitesData.value[rowData.id][reqId] = valueToSave;
+      }
     }
 
     toast.add({

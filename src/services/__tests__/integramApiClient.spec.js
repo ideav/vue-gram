@@ -77,5 +77,41 @@ describe('IntegramApiClient', () => {
       F_42: '%Acme%',
       lnx: 0
     })
+  it('posts form-style requisite keys through _m_set without double-prefixing', async () => {
+    axios.post.mockResolvedValue({ data: { ok: true } })
+
+    await client.setObjectRequisites(285, {
+      t100: 'updated text',
+      b101: '1',
+      102: true
+    })
+
+    const [url, body] = axios.post.mock.calls[0]
+
+    expect(url).toBe('https://app.integram.io/api/my/_m_set/285')
+    expect(body.get('t100')).toBe('updated text')
+    expect(body.get('b101')).toBe('1')
+    expect(body.get('t102')).toBe('X')
+    expect(body.get('b102')).toBe('1')
+    expect(body.get('tt100')).toBeNull()
+  })
+
+  it('creates objects with normalized form-style requisite keys and parent id', async () => {
+    axios.post.mockResolvedValue({ data: { id: 901 } })
+
+    await client.createObject(77, 'Copy source', {
+      t100: 'text value',
+      101: false
+    }, 285)
+
+    const [url, body] = axios.post.mock.calls[0]
+
+    expect(url).toBe('https://app.integram.io/api/my/_m_new/77')
+    expect(body.get('t77')).toBe('Copy source')
+    expect(body.get('up')).toBe('285')
+    expect(body.get('t100')).toBe('text value')
+    expect(body.get('t101')).toBe('')
+    expect(body.get('b101')).toBe('1')
+    expect(body.get('tt100')).toBeNull()
   })
 })

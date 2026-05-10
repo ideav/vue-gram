@@ -14,6 +14,14 @@ import axios from 'axios'
 export function formatRequisiteValue(value) {
   if (value === null || value === undefined || value === '') return value
 
+  if (typeof value === 'boolean') {
+    return value ? 'X' : ''
+  }
+
+  if (Array.isArray(value)) {
+    return value.join(',')
+  }
+
   const isDateObject = value instanceof Date ||
     (value && typeof value.getFullYear === 'function' && typeof value.getMonth === 'function')
 
@@ -44,6 +52,29 @@ export function formatRequisiteValue(value) {
   }
 
   return value
+}
+
+function normalizeRequisiteKey(reqId) {
+  const key = String(reqId)
+  return /^(t|b)\d+$/.test(key) ? key : `t${key}`
+}
+
+export function buildRequisitePayload(requisites = {}) {
+  if (!requisites || typeof requisites !== 'object') return {}
+
+  const data = {}
+
+  for (const [reqId, reqValue] of Object.entries(requisites)) {
+    const key = normalizeRequisiteKey(reqId)
+    const formatted = formatRequisiteValue(reqValue)
+    data[key] = formatted !== null && formatted !== undefined ? formatted : ''
+
+    if (typeof reqValue === 'boolean' && /^t\d+$/.test(key)) {
+      data[`b${key.slice(1)}`] = '1'
+    }
+  }
+
+  return data
 }
 
 export class IntegramApiClient {
@@ -627,27 +658,18 @@ export class IntegramApiClient {
   async createObject(typeId, value, requisites = {}, parentId = null) {
     const data = { [`t${typeId}`]: value }
     data.up = parentId || 1
-    for (const [reqId, reqValue] of Object.entries(requisites)) {
-      data[`t${reqId}`] = formatRequisiteValue(reqValue)
-    }
+    Object.assign(data, buildRequisitePayload(requisites))
     return this.post(`_m_new/${typeId}`, data)
   }
 
   async saveObject(objectId, typeId, value, requisites = {}) {
     const data = { [`t${typeId}`]: value }
-    for (const [reqId, reqValue] of Object.entries(requisites)) {
-      const formatted = formatRequisiteValue(reqValue)
-      data[`t${reqId}`] = formatted !== null && formatted !== undefined ? formatted : ''
-    }
+    Object.assign(data, buildRequisitePayload(requisites))
     return this.post(`_m_save/${objectId}`, data)
   }
 
   async setObjectRequisites(objectId, requisites = {}) {
-    const data = {}
-    for (const [reqId, reqValue] of Object.entries(requisites)) {
-      const formatted = formatRequisiteValue(reqValue)
-      data[`t${reqId}`] = formatted !== null && formatted !== undefined ? formatted : ''
-    }
+    const data = buildRequisitePayload(requisites)
     return this.post(`_m_set/${objectId}`, data)
   }
 

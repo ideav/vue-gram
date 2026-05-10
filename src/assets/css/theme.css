@@ -22,6 +22,49 @@
   --p-text-color: #1e293b;
   --p-text-muted-color: #64748b;
   --p-border-radius: 6px;
+  --surface-ground: #f8f9fa;
+  --surface-section: #ffffff;
+  --surface-card: #ffffff;
+  --surface-overlay: #ffffff;
+  --surface-border: #dee2e6;
+  --surface-hover: #f1f3f5;
+  --surface-a: #ffffff;
+  --surface-0: #ffffff;
+  --surface-50: #f8fafc;
+  --surface-100: #f1f5f9;
+  --surface-200: #e2e8f0;
+  --surface-300: #cbd5e1;
+  --surface-400: #94a3b8;
+  --surface-500: #64748b;
+  --surface-600: #475569;
+  --surface-700: #334155;
+  --surface-800: #1e293b;
+  --surface-900: #0f172a;
+  --text-color: #212529;
+  --text-color-secondary: #6c757d;
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8f9fa;
+  --text-primary: #212529;
+  --text-secondary: #6c757d;
+  --border-color: #dee2e6;
+  --nav-bg: #ffffff;
+  --nav-shadow: rgba(0, 0, 0, 0.1);
+  --input-bg: #ffffff;
+  --input-border: #ced4da;
+  --button-primary: #3b82f6;
+  --button-primary-hover: #2563eb;
+  --link-color: #3b82f6;
+  --card-bg: #ffffff;
+  --modal-overlay: rgba(255, 255, 255, 0.4);
+  --color-danger: #dc3545;
+  --color-danger-hover: #c82333;
+  --color-danger-dark-hover: #bb2d3b;
+  --sidebar-toggle-size: 2.5rem;
+  --menu-icon-size: 1.25rem;
+}
+
+html {
+  font-size: .82rem;
 }
 
 /* PrimeVue DataTable */
@@ -240,7 +283,8 @@
 }
 
 /* Dark Mode */
-:root.app-dark {
+:root.app-dark,
+:root[data-theme="dark"] {
   --p-primary-color: #60a5fa;
   --p-primary-contrast-color: #0f172a;
   --p-surface-0: #1a1a2e;
@@ -258,15 +302,45 @@
   --p-text-muted-color: #94a3b8;
   --surface-ground: #121220;
   --surface-card: #1a1a2e;
+  --surface-section: #1a1a2e;
+  --surface-overlay: #24243a;
   --surface-border: #2e2e44;
+  --surface-hover: #2e2e44;
+  --surface-a: #1a1a2e;
+  --surface-0: #1a1a2e;
+  --surface-50: #1e1e34;
+  --surface-100: #24243a;
+  --surface-200: #2e2e44;
+  --surface-300: #3e3e54;
+  --surface-400: #6b6b80;
+  --surface-500: #9494a8;
+  --surface-600: #b4b4c4;
+  --surface-700: #d4d4e0;
+  --surface-800: #e8e8f0;
+  --surface-900: #f4f4f8;
   --text-color: #e2e8f0;
   --text-color-secondary: #94a3b8;
+  --bg-primary: #1a1a1a;
+  --bg-secondary: #2d2d2d;
+  --text-primary: #e9ecef;
+  --text-secondary: #adb5bd;
+  --border-color: #495057;
+  --nav-bg: #212529;
+  --nav-shadow: rgba(0, 0, 0, 0.3);
+  --input-bg: #2d2d2d;
+  --input-border: #495057;
+  --button-primary: #3b82f6;
+  --button-primary-hover: #2563eb;
+  --link-color: #60a5fa;
+  --card-bg: #2d2d2d;
+  --modal-overlay: rgba(0, 0, 0, 0.4);
   color-scheme: dark;
 }
 
-:root.app-dark body {
-  background: #121220;
-  color: #e2e8f0;
+:root.app-dark body,
+:root[data-theme="dark"] body {
+  background: var(--bg-primary);
+  color: var(--text-primary);
 }
 
 :root.app-dark .p-button:hover {
@@ -305,8 +379,10 @@
   color: #fca5a5;
 }
 
-:root.app-dark .surface-card {
-  background: var(--p-surface-0);
+:root.app-dark .surface-card,
+:root[data-theme="dark"] .surface-card {
+  background: var(--surface-card) !important;
+  color: var(--text-color) !important;
 }
 
 :root.app-dark .shadow-2 {
@@ -315,6 +391,112 @@
 
 :root.app-dark a.text-primary {
   color: var(--p-primary-color);
+}
+
+:root.app-dark .surface-border,
+:root[data-theme="dark"] .surface-border {
+  border-color: var(--surface-border) !important;
+}
+
+:root.app-dark .hover\:surface-hover:hover,
+:root[data-theme="dark"] .hover\:surface-hover:hover {
+  background: var(--surface-hover) !important;
+}
+
+:root.app-dark .text-900,
+:root[data-theme="dark"] .text-900 {
+  color: var(--text-color) !important;
+}
+
+:root.app-dark .text-600,
+:root.app-dark .text-500,
+:root[data-theme="dark"] .text-600,
+:root[data-theme="dark"] .text-500 {
+  color: var(--text-color-secondary) !important;
+}
+
+:root.app-dark .p-card,
+:root[data-theme="dark"] .p-card,
+:root.app-dark .p-panel,
+:root[data-theme="dark"] .p-panel {
+  background: var(--surface-card);
+  color: var(--text-color);
+  border-color: var(--surface-border);
+}
+
+:root.app-dark .p-card-subtitle,
+:root[data-theme="dark"] .p-card-subtitle {
+  color: var(--text-color-secondary);
+}
+
+:root.app-dark .p-panel-header,
+:root[data-theme="dark"] .p-panel-header,
+:root.app-dark .p-panel-content,
+:root[data-theme="dark"] .p-panel-content {
+  background: var(--surface-card);
+  color: var(--text-color);
+  border-color: var(--surface-border);
+}
+
+:root.app-dark .p-select,
+:root[data-theme="dark"] .p-select,
+:root.app-dark .p-select-overlay,
+:root[data-theme="dark"] .p-select-overlay,
+:root.app-dark .p-textarea,
+:root[data-theme="dark"] .p-textarea {
+  background: var(--surface-overlay);
+  color: var(--text-color);
+  border-color: var(--surface-border);
+}
+
+:root.app-dark .p-select-label,
+:root.app-dark .p-select-dropdown,
+:root.app-dark .p-select-option,
+:root[data-theme="dark"] .p-select-label,
+:root[data-theme="dark"] .p-select-dropdown,
+:root[data-theme="dark"] .p-select-option {
+  color: var(--text-color);
+}
+
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+body.brand-bg-on::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url('/i/bg1920.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  pointer-events: none;
+  z-index: 0;
+  opacity: var(--brand-bg-opacity, 0.3);
+}
+
+body.brand-bg-on .navbar,
+body.brand-bg-on .app-sidebar {
+  background-color: transparent !important;
+  backdrop-filter: blur(0);
+}
+
+@media (max-width: 900px) {
+  body.brand-bg-on .app-sidebar.mobile-open {
+    background-color: var(--bg-primary) !important;
+  }
+}
+
+body.brand-bg-on {
+  --text-primary: #000000;
+  --text-secondary: #000000;
+}
+
+:root[data-theme="dark"] body.brand-bg-on,
+:root.app-dark body.brand-bg-on {
+  --text-primary: #ffffff;
+  --text-secondary: #ffffff;
 }
 
 /* Dark mode view transition */

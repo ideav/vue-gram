@@ -202,7 +202,7 @@
           <Column field="id" header="ID" :sortable="true" style="width: 80px">
             <template #body="{ data }">
               <router-link
-                :to="`/${database}/edit/${data.id}`"
+                :to="`/${database}/edit_obj/${data.id}`"
                 class="text-primary font-semibold"
               >
                 #{{ data.id }}
@@ -235,7 +235,7 @@
                 :title="$t('doubleClickToEdit')"
               >
                 <router-link
-                  :to="`/${database}/edit/${data.id}`"
+                  :to="`/${database}/edit_obj/${data.id}`"
                   class="text-primary"
                 >
                   {{ data.val }}
@@ -297,15 +297,23 @@
               <!-- Display Mode -->
               <div
                 v-else
-                @dblclick="startInlineEdit(data, col.field, data[col.field], col)"
+                @dblclick="!col.isArray && !col.isReference && startInlineEdit(data, col.field, data[col.field], col)"
                 class="inline-edit-trigger"
                 :title="$t('doubleClickToEdit')"
               >
-                <span v-if="col.isReference">
-                  <Tag v-if="data[col.field]" severity="info">
-                    {{ data[col.field] }}
-                  </Tag>
-                </span>
+                <ObjectValueCell
+                  v-if="col.isReference || col.isArray"
+                  :database="database"
+                  :object-id="data.id"
+                  :requisite="{
+                    id: col.requisiteId,
+                    refType: col.refTypeId,
+                    arrType: col.isArray ? (col.arrType || col.requisiteId) : null,
+                    isMulti: col.isMulti
+                  }"
+                  :raw-value="data[col.field]"
+                  :reference-value="data[`ref_${col.requisiteId}`]"
+                />
                 <span v-else-if="col.isBoolean">
                   <i
                     :class="data[col.field] ? 'fi fi-rr-check text-green-500' : 'fi fi-rr-cross-small text-red-500'"
@@ -769,7 +777,9 @@ import { useRoute, useRouter } from 'vue-router'
 import { useToast } from 'primevue/usetoast'
 
 import integramApiClient from '@/services/integramApiClient'
+import ObjectValueCell from './ObjectValueCell.vue'
 import QuickEditModal from './QuickEditModal.vue'
+import { normalizeObjectListResponse } from './objectListCompat'
 
 // PrimeVue Components
 
@@ -1168,15 +1178,14 @@ async function loadData() {
 
     // Load object list
     const response = await integramApiClient.getObjectList(props.typeId, filterParams)
+    const normalized = normalizeObjectListResponse(response)
 
     // Parse response manually (integramApiClient returns raw response)
-    typeInfo.value = response.type
+    typeInfo.value = normalized.type
 
     // Build objects array from API response
-    const objectsList = response.object || []
-    const reqs = response.reqs || {}
-    const reqOrder = response.req_order || []
-    const reqType = response.req_type || {}
+    const objectsList = normalized.objects
+    const reqs = normalized.reqs
 
     objects.value = objectsList.map(obj => {
       const row = {
@@ -1189,7 +1198,11 @@ async function loadData() {
       // Add requisite values
       if (reqs[obj.id]) {
         for (const [reqId, reqVal] of Object.entries(reqs[obj.id])) {
-          row[`req_${reqId}`] = reqVal
+          if (String(reqId).startsWith('ref_')) {
+            row[reqId] = reqVal
+          } else {
+            row[`req_${reqId}`] = reqVal
+          }
         }
       }
 
@@ -1197,17 +1210,20 @@ async function loadData() {
     })
 
     // Build requisite columns
-    const columns = []
-    if (reqOrder) {
-      for (const reqId of reqOrder) {
-        columns.push({
-          field: `req_${reqId}`,
-          header: reqType[reqId] || `Field ${reqId}`,
-          sortable: true
-        })
-      }
-    }
-    requisiteColumns.value = columns
+    requisiteColumns.value = normalized.requisites.map(req => ({
+      field: `req_${req.id}`,
+      header: req.val,
+      sortable: true,
+      requisiteId: req.id,
+      mandatory: req.attrs?.includes(':!NULL:') || false,
+      isMulti: req.isMulti,
+      isReference: Boolean(req.refType),
+      refTypeId: req.refType,
+      isBoolean: req.base === 'BOOLEAN' || String(req.baseId) === '7',
+      isArray: Boolean(req.arrType),
+      arrType: req.arrType,
+      baseType: req.base
+    }))
 
     // Load metadata to get array fields
     await loadMetadata()
@@ -1243,11 +1259,18 @@ async function loadMetadata() {
     if (metadata && metadata.reqs) {
       // Find array/subordinate fields
       const arrays = metadata.reqs.filter(req => req.type === '4') // Array type
-      arrayColumns.value = arrays.map(req => ({
-        id: req.id,
-        name: req.val,
-        count: {} // Will be populated from API
-      }))
+      const listedArrayIds = new Set(
+        requisiteColumns.value
+          .filter(col => col.isArray)
+          .map(col => String(col.requisiteId))
+      )
+      arrayColumns.value = arrays
+        .filter(req => !listedArrayIds.has(String(req.id)))
+        .map(req => ({
+          id: req.id,
+          name: req.val,
+          count: {} // Will be populated from API
+        }))
 
       // Find filterable fields
       filterableFields.value = metadata.reqs
@@ -1287,18 +1310,21 @@ async function loadMetadata() {
 
           // Check if reference column (type is numeric and > 100, indicating table ID)
           const typeNum = parseInt(reqMeta.type)
-          const isReference = reqMeta.reft && reqMeta.reft !== '0' && typeNum > 100
+          const metadataReference = reqMeta.reft && reqMeta.reft !== '0' && typeNum > 100
+          const isReference = col.isReference || metadataReference
+          const refTypeId = col.refTypeId || (metadataReference ? reqMeta.reft || reqMeta.type : null)
 
           return {
             ...col,
             requisiteId: reqId,
             header: alias || reqMeta.val || col.header,
-            mandatory: isNotNull,
-            isMulti: isMulti,
+            mandatory: col.mandatory || isNotNull,
+            isMulti: col.isMulti || isMulti,
             isReference: isReference,
-            refTypeId: isReference ? reqMeta.reft || reqMeta.type : null,
-            isBoolean: reqMeta.type === '7',
-            isArray: reqMeta.type === '4',
+            refTypeId,
+            isBoolean: col.isBoolean || reqMeta.type === '7',
+            isArray: col.isArray || reqMeta.type === '4',
+            arrType: col.arrType || (reqMeta.type === '4' ? reqId : null),
             baseType: reqMeta.type
           }
         }
@@ -1344,7 +1370,7 @@ function onRowContextMenu(event) {
 }
 
 function editObject(obj) {
-  router.push(`/${props.database}/edit/${obj.id}`)
+  router.push(`/${props.database}/edit_obj/${obj.id}`)
 }
 
 function quickEditObject(obj) {

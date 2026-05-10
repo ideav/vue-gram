@@ -342,6 +342,12 @@ import integramService from '@/services/integramService';
 import integramApiClient from '@/services/integramApiClient';
 import IntegramEnhancedObjectEditor from '@/components/integram/IntegramEnhancedObjectEditor.vue';
 import IntegramBreadcrumb from '@/components/integram/IntegramBreadcrumb.vue';
+import {
+  getIntegramArrayTypeId,
+  getIntegramBaseType,
+  isIntegramArrayRequisite,
+  isIntegramReferenceRequisite
+} from '@/utils/integramFieldTypes';
 
 const route = useRoute();
 const router = useRouter();
@@ -714,16 +720,16 @@ async function loadData() {
           const metadata = {};
 
           metaData.reqs.forEach(req => {
-            const isArray = req.type === '4'; // Array type
-            const isReference = !isArray && (req.ref !== undefined);
+            const isArray = isIntegramArrayRequisite(req, result.arr_type || {});
+            const isReference = isIntegramReferenceRequisite(req, result.arr_type || {});
             const isMulti = req.attrs && req.attrs.includes(':MULTI:');
 
             metadata[req.id] = {
               isReference,
               isArray,
               isMulti,
-              refTypeId: req.ref || null,
-              baseType: req.type || null
+              refTypeId: isArray ? getIntegramArrayTypeId(req, result.arr_type || {}) : (req.ref || null),
+              baseType: getIntegramBaseType(req.type)
             };
           });
 
