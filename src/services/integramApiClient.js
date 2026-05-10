@@ -304,7 +304,8 @@ export class IntegramApiClient {
       userId: this.userId,
       userName: this.userName,
       userRole: this.userRole,
-      database: this.database
+      database: this.database,
+      grants: this.databases?.[this.database]?.grants || null
     }
   }
 
@@ -672,6 +673,34 @@ export class IntegramApiClient {
   // Query Operations
   async getDictionary() {
     return this.get('dict')
+  }
+
+  async getTerms() {
+    return this.get('terms', { JSON: '' })
+  }
+
+  async getTableUiSettings() {
+    const user = this.userName || this.userId || ''
+    return this.get('object/269', {
+      F_269: user,
+      F_271: 'UI'
+    })
+  }
+
+  async saveTableUiSettings(settingsId, config) {
+    const settingsJson = typeof config === 'string' ? config : JSON.stringify(config)
+
+    if (settingsId) {
+      return this.post(`_m_save/${settingsId}`, {
+        t273: settingsJson
+      })
+    }
+
+    return this.post('_m_new/269?JSON&up=1', {
+      t269: this.userName || this.userId || '',
+      t271: 'UI',
+      t273: settingsJson
+    })
   }
 
   async getTypeMetadata(typeId) {
