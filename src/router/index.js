@@ -95,6 +95,11 @@ const routes = [
         component: () => import('../views/integram/IntegramReportView.vue')
       },
       {
+        path: 'dash/:dashboardId',
+        name: 'IntegramDashboard',
+        component: () => import('../views/integram/IntegramDashboardView.vue')
+      },
+      {
         path: 'query/:pathMatch(.*)*',
         redirect: legacyChildRedirect('report')
       },

@@ -30,6 +30,22 @@ describe('tableWorkspace helpers', () => {
     ])
   })
 
+  it('normalizes the API client terms wrapper without leaking helper keys as tables', () => {
+    expect(
+      normalizeTableList({
+        terms: [
+          { id: 18, type: 3, name: 'User' },
+          { id: 42, type: 3, name: 'Role' },
+        ],
+        termById: { 18: 'User', 42: 'Role' },
+        baseTypes: [],
+      })
+    ).toEqual([
+      { id: '42', type: 3, name: 'Role' },
+      { id: '18', type: 3, name: 'User' },
+    ])
+  })
+
   it('falls back to the legacy default folders when settings are missing or invalid', () => {
     expect(normalizeFolderConfig(null)).toEqual(DEFAULT_TABLE_FOLDERS)
     expect(normalizeFolderConfig('not-json')).toEqual(DEFAULT_TABLE_FOLDERS)

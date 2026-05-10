@@ -96,6 +96,9 @@ export function normalizeTableList(payload) {
   }
 
   if (payload && typeof payload === 'object') {
+    if (Array.isArray(payload.terms)) return normalizeTableList(payload.terms)
+    if (payload.termById && typeof payload.termById === 'object') return normalizeTableList(payload.termById)
+
     return Object.entries(payload)
       .map(([id, name]) => ({
         id: String(id),
