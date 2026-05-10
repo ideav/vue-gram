@@ -1,6 +1,20 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import integramApiClient from '../services/integramApiClient'
 
+function legacyChildRedirect(target) {
+  return (to) => {
+    const pathMatch = to.params.pathMatch
+    const rest = Array.isArray(pathMatch) ? pathMatch.join('/') : pathMatch
+    const suffix = rest ? `/${rest}` : ''
+
+    return {
+      path: `/${to.params.database}/${target}${suffix}`,
+      query: to.query,
+      hash: to.hash
+    }
+  }
+}
+
 const routes = [
   {
     path: '/',
@@ -37,13 +51,8 @@ const routes = [
         component: () => import('../views/integram/IntegramTableList.vue')
       },
       {
-        path: 'tables',
-        redirect: to => ({
-          name: 'IntegramTableList',
-          params: { database: to.params.database },
-          query: to.query,
-          hash: to.hash
-        })
+        path: 'tables/:pathMatch(.*)*',
+        redirect: legacyChildRedirect('table')
       },
       {
         path: 'table/:typeId',
@@ -66,9 +75,9 @@ const routes = [
         component: () => import('../views/integram/IntegramSqlView.vue')
       },
       {
-        path: 'query/:reportId?',
-        name: 'IntegramQuery',
-        component: () => import('../views/integram/IntegramReportView.vue')
+        path: 'smartq',
+        name: 'IntegramSmartQuery',
+        component: () => import('../views/integram/IntegramSmartQueryView.vue')
       },
       {
         path: 'report/:reportId?',
@@ -76,9 +85,22 @@ const routes = [
         component: () => import('../views/integram/IntegramReportView.vue')
       },
       {
+        path: 'query/:pathMatch(.*)*',
+        redirect: legacyChildRedirect('report')
+      },
+      {
         path: 'form/:formId?',
         name: 'IntegramForm',
         component: () => import('../views/integram/IntegramFormView.vue')
+      },
+      {
+        path: 'forms/:pathMatch(.*)*',
+        redirect: legacyChildRedirect('form')
+      },
+      {
+        path: 'myform/:formId?',
+        name: 'IntegramMyForm',
+        component: () => import('../views/integram/IntegramMyFormView.vue')
       },
       {
         path: 'upload',
