@@ -7,6 +7,8 @@
 /**
  * Common timezones list
  */
+import { canWriteType } from './integramPermissions'
+
 export const TIMEZONES = [
   { value: 'UTC', label: 'UTC' },
   { value: 'Europe/Moscow', label: 'Москва (UTC+3)' },
@@ -725,12 +727,7 @@ export function groupCalendarTasksByDay(tasks = []) {
 }
 
 export function isCalendarTaskActionAllowed(authInfo = {}) {
-  const role = String(authInfo.userRole || authInfo.role || '').toLocaleLowerCase();
-  if (['readonly', 'read-only', 'viewer', 'guest'].includes(role)) return false;
-  const grants = authInfo.grants || {};
-  const taskGrant = grants[CALENDAR_TASK_TYPE_ID] || grants[String(CALENDAR_TASK_TYPE_ID)];
-  if (taskGrant && String(taskGrant).toLocaleUpperCase() === 'READ') return false;
-  return true;
+  return canWriteType(CALENDAR_TASK_TYPE_ID, authInfo);
 }
 
 export default {

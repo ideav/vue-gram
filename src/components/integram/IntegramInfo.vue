@@ -226,6 +226,7 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import IntegramBreadcrumb from './IntegramBreadcrumb.vue'
 import integramApiClient from '@/services/integramApiClient'
+import { canWriteStructure } from '@/utils/integramPermissions'
 
 const props = defineProps({
   database: {
@@ -324,7 +325,11 @@ const displayDatabase = computed(() => sessionInfo.value.database || 'my')
 const displayUser = computed(() => sessionInfo.value.userName || 'unknown')
 const displayRole = computed(() => sessionInfo.value.userRole || 'user')
 const isOwner = computed(() => displayUser.value && displayDatabase.value && displayUser.value === displayDatabase.value)
-const hasStructureWriteGrant = computed(() => String(grants.value?.['1'] || '').toUpperCase() === 'WRITE')
+const hasStructureWriteGrant = computed(() => canWriteStructure({
+  ...authInfo.value,
+  ...sessionInfo.value,
+  grants: grants.value
+}))
 const canSeeAdminSections = computed(() => {
   const role = String(displayRole.value || '').toLowerCase()
   return Boolean(

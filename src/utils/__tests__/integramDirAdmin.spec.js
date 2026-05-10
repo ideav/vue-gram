@@ -68,6 +68,6 @@ describe('integramDirAdmin helpers', () => {
       grants: { FILE: 'READ' }
     }, 'my')).toBe('READ')
     expect(resolveDirAdminGrant({ userName: 'admin' }, 'clientdb')).toBe('WRITE')
-    expect(resolveDirAdminGrant({ userName: 'alice' }, 'clientdb')).toBe('WRITE')
+    expect(resolveDirAdminGrant({ userName: 'alice' }, 'clientdb')).toBe('BARRED')
   })
 })

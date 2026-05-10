@@ -8,6 +8,12 @@ import {
   normalizeTableList,
   tableMatchesQuery,
 } from '../tableWorkspace'
+import {
+  adminPermissionContext,
+  missingPermissionContext,
+  readOnlyPermissionContext,
+  writePermissionContext
+} from '../__fixtures__/permissions'
 
 describe('tableWorkspace helpers', () => {
   it('normalizes terms payloads from the legacy tables endpoint', () => {
@@ -118,6 +124,10 @@ describe('tableWorkspace helpers', () => {
   it('matches the legacy structure WRITE grant and hides controls otherwise', () => {
     expect(hasStructureWriteGrant({ 1: 'WRITE' })).toBe(true)
     expect(hasStructureWriteGrant({ 1: 'READ' })).toBe(false)
+    expect(hasStructureWriteGrant(readOnlyPermissionContext)).toBe(false)
+    expect(hasStructureWriteGrant(writePermissionContext)).toBe(true)
+    expect(hasStructureWriteGrant(adminPermissionContext)).toBe(true)
+    expect(hasStructureWriteGrant(missingPermissionContext)).toBe(false)
     expect(hasStructureWriteGrant(null)).toBe(false)
   })
 

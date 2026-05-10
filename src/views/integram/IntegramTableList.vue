@@ -278,6 +278,7 @@ import {
   normalizeTableList,
   tableMatchesQuery
 } from '@/utils/tableWorkspace'
+import { readIntegramPermissionContext } from '@/utils/integramPermissions'
 
 const route = useRoute()
 const router = useRouter()
@@ -293,7 +294,7 @@ const error = ref(null)
 const tables = ref([])
 const folderConfig = ref(cloneFolderConfig())
 const settingsId = ref(localStorage.getItem(TABLE_SETTINGS_ID_STORAGE_KEY))
-const grants = ref({})
+const permissionContext = ref({})
 const searchQuery = ref('')
 const searchInput = ref(null)
 
@@ -317,7 +318,7 @@ const draggingFolderName = ref(null)
 const dragOverFolder = ref(null)
 
 const database = computed(() => String(route.params.database || integramApiClient.getDatabase() || 'my'))
-const canWriteStructure = computed(() => hasStructureWriteGrant(grants.value))
+const canWriteStructure = computed(() => hasStructureWriteGrant(permissionContext.value))
 const breadcrumbItems = computed(() => [{ label: 'Таблицы', icon: 'fi fi-rr-table' }])
 
 const visibleFolders = computed(() => {
@@ -357,7 +358,7 @@ onMounted(async () => {
     return
   }
 
-  grants.value = readGrants()
+  permissionContext.value = readPermissionContext()
   await loadWorkspace()
 })
 
@@ -668,27 +669,8 @@ async function saveFolderConfig({ silent = false } = {}) {
   }
 }
 
-function readGrants() {
-  if (typeof window !== 'undefined' && window.grants) return window.grants
-
-  const stored = localStorage.getItem('integram_grants')
-  if (stored) {
-    try {
-      return JSON.parse(stored)
-    } catch {
-      // Ignore malformed localStorage and continue with session grants.
-    }
-  }
-
-  const currentSession = integramApiClient.databases?.[database.value]
-  if (currentSession?.grants) return currentSession.grants
-
-  try {
-    const session = JSON.parse(localStorage.getItem('integram_session') || '{}')
-    return session.databases?.[database.value]?.grants || session.grants || {}
-  } catch {
-    return {}
-  }
+function readPermissionContext() {
+  return readIntegramPermissionContext(database.value, integramApiClient)
 }
 </script>
 

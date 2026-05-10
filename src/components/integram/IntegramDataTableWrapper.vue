@@ -31,6 +31,7 @@
                 :loading="loading"
               />
               <Button
+                v-if="canWriteRows"
                 icon="fi fi-rr-pencil"
                 size="small"
                 text
@@ -123,6 +124,7 @@
               />
               <span class="toolbar-separator"></span>
               <Button
+                v-if="canWriteRows"
                 icon="fi fi-rr-plus"
                 size="small"
                 text
@@ -132,6 +134,7 @@
                 :loading="isAddingRow"
               />
               <Button
+                v-if="canWriteStructure"
                 icon="fi fi-rr-square-plus"
                 size="small"
                 text
@@ -213,8 +216,8 @@
           v-if="!loading && !error"
           :headers="headers"
           :rows="filteredRows"
-          :disableEditing="false"
-          :disableTypeEditing="false"
+          :disableEditing="!canWriteRows"
+          :disableTypeEditing="!canWriteStructure"
           :editMode="editMode"
           :isLoading="loading"
           :isLoadingMore="loadingMore"
@@ -647,6 +650,7 @@
       <template #footer>
         <div class="flex justify-content-between w-full">
           <Button
+            v-if="canWriteNestedDialog"
             label="Добавить запись"
             icon="fi fi-rr-plus"
             @click="createNestedRecord"
@@ -1066,6 +1070,11 @@ import InputNumber from 'primevue/inputnumber'
 import Textarea from 'primevue/textarea'
 import Calendar from 'primevue/calendar'
 import Checkbox from 'primevue/checkbox'
+import {
+  canWriteStructure as canWriteStructureAccess,
+  canWriteType,
+  readIntegramPermissionContext
+} from '@/utils/integramPermissions'
 
 // Heavy libraries loaded dynamically on demand
 let html2canvasModule = null
@@ -1135,6 +1144,7 @@ const editMode = ref('double-click')
 const showCreateDialog = ref(false)
 const showColumnSelector = ref(false)
 const dataTableRef = ref(null)
+const permissionContext = ref({})
 
 // Row selection mode (Phase 1 - Feature Roadmap)
 const isSelectionModeActive = ref(false)
@@ -1384,6 +1394,9 @@ const TABLES_BREADCRUMB_ITEM = Object.freeze({ label: 'Таблицы', to: `/ta
 
 // Computed
 const database = computed(() => props.databaseProp || props.database || route.params.database || sessionDatabase.value || 'A2025')
+const canWriteRows = computed(() => canWriteType(typeId.value, permissionContext.value))
+const canWriteStructure = computed(() => canWriteStructureAccess(permissionContext.value))
+const canWriteNestedDialog = computed(() => canWriteType(nestedDialog.value.tableId, permissionContext.value))
 
 // API server URL for file downloads (FILE and PATH types)
 // Priority: 1) prop, 2) integramApiClient.getServer(), 3) fallback to dronedoc.ru
@@ -1400,6 +1413,10 @@ const breadcrumbItems = computed(() => {
   }
   return items
 })
+
+function refreshPermissionContext() {
+  permissionContext.value = readIntegramPermissionContext(database.value, integramApiClient)
+}
 
 // Editable requisites for create dialog (excludes nested/subordinate tables)
 const editableRequisites = computed(() => {
@@ -2554,8 +2571,21 @@ async function exportToExcel() {
   }
 }
 
+function ensureWriteAccess(allowed, detail = 'Недостаточно прав для изменения данных') {
+  if (allowed) return true
+  toast.add({
+    severity: 'warn',
+    summary: 'Нет доступа',
+    detail,
+    life: 3000
+  })
+  return false
+}
+
 // Event handlers
 async function handleCellUpdate(event) {
+  if (!ensureWriteAccess(canWriteRows.value)) return
+
   const { rowId, headerId, value, dirRowId } = event
 
   try {
@@ -2607,6 +2637,8 @@ async function handleCellUpdate(event) {
 }
 
 async function handleRowUpdate(event) {
+  if (!ensureWriteAccess(canWriteRows.value)) return
+
   const { id, headers: updatedHeaders } = event
 
   try {
@@ -2965,6 +2997,8 @@ function handleOpenDirectory(event) {
 }
 
 async function createNestedRecord() {
+  if (!ensureWriteAccess(canWriteNestedDialog.value)) return
+
   // Create a new record in the nested table with parent reference
   if (!nestedDialog.value.tableId || !nestedDialog.value.parentRowId) return
 
@@ -3007,16 +3041,20 @@ async function createNestedRecord() {
 }
 
 function handleAddRow() {
+  if (!ensureWriteAccess(canWriteRows.value)) return
   showCreateDialog.value = true
 }
 
 function handleAddColumn() {
+  if (!ensureWriteAccess(canWriteStructure.value, 'Недостаточно прав для изменения структуры')) return
   newColumnAlias.value = ''
   newColumnType.value = 3 // Default: SHORT text
   showAddColumnDialog.value = true
 }
 
 async function createColumn() {
+  if (!ensureWriteAccess(canWriteStructure.value, 'Недостаточно прав для изменения структуры')) return
+
   if (!newColumnAlias.value.trim()) {
     toast.add({
       severity: 'warn',
@@ -3073,6 +3111,8 @@ const columnTypeOptions = [
 ]
 
 async function handleCreate() {
+  if (!ensureWriteAccess(canWriteRows.value)) return
+
   if (!createForm.value.value) return
 
   try {
@@ -3135,6 +3175,8 @@ async function handleCreate() {
 }
 
 function handleRowDelete(rowId) {
+  if (!ensureWriteAccess(canWriteRows.value)) return
+
   confirm.require({
     message: `Вы уверены, что хотите удалить запись #${rowId}?`,
     header: 'Подтверждение удаления',
@@ -3166,6 +3208,8 @@ function handleRowDelete(rowId) {
 }
 
 async function handleRowMoveUp(rowId) {
+  if (!ensureWriteAccess(canWriteRows.value)) return
+
   try {
     await integramApiClient.moveObjectUp(rowId)
 
@@ -3189,6 +3233,8 @@ async function handleRowMoveUp(rowId) {
 }
 
 async function handleRowChangeParent({ rowId, newParentId }) {
+  if (!ensureWriteAccess(canWriteRows.value)) return
+
   try {
     // newParentId = 1 means make independent (up=1), otherwise set as subordinate
     await integramApiClient.moveObjectToParent(rowId, newParentId)
@@ -3220,6 +3266,8 @@ async function handleRowChangeParent({ rowId, newParentId }) {
  * New format: :ALIAS=ButtonLabel:endpoint:param1=value1:param2=value2:
  */
 async function handleButtonActionChange({ headerId, termId, action, label, params }) {
+  if (!ensureWriteAccess(canWriteStructure.value, 'Недостаточно прав для настройки кнопок')) return
+
   try {
     // Use label from dialog or fallback
     const buttonLabel = label || 'Кнопка'
@@ -3356,6 +3404,8 @@ async function handleButtonClick({ rowId, headerId, endpoint, params, actionType
  * @param {string} params.termId - Requisite ID in database
  */
 async function handleHeaderAction({ action, headerId, termId }) {
+  if (!ensureWriteAccess(canWriteStructure.value, 'Недостаточно прав для изменения структуры')) return
+
   console.log('[handleHeaderAction]', { action, headerId, termId })
 
   if (action === 'delete') {
@@ -3455,6 +3505,8 @@ async function handleHeaderAction({ action, headerId, termId }) {
  * @param {Function} callback - Callback with result
  */
 async function handleUploadFile({ rowId, headerId, termId, baseType, file, callback }) {
+  if (!ensureWriteAccess(canWriteRows.value)) return
+
   try {
     toast.add({
       severity: 'info',
@@ -3554,6 +3606,7 @@ onMounted(async () => {
     router.replace('/login')
     return
   }
+  refreshPermissionContext()
   await loadData()
 })
 
@@ -3562,6 +3615,7 @@ watch(typeId, async (newTypeId) => {
   if (newTypeId) {
     currentPage.value = 1
     rows.value = []
+    refreshPermissionContext()
     await loadData()
   }
 })

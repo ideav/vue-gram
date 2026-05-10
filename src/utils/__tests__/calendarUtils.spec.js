@@ -10,10 +10,17 @@ import {
   formatCalendarApiDateTime,
   getCalendarDateRange,
   groupCalendarTasksByDay,
+  isCalendarTaskActionAllowed,
   normalizeCalendarTask,
   parseCalendarDate,
   taskMatchesCalendarSearch
 } from '../calendarUtils';
+import {
+  adminPermissionContext,
+  missingPermissionContext,
+  readOnlyPermissionContext,
+  writePermissionContext
+} from '../__fixtures__/permissions';
 
 describe('calendarUtils legacy calendar parity', () => {
   it('normalizes legacy task date strings and preserves local wall-clock time', () => {
@@ -114,5 +121,12 @@ describe('calendarUtils legacy calendar parity', () => {
       classNames: expect.arrayContaining(['event-overdue', 'event-search-match'])
     });
     expect(event.classNames).not.toContain('event-important');
+  });
+
+  it('uses centralized grants for task write actions', () => {
+    expect(isCalendarTaskActionAllowed(readOnlyPermissionContext)).toBe(false);
+    expect(isCalendarTaskActionAllowed(missingPermissionContext)).toBe(false);
+    expect(isCalendarTaskActionAllowed(writePermissionContext)).toBe(true);
+    expect(isCalendarTaskActionAllowed(adminPermissionContext)).toBe(true);
   });
 });

@@ -1,3 +1,5 @@
+import { canWriteStructure } from './integramPermissions'
+
 export const DEFAULT_TABLE_FOLDERS = {
   'Избранное': { open: true, tabs: ['18', '42', '440', '415'] },
   'Справочники': { open: true, tabs: ['409', '422'] },
@@ -182,7 +184,7 @@ export function extractTableSettings(payload) {
 }
 
 export function hasStructureWriteGrant(grants) {
-  return String(grants?.['1'] || '').toUpperCase() === 'WRITE'
+  return canWriteStructure(grants)
 }
 
 export function detectTableBaseType(name) {

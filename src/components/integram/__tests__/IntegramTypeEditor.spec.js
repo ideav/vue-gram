@@ -4,6 +4,10 @@ import IntegramTypeEditor from '../IntegramTypeEditor.vue'
 import integramApiClient from '@/services/integramApiClient'
 import editTypesFixture from '@/services/__fixtures__/integramApi/edit-types.json'
 import typeMetadataFixture from '@/services/__fixtures__/integramApi/type-metadata.json'
+import {
+  missingPermissionContext,
+  readOnlyPermissionContext
+} from '@/utils/__fixtures__/permissions'
 
 const mockToast = vi.hoisted(() => ({
   add: vi.fn()
@@ -49,14 +53,14 @@ const checkboxStub = {
   template: '<input type="checkbox" :checked="modelValue" @change="$emit(\'update:modelValue\', $event.target.checked)" />'
 }
 
-function mountEditor() {
+function mountEditor(session = {
+  sessionId: 'test-token',
+  database: 'my',
+  userRole: 'admin'
+}) {
   return mount(IntegramTypeEditor, {
     props: {
-      session: {
-        sessionId: 'test-token',
-        database: 'my',
-        userRole: 'admin'
-      }
+      session
     },
     global: {
       directives: {
@@ -119,5 +123,27 @@ describe('IntegramTypeEditor', () => {
     await flushPromises()
 
     expect(integramApiClient.saveType).toHaveBeenCalledWith('300', 'Contracts Updated', '3', false)
+  })
+
+  it('hides structure write actions for read-only or missing permissions', async () => {
+    const readOnly = mountEditor({
+      sessionId: 'test-token',
+      database: 'my',
+      ...readOnlyPermissionContext
+    })
+    await flushPromises()
+
+    expect(readOnly.vm.canEditTypes).toBe(false)
+    expect(readOnly.text()).not.toContain('Добавить тип')
+
+    const missing = mountEditor({
+      sessionId: 'test-token',
+      database: 'my',
+      ...missingPermissionContext
+    })
+    await flushPromises()
+
+    expect(missing.vm.canEditTypes).toBe(false)
+    expect(missing.text()).not.toContain('Добавить тип')
   })
 })
