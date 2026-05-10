@@ -112,12 +112,12 @@ export function normalizeTableList(payload) {
       )
 
       return Object.entries(payload.termById)
-        .map(([id, name]) => {
-          const source = termsById.get(String(id)) || {}
+        .map(([id, term]) => {
+          const source = termsById.get(String(id)) || (term && typeof term === 'object' ? term : {})
           return {
             id: String(id),
             type: Number(source.type ?? source.t ?? source.baseType ?? 3),
-            name: String(name ?? source.name ?? source.val ?? '').replace(/&nbsp;/g, ' ').trim()
+            name: String(source.name ?? source.val ?? term ?? '').replace(/&nbsp;/g, ' ').trim()
           }
         })
         .filter(table => table.id && table.name)
@@ -132,8 +132,8 @@ export function normalizeTableList(payload) {
       .filter(([id]) => !['terms', 'termById', 'baseTypes', 'base_types'].includes(id))
       .map(([id, name]) => ({
         id: String(id),
-        type: 3,
-        name: String(name ?? '').replace(/&nbsp;/g, ' ').trim()
+        type: Number(name?.type ?? name?.t ?? name?.baseType ?? 3),
+        name: String(name?.name ?? name?.val ?? name ?? '').replace(/&nbsp;/g, ' ').trim()
       }))
       .filter(table => table.id && table.name)
       .sort(compareTablesByName)

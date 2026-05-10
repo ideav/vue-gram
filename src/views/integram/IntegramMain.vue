@@ -764,21 +764,21 @@ function startSidebarResize(event) {
   let latestWidth = startWidth
 
   const onMouseMove = (moveEvent) => {
-    const width = startWidth + (moveEvent.clientX - startX)
-    if (width >= 150 && width <= 400) {
-      latestWidth = width
-      sidebar.style.width = `${width}px`
-    }
+    latestWidth = Math.min(400, Math.max(150, startWidth + (moveEvent.clientX - startX)))
+    sidebar.style.width = `${latestWidth}px`
   }
 
   const onMouseUp = () => {
     document.body.style.cursor = ''
     document.body.style.userSelect = ''
+    sidebar.classList.remove('resizing')
+    sidebar.style.width = `${latestWidth}px`
     document.removeEventListener('mousemove', onMouseMove)
     document.removeEventListener('mouseup', onMouseUp)
     setSidebarWidthPreference(latestWidth)
   }
 
+  sidebar.classList.add('resizing')
   document.body.style.cursor = 'ew-resize'
   document.body.style.userSelect = 'none'
   document.addEventListener('mousemove', onMouseMove)
@@ -1168,6 +1168,10 @@ onBeforeUnmount(() => {
   flex-direction: column;
   position: relative;
   z-index: 2;
+}
+
+.app-sidebar.resizing {
+  transition: none;
 }
 
 :global([data-theme="dark"]) .app-sidebar,

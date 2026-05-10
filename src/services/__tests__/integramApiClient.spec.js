@@ -8,6 +8,7 @@ import {
   normalizeMetadataResponse,
   normalizeObjectListResponse,
   normalizeObjectRecordResponse,
+  normalizeUploadResponse,
   normalizeReferenceOptionsResponse,
   normalizeReportResponse,
   normalizeTermsResponse
@@ -20,6 +21,8 @@ import reportFixture from '../__fixtures__/integramApi/report-json.json'
 import referenceOptionsFixture from '../__fixtures__/integramApi/reference-options.json'
 import mNewErrorFixture from '../__fixtures__/integramApi/m-new-error.json'
 import mSetErrorFixture from '../__fixtures__/integramApi/m-set-error.json'
+import uploadSuccessFixture from '../__fixtures__/integramApi/upload-success.json'
+import uploadErrorFixture from '../__fixtures__/integramApi/upload-error.json'
 import { INTEGRAM_API_CONTRACTS } from '../integramApiContracts'
 import { integramApiFixtures } from '../__fixtures__/integramApi'
 import { dirAdminDirectoryHtml } from '../../components/integram/__fixtures__/dirAdminFixtures'
@@ -121,6 +124,81 @@ describe('IntegramApiClient', () => {
     expect(body.get('b102')).toBe('1')
     expect(body.get('tt100')).toBeNull()
     expect(axios.post.mock.calls[0][2].params).toEqual({ JSON: '' })
+  })
+
+  it('normalizes upload responses into stable file metadata', () => {
+    const file = new File(['hello world'], 'demo.txt', { type: 'text/plain' })
+
+    expect(normalizeUploadResponse(uploadSuccessFixture, file)).toEqual(expect.objectContaining({
+      ok: true,
+      filename: 'demo.txt',
+      name: 'demo.txt',
+      path: 'uploads/2026/demo.txt',
+      href: 'uploads/2026/demo.txt',
+      size: 11,
+      mimeType: 'text/plain',
+      extension: 'txt'
+    }))
+  })
+
+  it('normalizes upload backend failures into explicit retryable UI errors', () => {
+    const uploadError = normalizeApiError({
+      response: {
+        status: 413,
+        data: uploadErrorFixture
+      }
+    })
+
+    expect(uploadError).toEqual(expect.objectContaining({
+      name: 'IntegramApiError',
+      status: 413,
+      code: 'UPLOAD_TOO_LARGE',
+      type: 'client',
+      message: 'Uploaded file is too large'
+    }))
+    expect(uploadError.details).toEqual({ maxSize: 52428800 })
+  })
+
+  it('posts standalone uploads to the legacy _upload endpoint with progress support', async () => {
+    const file = new File(['hello world'], 'demo.txt', { type: 'text/plain' })
+    const onUploadProgress = vi.fn()
+    axios.post.mockResolvedValue({ data: uploadSuccessFixture })
+
+    const result = await client.uploadFile(file, '', { onUploadProgress })
+
+    expect(result).toEqual(expect.objectContaining({
+      ok: true,
+      filename: 'demo.txt',
+      path: 'uploads/2026/demo.txt'
+    }))
+    expect(axios.post).toHaveBeenCalledTimes(1)
+    const [url, body, config] = axios.post.mock.calls[0]
+    expect(url).toBe('https://app.integram.io/api/my/_upload')
+    expect(body).toBeInstanceOf(FormData)
+    expect(body.get('file')).toBe(file)
+    expect(body.get('_xsrf')).toBe('xsrf-token')
+    expect(config.params).toEqual({ JSON: '' })
+    expect(config.headers['X-Authorization']).toBe('auth-token')
+    expect(config.onUploadProgress).toBe(onUploadProgress)
+  })
+
+  it('uploads FILE requisites through _m_set using the t{requisiteId} file field', async () => {
+    const file = new File(['hello world'], 'demo.txt', { type: 'text/plain' })
+    axios.post.mockResolvedValue({ data: uploadSuccessFixture })
+
+    const result = await client.uploadRequisiteFile(285, 100, file)
+
+    expect(result).toEqual(expect.objectContaining({
+      ok: true,
+      filename: 'demo.txt'
+    }))
+    expect(axios.post).toHaveBeenCalledTimes(1)
+    const [url, body, config] = axios.post.mock.calls[0]
+    expect(url).toBe('https://app.integram.io/api/my/_m_set/285')
+    expect(body).toBeInstanceOf(FormData)
+    expect(body.get('t100')).toBe(file)
+    expect(body.get('_xsrf')).toBe('xsrf-token')
+    expect(config.params).toEqual({ JSON: '' })
   })
 
   it('creates objects with normalized form-style requisite keys and parent id', async () => {
@@ -338,6 +416,43 @@ describe('IntegramApiClient', () => {
     })
   })
 
+  it('normalizes raw legacy terms arrays into a term map', () => {
+    const terms = normalizeTermsResponse([
+      { id: 18, val: 'User' },
+      { id: 42, name: 'Role' },
+    ])
+
+    expect(terms.termById).toEqual({
+      18: 'User',
+      42: 'Role',
+    })
+  })
+
+  it('normalizes dictionary-shaped legacy terms responses into a term map', () => {
+    const terms = normalizeTermsResponse({
+      18: 'User',
+      42: 'Role',
+    })
+
+    expect(terms.termById).toEqual({
+      18: 'User',
+      42: 'Role',
+    })
+  })
+
+  it('does not treat metadata-only terms payload fields as term entries', () => {
+    const terms = normalizeTermsResponse({
+      base_types: [
+        { id: 3, val: 'Short text' },
+      ],
+    })
+
+    expect(terms.termById).toEqual({})
+    expect(terms.baseTypes).toEqual([
+      { id: 3, name: 'Short text' },
+    ])
+  })
+
   it('normalizes object JSON_DATA and JSON_OBJ fixtures without dropping legacy fields', () => {
     const list = normalizeObjectListResponse(objectListFixture)
     const record = normalizeObjectRecordResponse(objectRecordFixture)
@@ -534,7 +649,9 @@ describe('IntegramApiClient', () => {
       'executeReport',
       'getReferenceOptions',
       'createObject',
-      'setObjectRequisites'
+      'setObjectRequisites',
+      'uploadFile',
+      'uploadRequisiteFile'
     ])
 
     for (const contract of INTEGRAM_API_CONTRACTS) {

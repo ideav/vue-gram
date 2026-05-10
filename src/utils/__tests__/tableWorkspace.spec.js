@@ -35,6 +35,18 @@ describe('tableWorkspace helpers', () => {
     ])
   })
 
+  it('normalizes client terms payloads returned by getTerms', () => {
+    expect(normalizeTableList({
+      termById: {
+        18: 'User&nbsp;',
+        42: { val: 'Role', type: 8 },
+      },
+    })).toEqual([
+      { id: '42', type: 8, name: 'Role' },
+      { id: '18', type: 3, name: 'User' },
+    ])
+  })
+
   it('normalizes the API client terms wrapper without losing table metadata', () => {
     expect(normalizeTableList({
       terms: [
