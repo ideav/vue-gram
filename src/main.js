@@ -6,6 +6,7 @@ import ConfirmationService from 'primevue/confirmationservice'
 import Tooltip from 'primevue/tooltip'
 import StyleClass from 'primevue/styleclass'
 import 'primeflex/primeflex.css'
+import 'primeicons/primeicons.css'
 import '@flaticon/flaticon-uicons/css/regular/rounded.css'
 import '@flaticon/flaticon-uicons/css/solid/rounded.css'
 import './assets/css/theme.css'
@@ -22,6 +23,7 @@ import Chip from 'primevue/chip'
 import Column from 'primevue/column'
 import ConfirmDialog from 'primevue/confirmdialog'
 import ContextMenu from 'primevue/contextmenu'
+import Chart from 'primevue/chart'
 import DataTable from 'primevue/datatable'
 import Dialog from 'primevue/dialog'
 import Divider from 'primevue/divider'
@@ -34,6 +36,7 @@ import InputText from 'primevue/inputtext'
 import Menu from 'primevue/menu'
 import Menubar from 'primevue/menubar'
 import Message from 'primevue/message'
+import MultiSelect from 'primevue/multiselect'
 import Paginator from 'primevue/paginator'
 import Panel from 'primevue/panel'
 import Password from 'primevue/password'
@@ -89,6 +92,7 @@ async function initApp() {
   app.component('Column', Column)
   app.component('ConfirmDialog', ConfirmDialog)
   app.component('ContextMenu', ContextMenu)
+  app.component('Chart', Chart)
   app.component('DataTable', DataTable)
   app.component('Dialog', Dialog)
   app.component('Divider', Divider)
@@ -101,6 +105,7 @@ async function initApp() {
   app.component('Menu', Menu)
   app.component('Menubar', Menubar)
   app.component('Message', Message)
+  app.component('MultiSelect', MultiSelect)
   app.component('Paginator', Paginator)
   app.component('Panel', Panel)
   app.component('Password', Password)

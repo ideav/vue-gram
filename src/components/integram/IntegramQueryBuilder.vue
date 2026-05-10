@@ -586,7 +586,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useToast } from 'primevue/usetoast'
 
 import IntegramBreadcrumb from './IntegramBreadcrumb.vue'
@@ -594,6 +594,7 @@ import integramService from '@/services/integramService'
 import { logger } from '@/utils/logger'
 
 const router = useRouter()
+const route = useRoute()
 const toast = useToast()
 
 // State
@@ -657,6 +658,8 @@ const ALL_COLUMNS_OPTION = Object.freeze({ value: '*', label: '* (все кол�
 const QUERY_BUILDER_BREADCRUMB = Object.freeze([
   Object.freeze({ label: 'Конструктор запросов', icon: 'fi fi-rr-settings-sliders' })
 ])
+
+const smartQueryPath = computed(() => `/${route.params.database || 'my'}/smartq`)
 
 // Breadcrumb
 const breadcrumbItems = computed(() => QUERY_BUILDER_BREADCRUMB)
@@ -1190,7 +1193,10 @@ async function confirmSaveReport() {
     reportDescription.value = ''
 
     // Navigate to the report
-    router.push(`/smartq?reportId=${reportId}`)
+    router.push({
+      path: smartQueryPath.value,
+      query: { reportId }
+    })
   } catch (err) {
     logger.error('Failed to save report:', err)
     toast.add({

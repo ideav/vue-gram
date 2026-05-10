@@ -1,9 +1,18 @@
 <template>
   <div class="integram-main">
-    <!-- Modern PrimeVue Navigation Bar -->
-    <Menubar :model="menuItems" class="integram-menubar">
-      <template #start>
-        <router-link :to="`/${database}`" class="integram-brand flex align-items-center gap-2 mr-3 no-underline">
+    <nav class="integram-navbar">
+      <div class="navbar-left">
+        <button
+          class="mobile-sidebar-toggle"
+          type="button"
+          aria-label="Открыть меню"
+          :aria-expanded="mobileSidebarOpen"
+          @click="toggleMobileSidebar"
+        >
+          <i class="pi pi-bars"></i>
+        </button>
+
+        <router-link :to="`/${database}`" class="integram-brand" aria-label="Integram">
           <svg width="32" height="27" viewBox="0 0 40 34" fill="none" xmlns="http://www.w3.org/2000/svg" class="integram-logo">
             <g clip-path="url(#clip0_integram)">
               <path d="M21.0983 12.4256L19.5194 14.1254L22.2153 17.0289L13.4346 26.3889L2.28812 22.7817V11.2779L13.4346 7.67068L15.452 9.87038L17.0454 8.19038L14.1005 5L0 9.56361V24.4959L14.1005 29.0595L25.3877 17.0289L21.0983 12.4256Z" fill="currentColor"/>
@@ -15,82 +24,216 @@
               </clipPath>
             </defs>
           </svg>
+          <span class="brand-name">{{ database }}</span>
         </router-link>
-      </template>
-      <template #end>
-        <div class="flex align-items-center gap-2">
-          <!-- Issue #5112: Database Selector -->
-          <Select
-            v-model="selectedDatabase"
-            :options="availableDatabases"
-            optionLabel="label"
-            optionValue="value"
-            placeholder="БД"
-            @change="handleDatabaseChange"
-            class="database-selector"
-          >
-            <template #value="slotProps">
-              <div v-if="slotProps.value" class="flex align-items-center gap-2">
-                <i class="fi fi-rr-database"></i>
-                <span>{{ slotProps.value }}</span>
-              </div>
-              <span v-else>БД</span>
-            </template>
-            <template #option="slotProps">
-              <div class="flex align-items-center gap-2">
-                <i :class="slotProps.option.icon"></i>
-                <span>{{ slotProps.option.label }}</span>
-                <Tag v-if="slotProps.option.isPrimary" severity="success" value="Primary" size="small" />
-                <Tag v-else-if="slotProps.option.isOwned" severity="info" value="Owned" size="small" />
-              </div>
-            </template>
-          </Select>
-
-          <Button
-            :icon="isDarkTheme ? 'fi fi-rr-sun' : 'fi fi-rr-moon'"
-            text
-            rounded
-            @click="toggleDarkMode"
-            severity="secondary"
-            v-tooltip.bottom="isDarkTheme ? 'Light mode' : 'Dark mode'"
-            aria-label="Toggle theme"
-          />
-          <Button
-            icon="fi fi-rr-question"
-            text
-            rounded
-            @click="openHelp"
-            severity="secondary"
-            v-tooltip.bottom="t('help')"
-            aria-label="Помощь"
-          />
-          <Button
-            icon="fi fi-rr-user"
-            text
-            rounded
-            @click="toggleUserMenu"
-            severity="secondary"
-            v-tooltip.bottom="userName"
-          />
-          <Menu ref="userMenu" :model="userMenuItems" popup />
-        </div>
-      </template>
-    </Menubar>
-
-    <!-- Main Content -->
-    <!-- Issue #5112: Add key to force component reload when database changes -->
-    <div class="content" :class="{ 'content-loading': shouldShowSwitchingOverlay }">
-      <!-- Loading overlay when switching database (not shown on home page) -->
-      <div v-if="shouldShowSwitchingOverlay" class="database-switch-overlay">
-        <div class="switch-spinner-container">
-          <ProgressSpinner style="width: 50px; height: 50px" strokeWidth="4" />
-          <p class="mt-3 text-lg font-semibold">Переключение БД...</p>
-        </div>
       </div>
-      <router-view :key="database" />
+
+      <div class="navbar-center" aria-live="polite">
+        <span class="workspace-title">{{ currentWorkspaceLabel }}</span>
+      </div>
+
+      <div class="navbar-right">
+        <Select
+          v-model="selectedDatabase"
+          :options="availableDatabases"
+          optionLabel="label"
+          optionValue="value"
+          placeholder="БД"
+          @change="handleDatabaseChange"
+          class="database-selector"
+        >
+          <template #value="slotProps">
+            <div v-if="slotProps.value" class="database-value">
+              <i class="fi fi-rr-database"></i>
+              <span>{{ slotProps.value }}</span>
+            </div>
+            <span v-else>БД</span>
+          </template>
+          <template #option="slotProps">
+            <div class="database-option">
+              <i :class="slotProps.option.icon"></i>
+              <span>{{ slotProps.option.label }}</span>
+              <Tag v-if="slotProps.option.isPrimary" severity="success" value="Primary" size="small" />
+              <Tag v-else-if="slotProps.option.isOwned" severity="info" value="Owned" size="small" />
+            </div>
+          </template>
+        </Select>
+
+        <Button
+          :icon="isDarkTheme ? 'fi fi-rr-sun' : 'fi fi-rr-moon'"
+          text
+          rounded
+          @click="toggleDarkMode"
+          severity="secondary"
+          v-tooltip.bottom="isDarkTheme ? 'Light mode' : 'Dark mode'"
+          aria-label="Toggle theme"
+        />
+        <Button
+          icon="fi fi-rr-question"
+          text
+          rounded
+          @click="openHelp"
+          severity="secondary"
+          v-tooltip.bottom="t('help')"
+          aria-label="Помощь"
+        />
+        <Button
+          icon="fi fi-rr-user"
+          text
+          rounded
+          @click="toggleUserMenu"
+          severity="secondary"
+          v-tooltip.bottom="userName"
+          aria-label="Меню пользователя"
+        />
+        <Menu ref="userMenu" :model="userMenuItems" popup />
+      </div>
+    </nav>
+
+    <div
+      class="sidebar-backdrop"
+      :class="{ visible: mobileSidebarOpen }"
+      @click="closeMobileSidebar"
+    ></div>
+
+    <div class="app-layout">
+      <aside
+        ref="sidebarRef"
+        id="app-sidebar"
+        class="app-sidebar"
+        :class="{ collapsed: sidebarCollapsed, 'mobile-open': mobileSidebarOpen }"
+        :style="sidebarStyle"
+      >
+        <div class="sidebar-header">
+          <button
+            id="sidebar-toggle"
+            class="sidebar-toggle"
+            type="button"
+            :title="sidebarCollapsed ? 'Развернуть меню' : 'Свернуть меню'"
+            :aria-label="sidebarCollapsed ? 'Развернуть меню' : 'Свернуть меню'"
+            :aria-expanded="!sidebarCollapsed"
+            @click="toggleSidebar"
+          >
+            <i class="pi pi-bars"></i>
+          </button>
+
+          <div class="menu-search-wrapper">
+            <i class="pi pi-search menu-search-icon"></i>
+            <input
+              v-model="menuSearch"
+              id="menu-search"
+              class="menu-search-input"
+              type="text"
+              placeholder="Поиск..."
+              aria-label="Поиск по меню"
+              autocomplete="off"
+              @keydown.escape="clearMenuSearch(true)"
+            >
+            <button
+              v-if="menuSearch"
+              type="button"
+              id="menu-search-clear"
+              class="menu-search-clear"
+              aria-label="Очистить поиск"
+              @click="clearMenuSearch()"
+            >
+              <i class="pi pi-times"></i>
+            </button>
+          </div>
+        </div>
+
+        <nav class="app-menu" id="app-menu" aria-label="Главное меню">
+          <template v-for="row in visibleMenuRows" :key="row.item.id">
+            <a
+              v-if="row.item.href"
+              class="app-menu-item"
+              :class="menuRowClasses(row)"
+              :href="getMenuHref(row.item)"
+              :title="row.item.label"
+              :data-menu-id="row.item.id"
+              :data-menu-up="row.item.parentId"
+              :data-level="row.level"
+              :aria-current="isMenuItemActive(row.item) ? 'page' : undefined"
+              :style="menuItemStyle(row)"
+              @click.prevent="navigateMenuItem(row.item)"
+            >
+              <span class="menu-icon" aria-hidden="true">
+                <i v-if="row.item.iconClass" :class="row.item.iconClass"></i>
+                <span v-else>{{ row.item.iconText }}</span>
+              </span>
+              <span class="menu-text">{{ row.item.label }}</span>
+              <span
+                v-if="row.hasChildren && !sidebarCollapsed"
+                class="menu-expand-button"
+                role="button"
+                tabindex="0"
+                :aria-label="row.isExpanded ? 'Свернуть раздел' : 'Развернуть раздел'"
+                :aria-expanded="row.isExpanded"
+                @click.prevent.stop="toggleMenuItem(row.item)"
+                @keydown.enter.prevent.stop="toggleMenuItem(row.item)"
+                @keydown.space.prevent.stop="toggleMenuItem(row.item)"
+              >
+                <i class="menu-arrow pi pi-chevron-down" :class="{ rotated: row.isExpanded }"></i>
+              </span>
+            </a>
+
+            <button
+              v-else
+              class="app-menu-item app-menu-item-folder"
+              :class="menuRowClasses(row)"
+              type="button"
+              :title="row.item.label"
+              :data-menu-id="row.item.id"
+              :data-menu-up="row.item.parentId"
+              :data-level="row.level"
+              :aria-expanded="row.hasChildren ? row.isExpanded : undefined"
+              :style="menuItemStyle(row)"
+              @click="toggleMenuItem(row.item)"
+            >
+              <span class="menu-icon" aria-hidden="true">
+                <i v-if="row.item.iconClass" :class="row.item.iconClass"></i>
+                <span v-else>{{ row.item.iconText }}</span>
+              </span>
+              <span class="menu-text">{{ row.item.label }}</span>
+              <i
+                v-if="row.hasChildren && !sidebarCollapsed"
+                class="menu-arrow pi pi-chevron-down"
+                :class="{ rotated: row.isExpanded }"
+                aria-hidden="true"
+              ></i>
+            </button>
+          </template>
+
+          <div v-if="menuSearch && visibleMenuRows.length === 0" class="menu-no-results">
+            Ничего не найдено
+          </div>
+        </nav>
+
+        <div
+          class="sidebar-resize-handle"
+          role="separator"
+          aria-orientation="vertical"
+          title="Изменить ширину меню"
+          @mousedown="startSidebarResize"
+        ></div>
+      </aside>
+
+      <main class="app-content" :class="{ 'content-loading': shouldShowSwitchingOverlay }">
+        <div v-if="shouldShowSwitchingOverlay" class="database-switch-overlay">
+          <div class="switch-spinner-container">
+            <ProgressSpinner style="width: 50px; height: 50px" strokeWidth="4" />
+            <p class="mt-3 text-lg font-semibold">Переключение БД...</p>
+          </div>
+        </div>
+
+        <router-view :key="database" />
+
+        <div class="footer text-center py-3">
+          <small class="text-muted">Integram v{{ version }}</small>
+        </div>
+      </main>
     </div>
 
-    <!-- Password Change Modal -->
     <Dialog
       v-model:visible="passwordChangeVisible"
       :header="t('passwordChange')"
@@ -150,19 +293,13 @@
         />
       </template>
     </Dialog>
-
-    <!-- Footer -->
-    <div class="footer text-center py-3">
-      <small class="text-muted">Integram v{{ version }}</small>
-    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useToast } from 'primevue/usetoast'
-import Menubar from 'primevue/menubar'
 import Menu from 'primevue/menu'
 import Select from 'primevue/select'
 import Tag from 'primevue/tag'
@@ -172,16 +309,24 @@ import Dialog from 'primevue/dialog'
 import Password from 'primevue/password'
 import Message from 'primevue/message'
 import integramApiClient from '@/services/integramApiClient'
-
 import { useTheme } from '@/composables/useTheme'
+import {
+  buildLegacyMenuPath,
+  filterMenuTree,
+  findActiveMenuItem,
+  flattenMenuTree,
+  getMenuItemAncestors,
+  isExternalMenuHref,
+  normalizeMenuData
+} from '@/utils/integramMenu'
 
 const router = useRouter()
 const route = useRoute()
 const toast = useToast()
 const { isDarkTheme, toggleDarkMode } = useTheme()
 
-// Refs
 const userMenu = ref()
+const sidebarRef = ref()
 const selectedDatabase = ref(null)
 const switchingDatabase = ref(false)
 const passwordChangeVisible = ref(false)
@@ -193,28 +338,29 @@ const newPassword = ref('')
 const newPasswordRepeat = ref('')
 const locale = ref('ru')
 const version = ref('1.0.0')
+const menuSearch = ref('')
+const rawMenuData = ref([])
+const expandedMenuIds = ref(new Set())
+const sidebarCollapsed = ref(false)
+const sidebarWidth = ref(null)
+const mobileSidebarOpen = ref(false)
+const resizeState = ref(null)
 
-// Computed
 const database = computed(() => {
-  const db = route.params.database || integramApiClient.currentDatabase || integramApiClient.getDatabase() || 'my'
-  console.log('[IntegramMain] database computed:', db, 'route.params:', route.params)
-  return db
+  return route.params.database || integramApiClient.currentDatabase || integramApiClient.getDatabase() || 'my'
 })
+
 const userName = computed(() => integramApiClient.getAuthInfo().userName || 'User')
 
-// Check if we should show switching overlay (NOT on database home page)
 const shouldShowSwitchingOverlay = computed(() => {
-  // Don't show on /{db}/ (home page)
   const isHomePage = route.path === `/${database.value}/` || route.path === `/${database.value}`
   return switchingDatabase.value && !isHomePage
 })
 
-// Issue #5112: Available databases for selector
 const availableDatabases = computed(() => {
   const databases = []
 
-  // Add authenticated databases
-  for (const [dbName, dbSession] of Object.entries(integramApiClient.databases)) {
+  for (const [dbName] of Object.entries(integramApiClient.databases)) {
     databases.push({
       value: dbName,
       label: dbName,
@@ -224,14 +370,13 @@ const availableDatabases = computed(() => {
     })
   }
 
-  // Add owned databases (from 'my' auth) that are not yet authenticated
-  const mySession = integramApiClient.databases['my']
+  const mySession = integramApiClient.databases.my
   if (mySession?.ownedDatabases) {
     for (const dbName of mySession.ownedDatabases) {
       if (!integramApiClient.databases[dbName]) {
         databases.push({
           value: dbName,
-          label: dbName, // Removed "(owned)" - Tag shows this
+          label: dbName,
           icon: 'fi fi-rr-grid',
           isPrimary: false,
           isOwned: true
@@ -240,7 +385,16 @@ const availableDatabases = computed(() => {
     }
   }
 
-  // Sort: 'my' first, then alphabetical
+  if (databases.length === 0 && database.value) {
+    databases.push({
+      value: database.value,
+      label: database.value,
+      icon: 'fi fi-rr-database',
+      isPrimary: database.value === 'my',
+      isOwned: false
+    })
+  }
+
   return databases.sort((a, b) => {
     if (a.value === 'my') return -1
     if (b.value === 'my') return 1
@@ -248,38 +402,20 @@ const availableDatabases = computed(() => {
   })
 })
 
-// Base menu items configuration (legacy naming from main.html)
-const baseMenuItems = [
-  { href: 'dict', icon: 'fi fi-rr-database', ruName: 'Объекты', enName: 'Objects' },
-  { href: 'table', icon: 'fi fi-rr-table', ruName: 'Таблицы', enName: 'Tables' },
-  { href: 'edit_types', icon: 'fi fi-rr-sitemap', ruName: 'Структура', enName: 'Structure' },
-  { href: 'sql', icon: 'fi fi-rr-code', ruName: 'SQL', enName: 'SQL' },
-  { href: 'smartq', icon: 'fi fi-rr-search', ruName: 'Умный запрос', enName: 'Smart Query' },
-  { href: 'report', icon: 'fi fi-rr-chart-histogram', ruName: 'Запросы', enName: 'Queries' },
-  { href: 'form', icon: 'fi fi-rr-file', ruName: 'Формы', enName: 'Forms' },
-  { href: 'myform', icon: 'fi fi-rr-settings-sliders', ruName: 'Мои формы', enName: 'My Forms' },
-  { href: 'upload', icon: 'fi fi-rr-upload', ruName: 'Загрузка', enName: 'Upload' },
-  { href: 'dir_admin', icon: 'fi fi-rr-folder', ruName: 'Файлы', enName: 'Files' },
-  { href: 'info', icon: 'fi fi-rr-info', ruName: 'Информация', enName: 'Info' }
-]
-
-// Menu items for PrimeVue Menubar
-// Issue #5112: Use database from route params
-const menuItems = computed(() => {
-  const currentDB = database.value
-  console.log('[IntegramMain] menuItems computed, currentDB:', currentDB)
-  return baseMenuItems.map(item => ({
-    label: locale.value === 'ru' ? item.ruName : item.enName,
-    icon: item.icon,
-    command: () => {
-      const url = `/${currentDB}/${item.href}`
-      console.log('[IntegramMain] Menu item clicked:', item.ruName, 'URL:', url, 'currentDB:', currentDB)
-      router.push(url)
-    }
-  }))
+const menuTree = computed(() => normalizeMenuData(rawMenuData.value))
+const filteredMenuTree = computed(() => filterMenuTree(menuTree.value, menuSearch.value))
+const visibleMenuRows = computed(() => {
+  const forceExpanded = Boolean(menuSearch.value.trim()) && !sidebarCollapsed.value
+  const expandedIds = sidebarCollapsed.value ? new Set() : expandedMenuIds.value
+  return flattenMenuTree(filteredMenuTree.value, expandedIds, { forceExpanded })
+})
+const activeMenuItem = computed(() => findActiveMenuItem(menuTree.value, route.fullPath, database.value))
+const currentWorkspaceLabel = computed(() => activeMenuItem.value?.label || route.meta?.title || 'Integram')
+const sidebarStyle = computed(() => {
+  if (sidebarCollapsed.value || !sidebarWidth.value) return {}
+  return { width: `${sidebarWidth.value}px` }
 })
 
-// User menu items
 const userMenuItems = computed(() => [
   {
     label: t('help'),
@@ -315,7 +451,6 @@ const userMenuItems = computed(() => [
   }
 ])
 
-// Translations (matching main.html t9n tags)
 function t(key) {
   const translations = {
     ru: {
@@ -332,8 +467,7 @@ function t(key) {
       fillAllFields: 'Заполните все поля',
       passwordsDoNotMatch: 'Пароли не совпадают',
       passwordChanged: 'Пароль успешно изменён',
-      wrongPassword: 'Неверный пароль',
-      more: 'Еще'
+      wrongPassword: 'Неверный пароль'
     },
     en: {
       help: 'Help',
@@ -349,17 +483,208 @@ function t(key) {
       fillAllFields: 'Please fill in all fields',
       passwordsDoNotMatch: 'Passwords do not match',
       passwordChanged: 'Password changed successfully',
-      wrongPassword: 'Wrong password',
-      more: 'More'
+      wrongPassword: 'Wrong password'
     }
   }
 
   return translations[locale.value]?.[key] || key
 }
 
-// Methods
+function getCookie(name) {
+  const escapedName = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  const match = document.cookie.match(new RegExp(`(?:^|; )${escapedName}=([^;]*)`))
+  return match ? decodeURIComponent(match[1]) : null
+}
+
+function setCookie(name, value, days = 365) {
+  const expires = new Date(Date.now() + days * 864e5).toUTCString()
+  document.cookie = `${name}=${encodeURIComponent(value)}; expires=${expires}; path=/`
+}
+
+function sidebarCollapsedStorageKey() {
+  return `appSidebarCollapsed_${database.value || 'default'}`
+}
+
+function sidebarWidthCookieName() {
+  return `sidebarWidth_${database.value || 'default'}`
+}
+
+function expandedCookieName() {
+  return `menuExpanded_${database.value || 'default'}`
+}
+
+function loadServerMenuData() {
+  const candidates = [
+    window.menuData,
+    window.__INTEGRAM_MENU_DATA__,
+    window.integramMenuData
+  ]
+
+  const serverMenu = candidates.find(candidate => Array.isArray(candidate) && candidate.length > 0)
+  rawMenuData.value = serverMenu ? [...serverMenu] : []
+}
+
+function loadSidebarState() {
+  sidebarCollapsed.value = localStorage.getItem(sidebarCollapsedStorageKey()) === 'true'
+  const savedWidth = parseInt(getCookie(sidebarWidthCookieName()), 10)
+  sidebarWidth.value = Number.isFinite(savedWidth) ? Math.min(Math.max(savedWidth, 150), 400) : null
+}
+
+function loadExpandedMenuState() {
+  const raw = getCookie(expandedCookieName())
+  if (!raw) {
+    expandedMenuIds.value = new Set()
+    return
+  }
+
+  try {
+    const expandedMap = JSON.parse(raw)
+    expandedMenuIds.value = new Set(
+      Object.entries(expandedMap)
+        .filter(([, value]) => value === '1')
+        .map(([key]) => key)
+    )
+  } catch {
+    expandedMenuIds.value = new Set()
+  }
+}
+
+function saveExpandedMenuState() {
+  const expandedMap = {}
+  for (const id of expandedMenuIds.value) {
+    expandedMap[id] = '1'
+  }
+  setCookie(expandedCookieName(), JSON.stringify(expandedMap))
+}
+
+function expandActiveAncestors() {
+  if (!activeMenuItem.value) return
+  const ancestors = getMenuItemAncestors(menuTree.value, activeMenuItem.value.id)
+  if (ancestors.length === 0) return
+
+  const nextExpanded = new Set(expandedMenuIds.value)
+  for (const id of ancestors) nextExpanded.add(id)
+  expandedMenuIds.value = nextExpanded
+}
+
+function toggleSidebar() {
+  sidebarCollapsed.value = !sidebarCollapsed.value
+  localStorage.setItem(sidebarCollapsedStorageKey(), sidebarCollapsed.value ? 'true' : 'false')
+}
+
+function isMobile() {
+  return window.matchMedia('(max-width: 900px)').matches
+}
+
+function openMobileSidebar() {
+  mobileSidebarOpen.value = true
+  document.body.style.overflow = 'hidden'
+}
+
+function closeMobileSidebar() {
+  mobileSidebarOpen.value = false
+  document.body.style.overflow = ''
+}
+
+function toggleMobileSidebar() {
+  if (mobileSidebarOpen.value) {
+    closeMobileSidebar()
+  } else {
+    openMobileSidebar()
+  }
+}
+
+function handleWindowResize() {
+  if (!isMobile()) closeMobileSidebar()
+}
+
+function startSidebarResize(event) {
+  if (sidebarCollapsed.value || isMobile() || !sidebarRef.value) return
+
+  resizeState.value = {
+    startX: event.clientX,
+    startWidth: sidebarRef.value.offsetWidth
+  }
+
+  document.body.style.cursor = 'ew-resize'
+  document.body.style.userSelect = 'none'
+  document.addEventListener('mousemove', handleSidebarResize)
+  document.addEventListener('mouseup', stopSidebarResize)
+  event.preventDefault()
+}
+
+function handleSidebarResize(event) {
+  if (!resizeState.value) return
+  const width = resizeState.value.startWidth + (event.clientX - resizeState.value.startX)
+  sidebarWidth.value = Math.min(Math.max(width, 150), 400)
+}
+
+function stopSidebarResize() {
+  if (resizeState.value && sidebarWidth.value) {
+    setCookie(sidebarWidthCookieName(), Math.round(sidebarWidth.value))
+  }
+  resizeState.value = null
+  document.body.style.cursor = ''
+  document.body.style.userSelect = ''
+  document.removeEventListener('mousemove', handleSidebarResize)
+  document.removeEventListener('mouseup', stopSidebarResize)
+}
+
+function menuRowClasses(row) {
+  return {
+    active: isMenuItemActive(row.item),
+    expanded: row.isExpanded,
+    'app-menu-item-parent': row.hasChildren,
+    'app-menu-item-nested': row.level > 0,
+    'search-match': row.isSearchMatch
+  }
+}
+
+function menuItemStyle(row) {
+  if (sidebarCollapsed.value) return {}
+  return { paddingLeft: `${1 + row.level * 0.9}rem` }
+}
+
+function isMenuItemActive(item) {
+  return activeMenuItem.value?.id === item.id
+}
+
+function getMenuHref(item) {
+  return buildLegacyMenuPath(database.value, item.href)
+}
+
+function navigateMenuItem(item) {
+  const href = getMenuHref(item)
+  if (!href) return
+
+  if (isExternalMenuHref(href)) {
+    window.location.assign(href)
+  } else {
+    router.push(href)
+  }
+
+  if (isMobile()) closeMobileSidebar()
+}
+
+function toggleMenuItem(item) {
+  if (!item.children.length) return
+  const nextExpanded = new Set(expandedMenuIds.value)
+  if (nextExpanded.has(item.id)) {
+    nextExpanded.delete(item.id)
+  } else {
+    nextExpanded.add(item.id)
+  }
+  expandedMenuIds.value = nextExpanded
+  saveExpandedMenuState()
+}
+
+function clearMenuSearch(blur = false) {
+  menuSearch.value = ''
+  if (blur) document.getElementById('menu-search')?.blur()
+}
+
 function toggleUserMenu(event) {
-  userMenu.value.toggle(event)
+  userMenu.value?.toggle(event)
 }
 
 function openHelp() {
@@ -375,7 +700,6 @@ function showPasswordChange() {
 }
 
 async function changePassword() {
-  // Validate
   if (!oldPassword.value || !newPassword.value || !newPasswordRepeat.value) {
     passwordMessage.value = t('fillAllFields')
     passwordMessageSeverity.value = 'error'
@@ -392,7 +716,6 @@ async function changePassword() {
   passwordMessage.value = ''
 
   try {
-    // Call Integram API to change password
     const response = await integramApiClient.post('auth?JSON', {
       change: 1,
       login: integramApiClient.getAuthInfo().userName,
@@ -405,18 +728,10 @@ async function changePassword() {
       passwordMessage.value = t('passwordChanged')
       passwordMessageSeverity.value = 'success'
 
-      // Update tokens if provided
-      if (response.token) {
-        integramApiClient.token = response.token
-      }
-      if (response.xsrf) {
-        integramApiClient.xsrfToken = response.xsrf
-      }
-
-      // Save updated session
+      if (response.token) integramApiClient.token = response.token
+      if (response.xsrf) integramApiClient.xsrfToken = response.xsrf
       integramApiClient.saveSession()
 
-      // Close modal after success
       setTimeout(() => {
         passwordChangeVisible.value = false
         oldPassword.value = ''
@@ -438,20 +753,16 @@ async function changePassword() {
 
 function toggleLocale() {
   locale.value = locale.value === 'ru' ? 'en' : 'ru'
-  // Save to localStorage
   localStorage.setItem('integram_locale', locale.value)
-  // Update cookie for backend
   document.cookie = `${database.value}_locale=${locale.value};Path=/`
 }
 
-// Issue #5112: Handle database change from dropdown
 async function handleDatabaseChange(event) {
   const newDatabase = event.value
-  const oldDatabase = route.params.database // Use route.params, not database.value!
+  const oldDatabase = route.params.database
 
   switchingDatabase.value = true
 
-  // Show loading toast
   toast.add({
     severity: 'info',
     summary: 'Переключение БД',
@@ -461,18 +772,7 @@ async function handleDatabaseChange(event) {
 
   try {
     await integramApiClient.switchDatabase(newDatabase)
-
-    // Issue #5112: Always redirect to database home page when switching databases
-    // This ensures components reload with correct data for the new database
-    // and avoids issues with resources (tables, objects) that may not exist in the new DB
-    const newPath = `/${newDatabase}/`
-
-    console.log('[handleDatabaseChange] Switching from', oldDatabase, 'to', newDatabase, 'redirecting to:', newPath)
-
-    // Navigate and wait for completion
-    await router.push(newPath)
-
-    // Reset loading state after navigation completes
+    await router.push(`/${newDatabase}/`)
     switchingDatabase.value = false
   } catch (error) {
     console.error('Failed to switch database:', error)
@@ -482,7 +782,6 @@ async function handleDatabaseChange(event) {
       detail: error.message,
       life: 5000
     })
-    // Revert selection
     selectedDatabase.value = oldDatabase
     switchingDatabase.value = false
   }
@@ -494,7 +793,6 @@ function logout() {
   router.push('/login')
 }
 
-// Issue #5112: Watch route params to sync dropdown selection
 watch(() => route.params.database, async (newDb) => {
   if (newDb && newDb !== selectedDatabase.value) {
     selectedDatabase.value = newDb
@@ -506,25 +804,37 @@ watch(() => route.params.database, async (newDb) => {
   }
 }, { immediate: true })
 
-// Lifecycle
+watch(database, () => {
+  loadSidebarState()
+  loadExpandedMenuState()
+  expandActiveAncestors()
+}, { immediate: true })
+
+watch(activeMenuItem, () => {
+  expandActiveAncestors()
+}, { immediate: true })
+
+watch(() => route.fullPath, () => {
+  if (isMobile()) closeMobileSidebar()
+})
+
 onMounted(async () => {
-  // Issue #5100: Try to restore session before checking auth
+  loadServerMenuData()
+  window.addEventListener('resize', handleWindowResize)
+
   integramApiClient.tryRestoreSession()
 
-  // Issue #4168: Check Integram authentication (independent from main site auth)
   const authInfo = integramApiClient.getAuthInfo()
   if (!authInfo.token || !authInfo.xsrf) {
-    // Issue #34: Auto-authenticate with default credentials (without requiring manual login)
     const serverURL = import.meta.env.VITE_INTEGRAM_URL || `${window.location.protocol}//${window.location.hostname}`
     const defaultDatabase = database.value || 'my'
     const defaultUsername = 'd'
     const defaultPassword = 'd'
 
     try {
-      console.log('[IntegramMain] Auto-authenticating with database:', defaultDatabase)
-      await integramApiClient.authenticate(serverURL, defaultDatabase, defaultUsername, defaultPassword)
+      integramApiClient.setServer(serverURL)
+      await integramApiClient.authenticate(defaultDatabase, defaultUsername, defaultPassword)
 
-      // Get user info after authentication
       const response = await integramApiClient.get(`/${defaultDatabase}/auth?JSON`)
       if (response.data) {
         const dbSession = integramApiClient.databases[defaultDatabase]
@@ -538,17 +848,13 @@ onMounted(async () => {
             xsrf: dbSession.xsrfToken
           }
 
-          // Get owned databases list
           if (response.data.bases && Array.isArray(response.data.bases)) {
             dbSession.ownedDatabases = response.data.bases
           }
         }
       }
 
-      // Save session to localStorage
       integramApiClient.saveSession()
-
-      console.log('[IntegramMain] Auto-authentication successful')
     } catch (error) {
       console.error('[IntegramMain] Auto-authentication failed:', error)
       toast.add({
@@ -561,23 +867,25 @@ onMounted(async () => {
     }
   }
 
-  // Issue #5100: Validate session to refresh tokens and prevent quick expiration
   try {
     await integramApiClient.validateSession()
   } catch (e) {
     console.warn('Session validation skipped:', e.message)
   }
 
-  // Load locale from localStorage - default to ru if not set
   const savedLocale = localStorage.getItem('integram_locale')
   if (savedLocale) {
-    // Normalize to lowercase for consistency
     locale.value = savedLocale.toLowerCase()
   } else {
-    // Issue #5100: Default to ru if no saved locale
     locale.value = 'ru'
     localStorage.setItem('integram_locale', 'ru')
   }
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', handleWindowResize)
+  stopSidebarResize()
+  document.body.style.overflow = ''
 })
 </script>
 
@@ -586,34 +894,375 @@ onMounted(async () => {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  background: var(--p-surface-0);
+  color: var(--p-text-color);
 }
 
-.integram-menubar {
+.integram-navbar {
   position: sticky;
   top: 0;
-  z-index: 1000;
+  z-index: 120;
+  min-height: 64px;
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) auto minmax(240px, 1fr);
+  align-items: center;
+  gap: 1rem;
+  padding: 0 1rem;
+  background: var(--p-surface-0);
+  border-bottom: 1px solid var(--p-surface-200);
+  box-shadow: 0 1px 6px rgba(15, 23, 42, 0.08);
 }
 
-.integram-brand {
-  text-decoration: none !important;
-  transition: opacity 0.2s;
+.navbar-left,
+.navbar-right,
+.database-value,
+.database-option {
+  display: flex;
   align-items: center;
 }
 
+.navbar-left {
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.navbar-center {
+  min-width: 0;
+  text-align: center;
+}
+
+.navbar-right {
+  justify-content: flex-end;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.database-value,
+.database-option {
+  gap: 0.5rem;
+}
+
+.database-selector {
+  min-width: 8rem;
+  max-width: 12rem;
+}
+
+.workspace-title {
+  display: inline-block;
+  max-width: min(42vw, 32rem);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--p-text-color);
+}
+
+.integram-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+  color: var(--p-text-color);
+  text-decoration: none;
+}
+
 .integram-brand:hover {
-  opacity: 0.8;
+  opacity: 0.84;
 }
 
 .integram-logo {
-  color: var(--p-primary-color, var(--primary-color));
+  color: var(--p-primary-color);
   flex-shrink: 0;
 }
 
-.content {
+.brand-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.app-layout {
   flex: 1;
-  padding: 1rem;
-  min-height: calc(100vh - 150px);
+  display: flex;
+  min-height: 0;
+  height: calc(100vh - 64px);
+  overflow: hidden;
+}
+
+.app-sidebar {
   position: relative;
+  width: 240px;
+  min-width: 150px;
+  max-width: 400px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--p-surface-0);
+  border-right: 1px solid var(--p-surface-200);
+  transition: width 0.2s ease, transform 0.2s ease;
+}
+
+.app-sidebar.collapsed {
+  width: 56px !important;
+  min-width: 56px;
+}
+
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 0.75rem 0.5rem 0;
+  flex-shrink: 0;
+}
+
+.sidebar-toggle,
+.mobile-sidebar-toggle,
+.menu-search-clear,
+.menu-expand-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  color: var(--p-text-muted-color);
+  cursor: pointer;
+  font: inherit;
+}
+
+.sidebar-toggle,
+.mobile-sidebar-toggle {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  font-size: 1.15rem;
+  flex-shrink: 0;
+}
+
+.sidebar-toggle {
+  margin-left: 1.25rem;
+}
+
+.sidebar-toggle:hover,
+.mobile-sidebar-toggle:hover,
+.menu-search-clear:hover,
+.menu-expand-button:hover {
+  background: var(--p-surface-100);
+  color: var(--p-text-color);
+}
+
+.mobile-sidebar-toggle {
+  display: none;
+}
+
+.menu-search-wrapper {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.menu-search-icon {
+  position: absolute;
+  left: 0.625rem;
+  color: var(--p-text-muted-color);
+  font-size: 0.85rem;
+  pointer-events: none;
+}
+
+.menu-search-input {
+  width: 100%;
+  min-width: 0;
+  padding: 0.5rem 2rem 0.5rem 2rem;
+  border: 1px solid var(--p-surface-300);
+  border-radius: 6px;
+  background: var(--p-surface-50);
+  color: var(--p-text-color);
+  font: inherit;
+  font-size: 0.85rem;
+}
+
+.menu-search-input:focus {
+  outline: none;
+  border-color: var(--p-primary-color);
+  box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.12);
+}
+
+.menu-search-clear {
+  position: absolute;
+  right: 0.375rem;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  font-size: 0.75rem;
+}
+
+.app-sidebar.collapsed .sidebar-header {
+  justify-content: center;
+  padding: 0.75rem 0;
+}
+
+.app-sidebar.collapsed .sidebar-toggle {
+  margin: 0;
+}
+
+.app-sidebar.collapsed .menu-search-wrapper,
+.app-sidebar.collapsed .menu-text,
+.app-sidebar.collapsed .menu-arrow,
+.app-sidebar.collapsed .menu-expand-button {
+  display: none;
+}
+
+.app-menu {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0 0.75rem 0.75rem;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.app-menu-item {
+  position: relative;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 2.5rem;
+  padding: 0.55rem 1rem;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--p-text-color);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.9rem;
+  text-align: left;
+  text-decoration: none;
+}
+
+.app-menu-item:hover {
+  background: var(--p-surface-100);
+  color: var(--p-text-color);
+  text-decoration: none;
+}
+
+.app-menu-item.active {
+  background: color-mix(in srgb, var(--p-primary-color) 14%, transparent);
+  color: var(--p-primary-color);
+}
+
+.app-menu-item-folder .menu-text {
+  text-transform: uppercase;
+  letter-spacing: 0;
+}
+
+.app-menu-item-nested {
+  font-size: 0.85rem;
+}
+
+.app-sidebar.collapsed .app-menu {
+  padding: 0 0.5rem 0.75rem;
+}
+
+.app-sidebar.collapsed .app-menu-item {
+  justify-content: center;
+  padding: 0.55rem 0;
+}
+
+.menu-icon {
+  width: 1.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 1.15rem;
+}
+
+.menu-text {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.menu-expand-button {
+  width: 1.75rem;
+  height: 1.75rem;
+  margin-left: auto;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.menu-arrow {
+  font-size: 0.7rem;
+  color: var(--p-text-muted-color);
+  transition: transform 0.16s ease;
+}
+
+.menu-arrow.rotated,
+.app-menu-item.expanded > .menu-arrow {
+  transform: rotate(180deg);
+}
+
+.app-menu-item.search-match .menu-text {
+  background: color-mix(in srgb, var(--p-primary-color) 18%, transparent);
+  border-radius: 3px;
+  padding: 0 0.25rem;
+  margin: 0 -0.25rem;
+}
+
+.menu-no-results {
+  padding: 1rem;
+  text-align: center;
+  color: var(--p-text-muted-color);
+  font-size: 0.85rem;
+}
+
+.sidebar-resize-handle {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 4px;
+  height: 100%;
+  cursor: ew-resize;
+  background: transparent;
+}
+
+.sidebar-resize-handle:hover {
+  background: var(--p-primary-color);
+}
+
+.app-sidebar.collapsed .sidebar-resize-handle {
+  display: none;
+}
+
+.sidebar-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 140;
+  background: rgba(15, 23, 42, 0.52);
+}
+
+.sidebar-backdrop.visible {
+  display: block;
+}
+
+.app-content {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  overflow: auto;
+  padding: 1rem;
+  position: relative;
+  background: var(--p-surface-50);
 }
 
 .content-loading {
@@ -621,14 +1270,10 @@ onMounted(async () => {
   opacity: 0.6;
 }
 
-/* Database switch overlay */
 .database-switch-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(255, 255, 255, 0.95);
+  inset: 0;
+  background: rgba(255, 255, 255, 0.92);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -642,19 +1287,83 @@ onMounted(async () => {
   align-items: center;
   justify-content: center;
   padding: 2rem;
-  background: var(--surface-card);
-  border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  background: var(--p-surface-0);
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.14);
 }
 
 .footer {
-  background-color: var(--surface-100);
-  border-top: 1px solid var(--surface-border);
-  margin-top: auto;
-  padding: 1rem;
+  margin-top: 1rem;
+  padding: 1rem 0 0;
 }
 
 .text-muted {
-  color: var(--text-color-secondary);
+  color: var(--p-text-muted-color);
+}
+
+@media (max-width: 900px) {
+  .integram-navbar {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .navbar-center {
+    display: none;
+  }
+
+  .navbar-right {
+    gap: 0.25rem;
+  }
+
+  .database-selector {
+    max-width: 7.5rem;
+  }
+
+  .mobile-sidebar-toggle {
+    display: inline-flex;
+  }
+
+  .app-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 160;
+    height: 100vh;
+    width: 280px !important;
+    max-width: 85vw;
+    transform: translateX(-100%);
+    box-shadow: 2px 0 18px rgba(15, 23, 42, 0.18);
+  }
+
+  .app-sidebar.mobile-open {
+    transform: translateX(0);
+  }
+
+  .app-sidebar.collapsed {
+    width: 56px !important;
+    transform: translateX(-100%);
+  }
+
+  .app-sidebar.collapsed.mobile-open {
+    transform: translateX(0);
+  }
+
+  .sidebar-resize-handle {
+    display: none;
+  }
+
+  .app-content {
+    width: 100%;
+    padding: 0.75rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .integram-navbar {
+    padding: 0 0.5rem;
+  }
+
+  .brand-name {
+    display: none;
+  }
 }
 </style>

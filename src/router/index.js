@@ -1,5 +1,19 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
+function legacyChildRedirect(target) {
+  return (to) => {
+    const pathMatch = to.params.pathMatch
+    const rest = Array.isArray(pathMatch) ? pathMatch.join('/') : pathMatch
+    const suffix = rest ? `/${rest}` : ''
+
+    return {
+      path: `/${to.params.database}/${target}${suffix}`,
+      query: to.query,
+      hash: to.hash
+    }
+  }
+}
+
 const routes = [
   {
     path: '/',
@@ -36,6 +50,10 @@ const routes = [
         component: () => import('../views/integram/IntegramTableList.vue')
       },
       {
+        path: 'tables/:pathMatch(.*)*',
+        redirect: legacyChildRedirect('table')
+      },
+      {
         path: 'table/:typeId',
         name: 'IntegramDataTableView',
         component: () => import('../views/integram/IntegramDataTableView.vue')
@@ -56,14 +74,32 @@ const routes = [
         component: () => import('../views/integram/IntegramSqlView.vue')
       },
       {
+        path: 'smartq',
+        name: 'IntegramSmartQuery',
+        component: () => import('../views/integram/IntegramSmartQueryView.vue')
+      },
+      {
         path: 'report/:reportId?',
         name: 'IntegramReport',
         component: () => import('../views/integram/IntegramReportView.vue')
       },
       {
+        path: 'query/:pathMatch(.*)*',
+        redirect: legacyChildRedirect('report')
+      },
+      {
         path: 'form/:formId?',
         name: 'IntegramForm',
         component: () => import('../views/integram/IntegramFormView.vue')
+      },
+      {
+        path: 'forms/:pathMatch(.*)*',
+        redirect: legacyChildRedirect('form')
+      },
+      {
+        path: 'myform/:formId?',
+        name: 'IntegramMyForm',
+        component: () => import('../views/integram/IntegramMyFormView.vue')
       },
       {
         path: 'upload',
