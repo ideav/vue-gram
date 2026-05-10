@@ -67,7 +67,7 @@ async function seedSession(page: Page) {
           token: 'auth-token',
           xsrfToken: 'xsrf-token',
           userId: '1',
-          userName: 'Tester',
+          userName: 'admin',
           userRole: 'admin',
           ownedDatabases: []
         }
@@ -77,6 +77,10 @@ async function seedSession(page: Page) {
     localStorage.setItem('token', 'auth-token')
     localStorage.setItem('integram_server', window.location.origin)
     localStorage.setItem('integram_session', JSON.stringify(session))
+    localStorage.setItem('_xsrf', 'xsrf-token')
+    localStorage.setItem('user', 'admin')
+    localStorage.setItem('id', '1')
+    localStorage.setItem('db', 'my')
   })
 }
 
@@ -88,7 +92,7 @@ test('SQL query builder loads report, saves a column setting, and refreshes prev
     token: 'auth-token',
     _xsrf: 'xsrf-token',
     id: '1',
-    user: 'Tester',
+    user: 'admin',
     role: 'admin'
   }))
   await page.route(/\/(?:api\/)?my\/edit_obj\/900(?:\?|$)/, route => fulfillJson(route, editData))

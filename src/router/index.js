@@ -80,6 +80,11 @@ const routes = [
         component: () => import('../views/integram/IntegramSmartQueryView.vue')
       },
       {
+        path: 'calendar',
+        name: 'IntegramCalendar',
+        component: () => import('../views/integram/IntegramCalendarView.vue')
+      },
+      {
         path: 'report/:reportId/embed',
         name: 'IntegramReportEmbed',
         component: () => import('../components/integram/IntegramReportEmbed.vue'),
