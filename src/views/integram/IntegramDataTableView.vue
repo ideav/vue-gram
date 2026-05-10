@@ -1066,6 +1066,11 @@ import DataTable from '@/components/integram/DataTable.vue'
 import IntegramBreadcrumb from '@/components/integram/IntegramBreadcrumb.vue'
 import IntegramDataTableWrapper from '@/components/integram/IntegramDataTableWrapper.vue'
 import ReferenceField from '@/components/integram/fields/ReferenceField.vue'
+import {
+  loadDataTableSettings,
+  loadRowsPerPagePreference,
+  saveDataTableSettings
+} from '@/utils/dataTableSettings'
 import InputText from 'primevue/inputtext'
 import InputNumber from 'primevue/inputnumber'
 import Textarea from 'primevue/textarea'
@@ -1322,61 +1327,15 @@ const rows = ref([])
 
 // Pagination
 const currentPage = ref(1)
-const rowsPerPage = ref(50)
+const rowsPerPage = ref(loadRowsPerPagePreference())
 const hasMore = ref(false)
 
 // Background loading & Smart loading
-const STORAGE_KEY = 'datatable_settings'
-const DEFAULT_SETTINGS = {
-  autoLoadAll: true,           // Фоновая загрузка всех данных (вкл по умолчанию)
-  autoLoadDirs: true,          // Автозагрузка справочников (вкл по умолчанию)
-  maxAutoLoadSize: 20000,      // Макс размер для автозагрузки
-  backgroundChunkSize: 1000,   // Размер chunk
-  backgroundDelay: 150,        // Задержка между chunk (мс)
-  dateStyle: 'relative'        // Стиль дат: classic, relative, chip, smart
-}
-
-// Load settings from localStorage
-// ВАЖНО: Эта функция СОЗДАЕТ запись в localStorage при первом открытии!
-function loadSettings() {
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY)
-
-    if (stored) {
-      // ✅ Пользователь уже открывал таблицу ранее - используем СОХРАНЕННЫЕ настройки
-      const parsedSettings = JSON.parse(stored)
-      console.log('[loadSettings] Загружены сохраненные настройки из localStorage:', parsedSettings)
-      return { ...DEFAULT_SETTINGS, ...parsedSettings }
-    } else {
-      // ✅ ПЕРВОЕ ОТКРЫТИЕ - инициализируем localStorage с дефолтными значениями
-      console.log('[loadSettings] ПЕРВОЕ ОТКРЫТИЕ: инициализируем localStorage с дефолтными настройками')
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(DEFAULT_SETTINGS))
-      return DEFAULT_SETTINGS
-    }
-  } catch (e) {
-    console.error('[loadSettings] Ошибка при загрузке настроек:', e)
-    // При ошибке все равно пытаемся сохранить дефолты
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(DEFAULT_SETTINGS))
-    } catch {
-      console.error('[loadSettings] Не удалось сохранить дефолтные настройки')
-    }
-    return DEFAULT_SETTINGS
-  }
-}
-
-// Save settings to localStorage
-// ВАЖНО: Вызывается из toggleAutoLoad() и toggleAutoLoadDirs() когда пользователь изменяет настройки
 function saveSettings(newSettings) {
-  try {
-    console.log('[saveSettings] Сохраняем НОВЫЕ настройки в localStorage:', newSettings)
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(newSettings))
-  } catch (e) {
-    console.error('[saveSettings] Ошибка при сохранении настроек:', e)
-  }
+  saveDataTableSettings(newSettings)
 }
 
-const settings = ref(loadSettings())
+const settings = ref(loadDataTableSettings())
 const allRows = ref([])                    // Все загруженные строки
 const isBackgroundLoading = ref(false)     // Флаг фоновой загрузки
 const backgroundProgress = ref(0)          // Прогресс (0-100)

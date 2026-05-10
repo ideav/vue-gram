@@ -7,6 +7,10 @@ export const DEFAULT_TABLE_FOLDERS = {
   'Скрытые': { open: false, tabs: ['47', '65', '137', '29', '63'] }
 }
 
+export const TABLE_CONFIG_STORAGE_KEY = 'integram-table-folders-config'
+export const TABLE_SETTINGS_ID_STORAGE_KEY = 'integram-table-folders-settings-id'
+export const LEGACY_TABLE_CONFIG_STORAGE_KEY = 'settingsID'
+
 export const TABLE_BASE_TYPES = [
   { value: '3', label: 'Короткая строка (до 127 символов)' },
   { value: '8', label: 'Строка без ограничения длины' },
@@ -181,6 +185,41 @@ export function extractTableSettings(payload) {
   }
 
   return { settingsId: null, config: null }
+}
+
+function canUseLocalStorage() {
+  return typeof localStorage !== 'undefined'
+}
+
+export function loadTableFolderConfigFromStorage() {
+  if (!canUseLocalStorage()) return null
+
+  const storedConfig = localStorage.getItem(TABLE_CONFIG_STORAGE_KEY)
+  if (storedConfig) return normalizeFolderConfig(storedConfig)
+
+  const legacyConfig = localStorage.getItem(LEGACY_TABLE_CONFIG_STORAGE_KEY)
+  if (legacyConfig) return normalizeFolderConfig(legacyConfig)
+
+  return null
+}
+
+export function saveTableFolderConfigToStorage(config) {
+  if (!canUseLocalStorage()) return false
+
+  const normalizedConfig = cloneFolderConfig(config)
+  localStorage.setItem(TABLE_CONFIG_STORAGE_KEY, JSON.stringify(normalizedConfig))
+  return true
+}
+
+export function loadTableSettingsIdFromStorage() {
+  if (!canUseLocalStorage()) return null
+  return localStorage.getItem(TABLE_SETTINGS_ID_STORAGE_KEY)
+}
+
+export function saveTableSettingsIdToStorage(settingsId) {
+  if (!canUseLocalStorage() || !settingsId) return false
+  localStorage.setItem(TABLE_SETTINGS_ID_STORAGE_KEY, String(settingsId))
+  return true
 }
 
 export function hasStructureWriteGrant(grants) {

@@ -1,11 +1,13 @@
-import { describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it } from 'vitest'
 import {
   DEFAULT_TABLE_FOLDERS,
   detectTableBaseType,
   extractTableSettings,
   hasStructureWriteGrant,
+  loadTableFolderConfigFromStorage,
   normalizeFolderConfig,
   normalizeTableList,
+  saveTableFolderConfigToStorage,
   tableMatchesQuery,
 } from '../tableWorkspace'
 import {
@@ -16,6 +18,10 @@ import {
 } from '../__fixtures__/permissions'
 
 describe('tableWorkspace helpers', () => {
+  beforeEach(() => {
+    localStorage.clear()
+  })
+
   it('normalizes terms payloads from the legacy tables endpoint', () => {
     expect(
       normalizeTableList([
@@ -119,6 +125,29 @@ describe('tableWorkspace helpers', () => {
         Служебные: { open: false, tabs: ['269'] },
       },
     })
+  })
+
+  it('migrates the legacy settingsID localStorage fallback without mutating it', () => {
+    const legacyConfig = {
+      Избранное: { open: true, tabs: [18] },
+      Служебные: { open: false, tabs: ['269'] },
+    }
+    localStorage.setItem('settingsID', JSON.stringify(legacyConfig))
+
+    expect(loadTableFolderConfigFromStorage()).toEqual({
+      Избранное: { open: true, tabs: ['18'] },
+      Служебные: { open: false, tabs: ['269'] },
+    })
+
+    const nextConfig = {
+      Избранное: { open: false, tabs: ['42'] },
+    }
+    saveTableFolderConfigToStorage(nextConfig)
+
+    expect(JSON.parse(localStorage.getItem('integram-table-folders-config'))).toEqual({
+      Избранное: { open: false, tabs: ['42'] },
+    })
+    expect(localStorage.getItem('settingsID')).toBe(JSON.stringify(legacyConfig))
   })
 
   it('matches the legacy structure WRITE grant and hides controls otherwise', () => {

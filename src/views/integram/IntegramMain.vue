@@ -403,6 +403,8 @@ import {
   flattenMenuTree,
   getMenuItemAncestors,
   isExternalMenuHref,
+  loadExpandedMenuIds,
+  saveExpandedMenuIds,
   normalizeMenuData
 } from '@/utils/integramMenu'
 
@@ -658,22 +660,12 @@ function loadServerMenuData() {
   rawMenuData.value = serverMenu ? [...serverMenu] : []
 }
 
-function expandedMenuStorageKey() {
-  return `menuExpanded_${database.value || 'default'}`
-}
-
 function loadExpandedMenuState() {
-  try {
-    const raw = localStorage.getItem(expandedMenuStorageKey())
-    const ids = raw ? JSON.parse(raw) : []
-    expandedMenuIds.value = new Set(Array.isArray(ids) ? ids.map(String) : [])
-  } catch {
-    expandedMenuIds.value = new Set()
-  }
+  expandedMenuIds.value = loadExpandedMenuIds(database.value)
 }
 
 function saveExpandedMenuState() {
-  localStorage.setItem(expandedMenuStorageKey(), JSON.stringify([...expandedMenuIds.value]))
+  saveExpandedMenuIds(database.value, expandedMenuIds.value)
 }
 
 function expandActiveAncestors() {
