@@ -258,6 +258,24 @@ describe('IntegramApiClient', () => {
     })
   })
 
+  it('normalizes raw array terms without turning array indexes into payload keys', () => {
+    const terms = normalizeTermsResponse([
+      { id: 18, type: 3, name: 'User' },
+      { id: 42, type: 3, name: 'Role' }
+    ])
+
+    expect(terms.terms).toHaveLength(2)
+    expect(terms.termById).toEqual({ 18: 'User', 42: 'Role' })
+    expect(terms).not.toHaveProperty('0')
+  })
+
+  it('normalizes raw dictionary terms from the legacy /terms endpoint', () => {
+    const terms = normalizeTermsResponse({ 18: 'User', 42: 'Role' })
+
+    expect(terms.termById).toEqual({ 18: 'User', 42: 'Role' })
+    expect(terms.baseTypes).toEqual([])
+  })
+
   it('normalizes object JSON_DATA and JSON_OBJ fixtures without dropping legacy fields', () => {
     const list = normalizeObjectListResponse(objectListFixture)
     const record = normalizeObjectRecordResponse(objectRecordFixture)

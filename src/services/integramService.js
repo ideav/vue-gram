@@ -6,6 +6,10 @@
  */
 
 import integramApiClient from './integramApiClient';
+import {
+  DASHBOARD_PANEL_SETTINGS_REQ_ID,
+  dateToDashboardYmd
+} from '@/utils/dashboard';
 
 class IntegramService {
   constructor() {
@@ -67,6 +71,46 @@ class IntegramService {
 
   async executeReport(reportId, params = {}) {
     return integramApiClient.executeReport(reportId, params);
+  }
+
+  async getDashboardRecord(dashboardId) {
+    return integramApiClient.get(`object/${dashboardId}`, {}, { jsonMode: 'JSON_OBJ' });
+  }
+
+  async getDashboardModel(dashboardId, period = '') {
+    const params = { FR_modelID: dashboardId };
+    if (period) params.period = period;
+    return integramApiClient.get('report/Дэшборд', params, { jsonMode: 'JSON_KV' });
+  }
+
+  async getDashboardValues(from, to) {
+    return integramApiClient.get('report/Дэшборд.ЗначенияЗаПериод', {
+      Fr: dateToDashboardYmd(from),
+      To: dateToDashboardYmd(to)
+    }, { jsonMode: 'JSON_KV' });
+  }
+
+  async getDashboardPeriods(periodName, from, to) {
+    return integramApiClient.get(`object/${periodName}`, {
+      LIMIT: 10000,
+      'FR_С': `>=${from}`,
+      'FR_По': `<=${to}`
+    }, { jsonMode: 'JSON_DATA' });
+  }
+
+  async getDashboardReport(reportId, from, to, params = {}) {
+    return integramApiClient.executeReport(reportId, {
+      FR_Date: from,
+      TO_Date: to,
+      ...params,
+      _jsonFormat: 'JSON'
+    });
+  }
+
+  async saveDashboardPanelSettings(panelId, settings) {
+    return integramApiClient.setObjectRequisites(panelId, {
+      [DASHBOARD_PANEL_SETTINGS_REQ_ID]: JSON.stringify(settings || [])
+    });
   }
 
   async createObject(typeId, value, requisites = {}, parentId = null) {

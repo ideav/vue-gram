@@ -41,7 +41,7 @@ async function mockTablesApi(page: Page) {
     }
 
     const url = new URL(request.url())
-    const path = url.pathname
+    const path = decodeURIComponent(url.pathname)
     const corsHeaders = {
       'access-control-allow-origin': '*',
       'access-control-allow-headers': '*',
