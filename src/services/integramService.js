@@ -112,7 +112,7 @@ class IntegramService {
   }
 
   async saveObject(objectId, formData) {
-    return integramApiClient.saveObject(objectId, formData);
+    return integramApiClient.setObjectRequisites(objectId, formData);
   }
 }
 
