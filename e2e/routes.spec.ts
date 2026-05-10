@@ -1,5 +1,80 @@
 import { test, expect, type Page, type ConsoleMessage } from '@playwright/test'
 
+const objectListResponse = {
+  type: { id: '110', val: 'Contracts', up: '0' },
+  object: [
+    { id: '285', val: 'Contract A', ord: 1, up: '1' },
+  ],
+  list: [
+    {
+      id: '285',
+      val: 'Contract A',
+      up: '1',
+      320: 'ACME',
+      ref_320: '200:42',
+      410: 'Urgent, External',
+      ref_410: '210:7,8',
+      411: '3',
+    },
+  ],
+  req_order: ['320', '410', '411'],
+  req_type: {
+    320: 'Client',
+    410: 'Tags',
+    411: 'Tasks',
+  },
+  req_base: {
+    320: 'SHORT',
+    410: 'SHORT',
+    411: 'ARRAY',
+  },
+  ref_type: {
+    320: '200',
+    410: '210',
+  },
+  req_attrs: {
+    410: ':MULTI:',
+  },
+  arr_type: {
+    411: '1',
+  },
+  reqs: {
+    285: {
+      320: 'ACME',
+      ref_320: '200:42',
+      410: 'Urgent, External',
+      ref_410: '210:7,8',
+      411: '3',
+    },
+  },
+}
+
+const objectEditResponse = {
+  obj: { id: '285', typ: '110', val: 'Contract A', up: '1' },
+  metadata: objectListResponse.type,
+  reqs: {
+    320: 'ACME',
+    410: 'Urgent, External',
+    411: '3',
+  },
+  arr_type: objectListResponse.arr_type,
+}
+
+const metadataResponse = {
+  type: objectListResponse.type,
+  reqs: [
+    { id: '320', val: 'Client', type: '3', ref: '200', reft: '200', attrs: '' },
+    { id: '410', val: 'Tags', type: '3', ref: '210', reft: '210', attrs: ':MULTI:' },
+    { id: '411', val: 'Tasks', type: '4', attrs: '' },
+  ],
+}
+
+const dictionaryResponse = {
+  110: 'Contracts',
+  200: 'Clients',
+  210: 'Tags',
+}
+
 /**
  * Console error collector.
  * Ignores known noise: deprecation warnings, source-map warnings,
@@ -37,48 +112,67 @@ function collectErrors(page: Page): ConsoleMessage[] {
 }
 
 /** Wait for the page to settle after navigation */
-async function waitForSettle(page: Page, ms = 3000) {
+async function waitForSettle(page: Page, ms = 1500) {
   // Wait for network to be idle OR timeout
   await Promise.race([
     page.waitForLoadState('networkidle').catch(() => {}),
     page.waitForTimeout(ms),
   ])
   // Extra settle time for Vue rendering
-  await page.waitForTimeout(500)
+  await page.waitForTimeout(250)
 }
 
-// ─── Login helper ────────────────────────────────────────────────
-async function login(page: Page) {
-  await page.goto('/login')
-  await page.waitForSelector('#database')
+async function installApiMocks(page: Page) {
+  await page.route('**/api/my/**', async (route) => {
+    const url = new URL(route.request().url())
+    const path = url.pathname
 
-  // Show server selector
-  const serverToggle = page.locator('a:has-text("сервер"), a:has-text("server")')
-  if (await serverToggle.count() > 0) {
-    await serverToggle.first().click()
-    await page.waitForTimeout(300)
-  }
+    let body: unknown = {}
+    if (path.includes('/dict')) {
+      body = dictionaryResponse
+    } else if (path.includes('/metadata/')) {
+      body = metadataResponse
+    } else if (path.includes('/edit_obj/')) {
+      body = objectEditResponse
+    } else if (path.includes('/object/285')) {
+      body = {}
+    } else if (path.includes('/object/')) {
+      body = objectListResponse
+    } else if (path.includes('/xsrf')) {
+      body = { token: 'test-token', _xsrf: 'test-xsrf', id: '1', user: 'tester' }
+    }
 
-  // Fill database
-  const dbInput = page.locator('#database')
-  await dbInput.clear()
-  await dbInput.fill('my')
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify(body),
+    })
+  })
+}
 
-  // Fill login
-  const loginInput = page.locator('#login')
-  await loginInput.clear()
-  await loginInput.fill('d')
-
-  // Fill password — PrimeVue Password component wraps an input
-  const pwdInput = page.locator('#password').locator('input').first()
-  await pwdInput.clear()
-  await pwdInput.fill('d')
-
-  // Submit
-  await page.locator('button[type="submit"]').click()
-
-  // Wait for redirect to /my/
-  await page.waitForURL('**/my/**', { timeout: 15_000 })
+async function authenticateForRoutes(page: Page) {
+  await installApiMocks(page)
+  await page.addInitScript(() => {
+    const session = {
+      database: 'my',
+      token: 'test-token',
+      xsrfToken: 'test-xsrf',
+      userId: '1',
+      userName: 'tester',
+      userRole: 'admin',
+      authServer: 'http://localhost:3000',
+      authDatabase: 'my',
+    }
+    localStorage.setItem('integram_server', 'http://localhost:3000')
+    localStorage.setItem('integram_session', JSON.stringify(session))
+    localStorage.setItem('token', 'test-token')
+    localStorage.setItem('_xsrf', 'test-xsrf')
+    localStorage.setItem('user', 'tester')
+    localStorage.setItem('id', '1')
+    localStorage.setItem('db', 'my')
+  })
+  await page.goto('/my/')
+  await page.waitForURL('**/my/**')
 }
 
 // ─── Tests ───────────────────────────────────────────────────────
@@ -90,8 +184,7 @@ test.describe('Route smoke tests', () => {
 
   test.beforeAll(async ({ browser }) => {
     page = await browser.newPage()
-    // Login once, reuse session for all route tests
-    await login(page)
+    await authenticateForRoutes(page)
   })
 
   test.afterAll(async () => {
@@ -173,16 +266,17 @@ test.describe('Route smoke tests', () => {
   })
 
   // 6. /my/object/{typeId}
-  test('6. /my/object/{typeId} loads without errors', async () => {
+  test('6. /my/object/{typeId} deep link loads without errors', async () => {
     const id = typeId || '1'
     const errors = collectErrors(page)
     await page.goto(`/my/object/${id}`)
     await waitForSettle(page)
+    await expect(page).toHaveURL(new RegExp(`/my/object/${id}(?:[?#].*)?$`))
     expect(errors.map(e => e.text())).toEqual([])
   })
 
   // 7. /my/edit_obj/{objectId} — extract objectId from object view
-  test('7. /my/edit_obj/{objectId} loads without errors', async () => {
+  test('7. /my/edit_obj/{objectId} deep link loads without errors', async () => {
     // Navigate to object view to find an objectId
     const id = typeId || '1'
     await page.goto(`/my/object/${id}`)
@@ -213,6 +307,7 @@ test.describe('Route smoke tests', () => {
     const errors = collectErrors(page)
     await page.goto(`/my/edit_obj/${objectId}`)
     await waitForSettle(page)
+    await expect(page).toHaveURL(new RegExp(`/my/edit_obj/${objectId}(?:[?#].*)?$`))
     expect(errors.map(e => e.text())).toEqual([])
   })
 
