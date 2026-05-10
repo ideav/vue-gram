@@ -3,95 +3,97 @@
     <!-- Header with Navigation and Actions -->
     <div class="report-header mb-3">
       <table class="w-full">
-        <tr>
-          <td class="text-left" style="width: 15%">
-            <div class="flex gap-2 align-items-center">
-              <Button
-                icon="fi fi-rr-home"
-                @click="goHome"
-                text
-                size="small"
-                severity="secondary"
-                title="На главную"
-              />
-              <Button
-                icon="fi fi-rr-file-export"
-                label=".HTML"
-                @click="exportToHTML"
-                size="small"
-                outlined
-                class="export-btn"
-                title="Экспорт в HTML"
-              />
-              <Button
-                icon="fi fi-rr-file-excel"
-                label=".XLS"
-                @click="exportToExcel"
-                size="small"
-                outlined
-                class="export-btn"
-                severity="success"
-                title="Экспорт в Excel"
-              />
-            </div>
-          </td>
-          <td class="text-center" style="width: 70%">
-            <h4 class="m-0">{{ reportTitle }}</h4>
-          </td>
-          <td class="text-right" style="width: 15%">
-            <div class="flex gap-2 align-items-center justify-content-end">
-              <Button
-                icon="fi fi-rr-arrows-alt-v"
-                @click="toggleInfiniteScroll"
-                :outlined="!infiniteScrollEnabled"
-                rounded
-                size="small"
-                :title="infiniteScrollEnabled ? 'Infinite Scroll (вкл)' : 'Обычная таблица'"
-                :class="{ 'button-on': infiniteScrollEnabled }"
-              />
-              <Button
-                icon="fi fi-rr-arrows-alt-h"
-                @click="toggleCompact"
-                text
-                size="small"
-                :title="compactMode ? 'Обычное представление' : 'Компактное представление'"
-              />
-              <Button
-                icon="fi fi-rr-filter"
-                @click="toggleFilter"
-                text
-                size="small"
-                :title="showFilters ? 'Скрыть фильтр' : 'Показать фильтр'"
-              />
-              <Button
-                v-show="showFilters && hasFilters"
-                id="refresh-btn"
-                icon="fi fi-rr-refresh"
-                @click="applyFilters"
-                size="small"
-                severity="primary"
-                :title="'Перестроить отчет по заданному фильтру'"
-              />
-              <Button
-                icon="fi fi-rr-refresh"
-                @click="refreshReport"
-                :loading="loading"
-                outlined
-                rounded
-                size="small"
-                :title="'Обновить данные'"
-              />
-              <Button
-                icon="fi fi-rr-cross-circle"
-                @click="clearFiltersAndRefresh"
-                text
-                size="small"
-                severity="danger"
-                :title="'Очистить фильтр и перезапустить отчет'"
-              />
-            </div>
-          </td>
-        </tr>
+        <tbody>
+          <tr>
+            <td class="text-left" style="width: 15%">
+              <div class="flex gap-2 align-items-center">
+                <Button
+                  icon="fi fi-rr-home"
+                  @click="goHome"
+                  text
+                  size="small"
+                  severity="secondary"
+                  title="На главную"
+                />
+                <Button
+                  icon="fi fi-rr-file-export"
+                  label=".HTML"
+                  @click="exportToHTML"
+                  size="small"
+                  outlined
+                  class="export-btn"
+                  title="Экспорт в HTML"
+                />
+                <Button
+                  icon="fi fi-rr-file-excel"
+                  label=".XLS"
+                  @click="exportToExcel"
+                  size="small"
+                  outlined
+                  class="export-btn"
+                  severity="success"
+                  title="Экспорт в Excel"
+                />
+              </div>
+            </td>
+            <td class="text-center" style="width: 70%">
+              <h4 class="m-0">{{ reportTitle }}</h4>
+            </td>
+            <td class="text-right" style="width: 15%">
+              <div class="flex gap-2 align-items-center justify-content-end">
+                <Button
+                  icon="fi fi-rr-arrows-alt-v"
+                  @click="toggleInfiniteScroll"
+                  :outlined="!infiniteScrollEnabled"
+                  rounded
+                  size="small"
+                  :title="infiniteScrollEnabled ? 'Infinite Scroll (вкл)' : 'Обычная таблица'"
+                  :class="{ 'button-on': infiniteScrollEnabled }"
+                />
+                <Button
+                  icon="fi fi-rr-arrows-alt-h"
+                  @click="toggleCompact"
+                  text
+                  size="small"
+                  :title="compactMode ? 'Обычное представление' : 'Компактное представление'"
+                />
+                <Button
+                  icon="fi fi-rr-filter"
+                  @click="toggleFilter"
+                  text
+                  size="small"
+                  :title="showFilters ? 'Скрыть фильтр' : 'Показать фильтр'"
+                />
+                <Button
+                  v-show="showFilters && hasFilters"
+                  id="refresh-btn"
+                  icon="fi fi-rr-refresh"
+                  @click="applyFilters"
+                  size="small"
+                  severity="primary"
+                  :title="'Перестроить отчет по заданному фильтру'"
+                />
+                <Button
+                  icon="fi fi-rr-refresh"
+                  @click="refreshReport"
+                  :loading="loading"
+                  outlined
+                  rounded
+                  size="small"
+                  :title="'Обновить данные'"
+                />
+                <Button
+                  icon="fi fi-rr-cross-circle"
+                  @click="clearFiltersAndRefresh"
+                  text
+                  size="small"
+                  severity="danger"
+                  :title="'Очистить фильтр и перезапустить отчет'"
+                />
+              </div>
+            </td>
+          </tr>
+        </tbody>
       </table>
     </div>
 
@@ -234,10 +236,19 @@ const props = defineProps({
   title: {
     type: String,
     default: null
+  },
+  initialFilters: {
+    type: Object,
+    default: () => ({})
+  },
+  filterMode: {
+    type: String,
+    default: 'client',
+    validator: value => ['client', 'server'].includes(value)
   }
 });
 
-const emit = defineEmits(['refresh', 'apply-filters', 'go-home', 'export']);
+const emit = defineEmits(['refresh', 'apply-filters', 'clear-filters', 'go-home', 'export']);
 
 const toast = useToast();
 const { setTimeout: setTimerTimeout } = useTimer();
@@ -257,10 +268,15 @@ const pageSize = ref(50);
 const currentPage = ref(1);
 
 // Initialize filters for all columns
-function initializeFilters() {
+function initializeFilters(seed = props.initialFilters) {
   const filterObj = {};
   props.columns.forEach(col => {
-    filterObj[col.field] = { from: '', to: '' };
+    const field = col.field;
+    const seeded = seed?.[field] || seed?.[col.id] || {};
+    filterObj[field] = {
+      from: seeded.from || '',
+      to: seeded.to || ''
+    };
   });
   filters.value = filterObj;
 }
@@ -275,6 +291,10 @@ const hasFilters = computed(() => {
 });
 
 const filteredData = computed(() => {
+  if (props.filterMode === 'server') {
+    return props.reportData;
+  }
+
   if (!hasFilters.value) {
     return props.reportData;
   }
@@ -341,7 +361,7 @@ function adjustInputSize(event, field, type) {
 }
 
 function applyFilters() {
-  emit('apply-filters', filters.value);
+  emit('apply-filters', JSON.parse(JSON.stringify(filters.value)));
   toast.add({
     severity: 'success',
     summary: 'Фильтр применен',
@@ -352,7 +372,11 @@ function applyFilters() {
 
 function clearFiltersAndRefresh() {
   initializeFilters();
-  emit('refresh');
+  if (props.filterMode === 'server') {
+    emit('clear-filters');
+  } else {
+    emit('refresh');
+  }
   toast.add({
     severity: 'info',
     summary: 'Фильтр сброшен',
@@ -611,6 +635,10 @@ onMounted(() => {
 
 // Watch for column changes to reinitialize filters
 watch(() => props.columns, () => {
+  initializeFilters();
+}, { deep: true });
+
+watch(() => props.initialFilters, () => {
   initializeFilters();
 }, { deep: true });
 </script>

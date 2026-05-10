@@ -29,6 +29,14 @@ class IntegramService {
     integramApiClient.saveSession()
   }
 
+  loadSession() {
+    return integramApiClient.loadSession()
+  }
+
+  isAuthenticated() {
+    return integramApiClient.isAuthenticated()
+  }
+
   async getObjects(typeId, filters = {}) {
     return integramApiClient.getObjectList(typeId, filters);
   }

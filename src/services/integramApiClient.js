@@ -519,6 +519,27 @@ export class IntegramApiClient {
     }
   }
 
+  async getJson(endpoint, params = {}, jsonFlag = 'JSON_KV') {
+    try {
+      if (!this.isAuthenticated() && endpoint !== 'xsrf') {
+        throw new Error('Not authenticated. Call authenticate() first.')
+      }
+
+      const url = this.buildURL(endpoint)
+      const headers = this.getAuthHeaders(this.database)
+
+      const response = await axios.get(url, {
+        params: { [jsonFlag]: '', ...params },
+        headers,
+        timeout: 30000
+      })
+
+      return response.data
+    } catch (error) {
+      throw this.handleError(error)
+    }
+  }
+
   async post(endpoint, data = {}, options = {}) {
     try {
       if (!this.isAuthenticated()) {
@@ -543,6 +564,41 @@ export class IntegramApiClient {
 
       const response = await axios.post(url, postData, {
         params: { JSON_KV: '' },
+        headers,
+        timeout: 30000,
+        ...options
+      })
+
+      return response.data
+    } catch (error) {
+      throw this.handleError(error)
+    }
+  }
+
+  async postJson(endpoint, data = {}, jsonFlag = 'JSON_KV', options = {}) {
+    try {
+      if (!this.isAuthenticated()) {
+        throw new Error('Not authenticated. Call authenticate() first.')
+      }
+
+      const url = this.buildURL(endpoint)
+      const postData = new URLSearchParams()
+      postData.append('_xsrf', this.xsrfToken)
+
+      for (const [key, value] of Object.entries(data)) {
+        if (value !== null && value !== undefined) {
+          postData.append(key, value)
+        }
+      }
+
+      const authHeaders = this.getAuthHeaders(this.database)
+      const headers = {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        ...authHeaders
+      }
+
+      const response = await axios.post(url, postData, {
+        params: { [jsonFlag]: '' },
         headers,
         timeout: 30000,
         ...options
@@ -699,10 +755,15 @@ export class IntegramApiClient {
   }
 
   async executeReport(reportId, params = {}) {
-    if (params._m_confirmed) {
-      return this.post(`report/${reportId}`, params)
+    const { _jsonFormat, ...requestParams } = params || {}
+    const jsonFlag = _jsonFormat || 'JSON'
+    const endpoint = `report/${encodeURIComponent(String(reportId))}`
+
+    if (requestParams._m_confirmed) {
+      return this.postJson(endpoint, requestParams, jsonFlag)
     }
-    return this.get(`report/${reportId}`, params)
+
+    return this.getJson(endpoint, requestParams, jsonFlag)
   }
 
   async getDirAdmin(path = '') {
