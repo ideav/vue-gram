@@ -108,7 +108,9 @@ onMounted(async () => {
     sessionData.value = {
       sessionId: authInfo.token,
       database: authInfo.database || database.value,
-      user: authInfo.user
+      user: authInfo.userName,
+      userRole: authInfo.userRole,
+      grants: authInfo.grants
     }
 
     sessionReady.value = true

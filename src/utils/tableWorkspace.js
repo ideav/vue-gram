@@ -84,6 +84,14 @@ export function normalizeFolderConfig(rawConfig) {
 }
 
 export function normalizeTableList(payload) {
+  if (payload?.terms) {
+    return normalizeTableList(payload.terms)
+  }
+
+  if (payload?.termById && Object.keys(payload.termById).length > 0) {
+    return normalizeTableList(payload.termById)
+  }
+
   if (Array.isArray(payload)) {
     return payload
       .map(table => ({

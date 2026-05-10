@@ -20,6 +20,9 @@ import reportFixture from '../__fixtures__/integramApi/report-json.json'
 import referenceOptionsFixture from '../__fixtures__/integramApi/reference-options.json'
 import mNewErrorFixture from '../__fixtures__/integramApi/m-new-error.json'
 import mSetErrorFixture from '../__fixtures__/integramApi/m-set-error.json'
+import editTypesFixture from '../__fixtures__/integramApi/edit-types.json'
+import typeMetadataFixture from '../__fixtures__/integramApi/type-metadata.json'
+import ddlErrorFixture from '../__fixtures__/integramApi/ddl-error.json'
 import { INTEGRAM_API_CONTRACTS } from '../integramApiContracts'
 import { integramApiFixtures } from '../__fixtures__/integramApi'
 
@@ -326,6 +329,54 @@ describe('IntegramApiClient', () => {
     expect(axios.get.mock.calls[0][1].params).toEqual({ JSON_KV: '' })
   })
 
+  it('uses the legacy JSON contracts for dictionary/type editor metadata and DDL mutations', async () => {
+    axios.get
+      .mockResolvedValueOnce({ data: editTypesFixture })
+      .mockResolvedValueOnce({ data: typeMetadataFixture })
+    axios.post.mockResolvedValue({ data: { obj: '300' } })
+
+    await client.getTypeEditorData()
+    await client.getTypeMetadata(300)
+    await client.createType('Invoices', 3, true)
+    await client.saveType(300, 'Contracts', 3, false)
+    await client.createTypeReference(200)
+    await client.addRequisite(300, 200)
+    await client.saveRequisiteAlias(701, 'Customer', 300)
+    await client.saveRequisiteDefaultValue(701, '[USER_ID]', 300)
+    await client.toggleRequisiteNull(701, 300)
+
+    expect(axios.get.mock.calls[0][0]).toBe('https://app.integram.io/api/my/edit_types')
+    expect(axios.get.mock.calls[0][1].params).toEqual({ JSON: '' })
+    expect(axios.get.mock.calls[1][0]).toBe('https://app.integram.io/api/my/metadata/300')
+    expect(axios.get.mock.calls[1][1].params).toEqual({ JSON: '' })
+
+    expect(axios.post.mock.calls[0][0]).toBe('https://app.integram.io/api/my/_d_new')
+    expect(axios.post.mock.calls[0][1].get('val')).toBe('Invoices')
+    expect(axios.post.mock.calls[0][1].get('t')).toBe('3')
+    expect(axios.post.mock.calls[0][1].get('unique')).toBe('1')
+    expect(axios.post.mock.calls[0][2].params).toEqual({ JSON: '' })
+
+    expect(axios.post.mock.calls[1][0]).toBe('https://app.integram.io/api/my/_d_save/300')
+    expect(axios.post.mock.calls[1][1].get('val')).toBe('Contracts')
+    expect(axios.post.mock.calls[1][1].get('t')).toBe('3')
+    expect(axios.post.mock.calls[1][1].get('unique')).toBeNull()
+    expect(axios.post.mock.calls[1][2].params).toEqual({ JSON: '' })
+
+    expect(axios.post.mock.calls[2][0]).toBe('https://app.integram.io/api/my/_d_ref/200')
+    expect(axios.post.mock.calls[2][2].params).toEqual({ JSON: '' })
+    expect(axios.post.mock.calls[3][0]).toBe('https://app.integram.io/api/my/_d_req/300')
+    expect(axios.post.mock.calls[3][1].get('t')).toBe('200')
+    expect(axios.post.mock.calls[3][2].params).toEqual({ JSON: '' })
+    expect(axios.post.mock.calls[4][0]).toBe('https://app.integram.io/api/my/_d_alias/701')
+    expect(axios.post.mock.calls[4][1].get('val')).toBe('Customer')
+    expect(axios.post.mock.calls[4][2].params).toEqual({ JSON: '', up: '300' })
+    expect(axios.post.mock.calls[5][0]).toBe('https://app.integram.io/api/my/_d_attrs/701')
+    expect(axios.post.mock.calls[5][1].get('val')).toBe('[USER_ID]')
+    expect(axios.post.mock.calls[5][2].params).toEqual({ JSON: '', up: '300' })
+    expect(axios.post.mock.calls[6][0]).toBe('https://app.integram.io/api/my/_d_null/701')
+    expect(axios.post.mock.calls[6][2].params).toEqual({ JSON: '', up: '300' })
+  })
+
   it('normalizes _m_new and _m_set backend errors into one UI error shape', async () => {
     const createError = normalizeApiError({
       response: {
@@ -358,6 +409,24 @@ describe('IntegramApiClient', () => {
     expect(setError.details).toEqual({ objectId: 5001 })
   })
 
+  it('normalizes DDL edit errors for the type editor UI', () => {
+    const ddlError = normalizeApiError({
+      response: {
+        status: 422,
+        data: ddlErrorFixture
+      }
+    })
+
+    expect(ddlError).toEqual(expect.objectContaining({
+      name: 'IntegramApiError',
+      status: 422,
+      code: 'TYPE_VALIDATION',
+      type: 'validation',
+      message: 'Type name is required'
+    }))
+    expect(ddlError.details).toEqual({ field: 'val' })
+  })
+
   it('throws normalized mutation errors when the backend returns failed JSON', async () => {
     axios.post
       .mockResolvedValueOnce({ data: mNewErrorFixture })
@@ -386,7 +455,7 @@ describe('IntegramApiClient', () => {
     })
   })
 
-  it('keeps every issue 14 API contract backed by a fixture', () => {
+  it('keeps Integram API contracts backed by fixtures', () => {
     expect(INTEGRAM_API_CONTRACTS.map(contract => contract.method)).toEqual([
       'getMetadata',
       'getTerms',
@@ -395,7 +464,20 @@ describe('IntegramApiClient', () => {
       'executeReport',
       'getReferenceOptions',
       'createObject',
-      'setObjectRequisites'
+      'setObjectRequisites',
+      'getTypeEditorData',
+      'getTypeMetadata',
+      'createType',
+      'saveType',
+      'createTypeReference',
+      'addRequisite',
+      'deleteType',
+      'deleteRequisite',
+      'saveRequisiteAlias',
+      'saveRequisiteDefaultValue',
+      'toggleRequisiteNull',
+      'toggleRequisiteMulti',
+      'moveRequisiteUp'
     ])
 
     for (const contract of INTEGRAM_API_CONTRACTS) {

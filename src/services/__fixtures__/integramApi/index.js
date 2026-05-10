@@ -8,6 +8,9 @@ import mNewSuccess from './m-new-success.json'
 import mSetSuccess from './m-set-success.json'
 import mNewError from './m-new-error.json'
 import mSetError from './m-set-error.json'
+import editTypes from './edit-types.json'
+import typeMetadata from './type-metadata.json'
+import ddlError from './ddl-error.json'
 
 export const integramApiFixtures = {
   'metadata.json': metadata,
@@ -19,7 +22,10 @@ export const integramApiFixtures = {
   'm-new-success.json': mNewSuccess,
   'm-set-success.json': mSetSuccess,
   'm-new-error.json': mNewError,
-  'm-set-error.json': mSetError
+  'm-set-error.json': mSetError,
+  'edit-types.json': editTypes,
+  'type-metadata.json': typeMetadata,
+  'ddl-error.json': ddlError
 }
 
 export default integramApiFixtures
