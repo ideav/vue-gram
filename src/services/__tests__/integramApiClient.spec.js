@@ -29,6 +29,11 @@ import ddlErrorFixture from '../__fixtures__/integramApi/ddl-error.json'
 import { INTEGRAM_API_CONTRACTS } from '../integramApiContracts'
 import { integramApiFixtures } from '../__fixtures__/integramApi'
 import { dirAdminDirectoryHtml } from '../../components/integram/__fixtures__/dirAdminFixtures'
+import {
+  migrationMetadataFixture,
+  migrationQueriesFixture,
+  migrationSettingsFixture
+} from '../../components/integram/__fixtures__/migration'
 
 vi.mock('axios', () => ({
   default: {
@@ -674,6 +679,82 @@ describe('IntegramApiClient', () => {
       add_path: '/emails'
     })
     expect(config.responseType).toBe('text')
+  })
+
+  it('loads migration catalogs through the legacy metadata, object/22, and settings endpoints', async () => {
+    axios.get
+      .mockResolvedValueOnce({ data: migrationMetadataFixture })
+      .mockResolvedValueOnce({ data: migrationQueriesFixture })
+      .mockResolvedValueOnce({ data: migrationSettingsFixture })
+
+    const tables = await client.getMigrationTables()
+    const queries = await client.getMigrationQueries()
+    const settings = await client.getMigrationSettings()
+
+    expect(tables).toContainEqual(expect.objectContaining({ id: '101', name: 'Клиенты' }))
+    expect(queries).toContainEqual(expect.objectContaining({ id: '501', name: 'Активные клиенты' }))
+    expect(settings).toContainEqual(expect.objectContaining({ id: '9001', name: 'CRM bootstrap' }))
+
+    expect(axios.get.mock.calls[0][0]).toBe('https://app.integram.io/api/my/metadata')
+    expect(axios.get.mock.calls[0][1].params).toEqual({ JSON: '' })
+    expect(axios.get.mock.calls[1][0]).toBe('https://app.integram.io/api/my/object/22')
+    expect(axios.get.mock.calls[1][1].params).toEqual({ JSON_OBJ: '', LIMIT: '0,1000' })
+    expect(axios.get.mock.calls[2][0]).toBe('https://app.integram.io/api/my/object/269')
+    expect(axios.get.mock.calls[2][1].params).toEqual({ JSON_OBJ: '', F_271: 'migration' })
+  })
+
+  it('saves migration settings with the legacy settings type and JSON payload', async () => {
+    axios.post
+      .mockResolvedValueOnce({ data: { obj: { id: '9002' } } })
+      .mockResolvedValueOnce({ data: { ok: true } })
+
+    await client.saveMigrationSettings({
+      name: 'CRM bootstrap',
+      tables: [{ id: '101', name: 'Клиенты', exportData: true, filter: 'F_401=active' }],
+      queries: [{ id: '501', name: 'Активные клиенты' }],
+      files: [{ root: 'templates', path: 'crm/dashboard.html', name: 'dashboard.html' }]
+    })
+    await client.saveMigrationSettings({
+      name: 'CRM bootstrap',
+      tables: [],
+      queries: [],
+      files: []
+    }, '9001')
+
+    expect(axios.post.mock.calls[0][0]).toBe('https://app.integram.io/api/my/_m_new/269')
+    expect(axios.post.mock.calls[0][1].get('t269')).toBe('CRM bootstrap')
+    expect(axios.post.mock.calls[0][1].get('t271')).toBe('migration')
+    expect(JSON.parse(axios.post.mock.calls[0][1].get('t273')).tables[0]).toEqual(expect.objectContaining({
+      id: '101',
+      exportData: true
+    }))
+    expect(axios.post.mock.calls[0][2].params).toEqual({ JSON: '', up: '1' })
+
+    expect(axios.post.mock.calls[1][0]).toBe('https://app.integram.io/api/my/_m_save/9001')
+    expect(axios.post.mock.calls[1][1].get('t271')).toBe('migration')
+    expect(axios.post.mock.calls[1][2].params).toEqual({ JSON: '' })
+  })
+
+  it('loads migration file content through dir_admin without JSON flags', async () => {
+    axios.get.mockResolvedValue({ data: '<a href="/my/report/501">Report</a>' })
+
+    const content = await client.getMigrationFileContent({
+      root: 'templates',
+      path: 'crm/dashboard.html'
+    })
+
+    expect(content).toContain('Report')
+    expect(axios.get).toHaveBeenCalledTimes(1)
+
+    const [url, config] = axios.get.mock.calls[0]
+    expect(url).toBe('https://app.integram.io/api/my/dir_admin')
+    expect(config.params).toEqual({
+      templates: '1',
+      add_path: '/crm',
+      gf: 'dashboard.html'
+    })
+    expect(config.responseType).toBe('text')
+    expect(config.params.JSON_KV).toBeUndefined()
   })
 
   it('normalizes _m_new and _m_set backend errors into one UI error shape', async () => {
