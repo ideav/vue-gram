@@ -113,6 +113,11 @@ const routes = [
         component: () => import('../views/integram/IntegramMyFormView.vue')
       },
       {
+        path: 'cabinet',
+        name: 'IntegramCabinet',
+        component: () => import('../views/integram/IntegramCabinetView.vue')
+      },
+      {
         path: 'upload',
         name: 'IntegramUpload',
         component: () => import('../views/integram/IntegramUploadView.vue')
