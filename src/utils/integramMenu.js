@@ -11,6 +11,7 @@ export const DEFAULT_LEGACY_MENU_DATA = Object.freeze([
   { menu_id: 'edit_types', menu_up: '', name: 'Структура', href: 'edit_types', icon: '<i class="fi fi-rr-sitemap"></i>' },
   { menu_id: 'sql', menu_up: '', name: 'SQL', href: 'sql', icon: '<i class="fi fi-rr-code"></i>' },
   { menu_id: 'smartq', menu_up: '', name: 'Умный запрос', href: 'smartq', icon: '<i class="fi fi-rr-search"></i>' },
+  { menu_id: 'calendar', menu_up: '', name: 'Календарь', href: 'calendar', icon: '<i class="fi fi-rr-calendar"></i>' },
   { menu_id: 'report', menu_up: '', name: 'Запросы', href: 'report', icon: '<i class="fi fi-rr-chart-histogram"></i>' },
   { menu_id: 'form', menu_up: '', name: 'Формы', href: 'form', icon: '<i class="fi fi-rr-file"></i>' },
   { menu_id: 'myform', menu_up: '', name: 'Мои формы', href: 'myform', icon: '<i class="fi fi-rr-settings-sliders"></i>' },

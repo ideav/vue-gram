@@ -58,25 +58,26 @@ async function fulfillJson(route: Route, body: unknown) {
 
 async function seedSession(page: Page) {
   await page.addInitScript(() => {
-    const server = window.location.origin
     localStorage.setItem('integram_session', JSON.stringify({
       version: 2,
-      server,
+      server: 'https://app.integram.io',
       currentDatabase: 'my',
       databases: {
         my: {
           token: 'auth-token',
           xsrfToken: 'xsrf-token',
           userId: '1',
-          userName: 'tester',
+          userName: 'admin',
           userRole: 'admin',
-          ownedDatabases: [],
-        },
-      },
+          ownedDatabases: []
+        }
+      }
     }))
-    localStorage.setItem('integram_server', server)
+    localStorage.setItem('integram_server', 'https://app.integram.io')
     localStorage.setItem('token', 'auth-token')
     localStorage.setItem('_xsrf', 'xsrf-token')
+    localStorage.setItem('user', 'admin')
+    localStorage.setItem('id', '1')
     localStorage.setItem('db', 'my')
   })
 }
@@ -89,7 +90,7 @@ test('SQL query builder loads report, saves a column setting, and refreshes prev
     token: 'auth-token',
     _xsrf: 'xsrf-token',
     id: '1',
-    user: 'tester',
+    user: 'admin',
     role: 'admin'
   }))
   await page.route(/\/(?:api\/)?my\/edit_obj\/900(?:\?|$)/, route => fulfillJson(route, editData))

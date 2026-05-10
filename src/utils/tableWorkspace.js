@@ -84,16 +84,6 @@ export function normalizeFolderConfig(rawConfig) {
 }
 
 export function normalizeTableList(payload) {
-  if (payload && typeof payload === 'object' && !Array.isArray(payload)) {
-    if (Array.isArray(payload.terms)) {
-      return normalizeTableList(payload.terms)
-    }
-
-    if (payload.termById && typeof payload.termById === 'object') {
-      return normalizeTableList(payload.termById)
-    }
-  }
-
   if (Array.isArray(payload)) {
     return payload
       .map(table => ({
@@ -106,7 +96,32 @@ export function normalizeTableList(payload) {
   }
 
   if (payload && typeof payload === 'object') {
+    if (Array.isArray(payload.terms)) {
+      return normalizeTableList(payload.terms)
+    }
+
+    if (payload.termById && typeof payload.termById === 'object' && Object.keys(payload.termById).length > 0) {
+      const termsById = new Map(
+        Array.isArray(payload.terms)
+          ? payload.terms.map(term => [String(term.id), term])
+          : []
+      )
+
+      return Object.entries(payload.termById)
+        .map(([id, name]) => {
+          const source = termsById.get(String(id)) || {}
+          return {
+            id: String(id),
+            type: Number(source.type ?? source.t ?? source.baseType ?? 3),
+            name: String(name ?? source.name ?? source.val ?? '').replace(/&nbsp;/g, ' ').trim()
+          }
+        })
+        .filter(table => table.id && table.name)
+        .sort(compareTablesByName)
+    }
+
     return Object.entries(payload)
+      .filter(([id]) => !['terms', 'termById', 'baseTypes', 'base_types'].includes(id))
       .map(([id, name]) => ({
         id: String(id),
         type: 3,

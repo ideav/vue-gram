@@ -5,7 +5,7 @@ type Grants = Record<string, string>
 
 async function seedSession(page: Page, grants: Grants) {
   await page.addInitScript(({ seededGrants }) => {
-    const server = window.location.origin
+    const server = 'https://app.integram.io'
     const session = {
       version: 2,
       server,
@@ -33,7 +33,7 @@ async function mockTablesApi(page: Page) {
   const createdTables: Array<Record<string, string>> = []
   const savedSettings: Array<string> = []
 
-  await page.route(/\/(?:api\/)?my\/.*/, async (route: Route) => {
+  await page.route(/\/(?:api\/)?my\//, async (route: Route) => {
     const request = route.request()
     if (request.resourceType() === 'document') {
       await route.continue()
