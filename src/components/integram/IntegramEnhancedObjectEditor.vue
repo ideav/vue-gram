@@ -221,8 +221,8 @@
                       <InputNumber
                         :id="`req_${req.id}`"
                         v-model="formData[`t${req.id}`]"
-                        :min-fraction-digits="req.baseType === 'NUMBER' ? 2 : 0"
-                        :max-fraction-digits="req.baseType === 'NUMBER' ? 2 : 0"
+                        :min-fraction-digits="req.baseType === 'SIGNED' ? 2 : 0"
+                        :max-fraction-digits="req.baseType === 'SIGNED' ? 2 : 0"
                         class="w-full"
                       />
                     </div>
@@ -408,8 +408,8 @@
                 <InputNumber
                   :id="`req_${req.id}`"
                   v-model="formData[`t${req.id}`]"
-                  :min-fraction-digits="req.baseType === 'NUMBER' ? 2 : 0"
-                  :max-fraction-digits="req.baseType === 'NUMBER' ? 2 : 0"
+                  :min-fraction-digits="req.baseType === 'SIGNED' ? 2 : 0"
+                  :max-fraction-digits="req.baseType === 'SIGNED' ? 2 : 0"
                   class="w-full"
                 />
               </div>
@@ -512,6 +512,12 @@ import { useRoute, useRouter } from 'vue-router'
 import { useToast } from 'primevue/usetoast'
 import integramService from '@/services/integramService'
 import integramApiClient from '@/services/integramApiClient'
+import {
+  getIntegramArrayTypeId,
+  getIntegramBaseType,
+  isIntegramArrayRequisite,
+  isIntegramReferenceRequisite
+} from '@/utils/integramFieldTypes'
 
 // Import PrimeVue components
 
@@ -566,6 +572,10 @@ const hasArrayFields = computed(() => {
 async function loadObject() {
   try {
     loading.value = true
+    formData.value = {}
+    requisites.value = []
+    tabs.value = []
+    customButtons.value = []
 
     // Initialize integramService session from integramApiClient if available
     const authInfo = integramApiClient.getAuthInfo()
@@ -606,12 +616,10 @@ async function loadObject() {
     if (metaData && metaData.reqs) {
       // First pass: parse all requisites
       const requisitesData = metaData.reqs.map(req => {
-        // Detect field type based on Integram type codes:
-        // Type '4' = ARRAY (subordinate table)
-        // Type with req.ref = REFERENCE (foreign key to another table)
-        // IMPORTANT: Check isArray FIRST, because ARRAY fields might also have req.ref
-        const isArray = req.type === '4' // Array type
-        const isReference = !isArray && (req.ref !== undefined)
+        // Detect array metadata before references because subordinate fields can
+        // also expose req.ref in legacy responses.
+        const isArray = isIntegramArrayRequisite(req, arrTypeMapping)
+        const isReference = isIntegramReferenceRequisite(req, arrTypeMapping)
 
         // Get current value and parse it properly
         let currentValue = null
@@ -763,7 +771,7 @@ async function loadObject() {
         let refTypeId = null
         if (isArray) {
           // For ARRAY fields: Check arr_type mapping first, then fallbacks
-          refTypeId = arrTypeMapping[req.id] || req.arr || req.arr_id || req.ref || null
+          refTypeId = getIntegramArrayTypeId(req, arrTypeMapping)
         } else {
           // For REFERENCE fields: Use req.ref
           refTypeId = req.ref || null
@@ -787,7 +795,7 @@ async function loadObject() {
         const requisiteData = {
           id: req.id,
           name: req.val,
-          baseType: getBaseType(req.type),
+          baseType: getIntegramBaseType(req.type),
           required: req.attrs && req.attrs.includes(':!NULL:'),
           multi: req.attrs && req.attrs.includes(':MULTI:'),
           isReference,
@@ -840,6 +848,12 @@ async function loadObject() {
 
     // Initialize form data
     if (response.reqs) {
+      const reqById = new Map(requisites.value.map(req => [String(req.id), req]))
+
+      const setFormValue = (reqId, value) => {
+        formData.value[`t${reqId}`] = normalizeFormValue(reqById.get(String(reqId)), value)
+      }
+
       for (const [reqId, value] of Object.entries(response.reqs)) {
         // Parse value properly - handle objects, arrays, and primitives
         // The API returns: {"type":"...", "order":"...", "value":"actual_value", "base":"...", "arr":"...", "arr_type":...}
@@ -849,13 +863,13 @@ async function loadObject() {
         if (Array.isArray(value)) {
           // For multiselect, extract the referenced object IDs (not the multiselect item IDs)
           // The array structure is: [{id: msItemId, ref: refObjectId, val: displayName}, ...]
-          formData.value[`t${reqId}`] = value.map(v => {
+          setFormValue(reqId, value.map(v => {
             if (typeof v === 'object' && v !== null) {
               // Extract based on priority: ref (for multiselect), id, value
               return v.ref || ('value' in v ? v.value : ('id' in v && 'val' in v ? v.id : ('val' in v ? v.val : ('id' in v ? v.id : JSON.stringify(v)))))
             }
             return v
-          })
+          }))
 
         }
         else if (value !== null && typeof value === 'object') {
@@ -863,36 +877,36 @@ async function loadObject() {
           // Format: {multiselect: {id: [...], val: [...], ref_val: [...]}, ...}
           if ('multiselect' in value && value.multiselect && value.multiselect.val && Array.isArray(value.multiselect.val)) {
             // Extract referenced object IDs (not multiselect item IDs)
-            formData.value[`t${reqId}`] = value.multiselect.val
+            setFormValue(reqId, value.multiselect.val)
           }
           // Check for 'value' property first (Integram API standard format)
           else if ('value' in value) {
-            formData.value[`t${reqId}`] = value.value
+            setFormValue(reqId, value.value)
           }
           // For REF fields with both 'id' and 'val', use the ID (val is the display name)
           // Format: {id: 123, val: "Display Name"}
           else if ('id' in value && 'val' in value) {
             // Use the ID for the form data (this is what gets saved)
-            formData.value[`t${reqId}`] = value.id
+            setFormValue(reqId, value.id)
           }
           // If it's an object with 'val' property only (alternative format), use that
           else if ('val' in value) {
-            formData.value[`t${reqId}`] = value.val
+            setFormValue(reqId, value.val)
           }
           // If it's an object with 'id' property only (reference), use the ID
           else if ('id' in value) {
-            formData.value[`t${reqId}`] = value.id
+            setFormValue(reqId, value.id)
           }
           // Otherwise, log warning and use empty string
           else {
             if (import.meta.env.DEV) {
               console.warn(`Unknown value format for requisite ${reqId}:`, value)
             }
-            formData.value[`t${reqId}`] = ''
+            setFormValue(reqId, '')
           }
         } else {
           // Primitive value - use as is
-          formData.value[`t${reqId}`] = value
+          setFormValue(reqId, value)
         }
       }
     }
@@ -936,27 +950,6 @@ async function loadObject() {
   }
 }
 
-function getBaseType(typeCode) {
-  const types = {
-    '3': 'SHORT',
-    '8': 'CHARS',
-    '9': 'DATE',
-    '4': 'DATETIME',
-    '13': 'SIGNED',
-    '14': 'NUMBER',
-    '11': 'BOOLEAN',
-    '12': 'MEMO',
-    '10': 'FILE',
-    '15': 'HTML',
-    '6': 'PWD',
-    '16': 'CALCULATABLE',
-    '17': 'BUTTON',
-    '18': 'PATH',
-    '19': 'REPORT_COLUMN'
-  }
-  return types[typeCode] || 'SHORT'
-}
-
 function getHintFromAttrs(attrs) {
   if (!attrs) return ''
 
@@ -965,6 +958,25 @@ function getHintFromAttrs(attrs) {
   if (attrs.includes('[NOW]')) return 'По умолчанию: текущее время'
 
   return ''
+}
+
+function normalizeBooleanValue(value) {
+  return value === true ||
+    value === 1 ||
+    value === '1' ||
+    value === 'true' ||
+    value === 'TRUE' ||
+    value === 'X' ||
+    value === 'x' ||
+    value === 'on'
+}
+
+function normalizeFormValue(req, value) {
+  if (req?.baseType === 'BOOLEAN') {
+    return normalizeBooleanValue(value)
+  }
+
+  return value
 }
 
 function getRequisitesForTab(tabId) {
@@ -1102,7 +1114,7 @@ async function saveObject() {
     // Save
     const result = await integramService.saveObject(props.objectId, formData.value)
 
-    if (result.id) {
+    if (result && !result.failed) {
       toast.add({
         severity: 'success',
         summary: 'Объект сохранен',
@@ -1130,8 +1142,8 @@ async function duplicateObject() {
     const result = await integramService.createObject(
       objectData.value.typ,
       `${objectData.value.val} (copy)`,
-      objectData.value.up,
-      formData.value
+      formData.value,
+      objectData.value.up || null
     )
 
     if (result.id) {
@@ -1143,7 +1155,7 @@ async function duplicateObject() {
       })
 
       // Navigate to new object
-      router.push(`/${props.database}/edit/${result.id}`)
+      router.push(`/${props.database}/edit_obj/${result.id}`)
     }
   } catch (error) {
     toast.add({
@@ -1185,7 +1197,7 @@ async function deleteObject() {
 async function deleteFile(reqId) {
   try {
     await integramService.setRequisites(props.objectId, {
-      [`t${reqId}`]: ''
+      [reqId]: ''
     })
 
     toast.add({
