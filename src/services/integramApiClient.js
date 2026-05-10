@@ -104,6 +104,271 @@ export function formatRequisiteValue(value) {
   return value
 }
 
+export class IntegramApiError extends Error {
+  constructor({
+    message,
+    code = 'INTEGRAM_API_ERROR',
+    status = null,
+    type = 'unknown',
+    details = null,
+    retryable = false,
+    canRetry = false,
+    raw = null
+  }) {
+    super(message)
+    this.name = 'IntegramApiError'
+    this.code = code
+    this.status = status
+    this.type = type
+    this.details = details
+    this.retryable = retryable
+    this.canRetry = canRetry
+    this.raw = raw
+  }
+}
+
+function toArray(value) {
+  return Array.isArray(value) ? value : []
+}
+
+function toOptionalNumber(value) {
+  if (value === null || value === undefined || value === '') return value
+  const numberValue = Number(value)
+  return Number.isNaN(numberValue) ? value : numberValue
+}
+
+function normalizeType(type) {
+  return {
+    ...type,
+    id: toOptionalNumber(type.id),
+    name: type.name ?? type.val ?? ''
+  }
+}
+
+function normalizeRequisite(requisite) {
+  return {
+    ...requisite,
+    id: toOptionalNumber(requisite.id),
+    typeId: toOptionalNumber(requisite.typeId ?? requisite.typ),
+    name: requisite.name ?? requisite.val ?? ''
+  }
+}
+
+export function normalizeMetadataResponse(data = {}) {
+  const types = toArray(data.types).map(normalizeType)
+  const requisites = toArray(data.reqs ?? data.requisites).map(normalizeRequisite)
+
+  return {
+    ...data,
+    types,
+    reqs: requisites,
+    requisites,
+    typeById: Object.fromEntries(types.map(type => [type.id, type])),
+    requisiteById: Object.fromEntries(requisites.map(requisite => [requisite.id, requisite]))
+  }
+}
+
+export function normalizeTermsResponse(data = {}) {
+  const rawTerms = data.terms ?? {}
+  const termById = Array.isArray(rawTerms)
+    ? Object.fromEntries(rawTerms.map(term => [String(term.id), term.val ?? term.name ?? '']))
+    : { ...rawTerms }
+  const baseTypes = toArray(data.base_types ?? data.baseTypes).map(type => ({
+    id: toOptionalNumber(type.id),
+    name: type.name ?? type.val ?? ''
+  }))
+
+  return {
+    ...data,
+    termById,
+    baseTypes
+  }
+}
+
+export function normalizeObjectListResponse(data = {}) {
+  const objects = toArray(data.object ?? data.objects)
+  const objectRequisites = data.reqs ?? data.objectRequisites ?? data['&object_reqs'] ?? {}
+
+  return {
+    ...data,
+    object: objects,
+    objects,
+    reqs: objectRequisites,
+    objectRequisites,
+    reqOrder: data.req_order ?? data.reqOrder ?? [],
+    reqTypes: data.req_type ?? data.reqTypes ?? {},
+    reqBases: data.req_base ?? data.reqBases ?? {}
+  }
+}
+
+export function normalizeObjectRecordResponse(data = {}) {
+  const obj = data.obj ?? (Array.isArray(data.object) ? data.object[0] : data.object) ?? null
+  const objectId = obj?.id
+  const legacyRequisites = objectId ? data['&object_reqs']?.[objectId] : null
+  const requisites = data.reqs ?? data.requisites ?? legacyRequisites ?? {}
+
+  return {
+    ...data,
+    obj,
+    reqs: requisites,
+    requisites,
+    reqOrder: data.req_order ?? data.reqOrder ?? [],
+    reqTypes: data.req_type ?? data.reqTypes ?? {},
+    reqBases: data.req_base ?? data.reqBases ?? {}
+  }
+}
+
+function normalizeReportColumn(column, index) {
+  if (typeof column === 'string') {
+    return { id: null, name: column, type: null, format: null, index }
+  }
+
+  return {
+    ...column,
+    id: column?.id ?? null,
+    name: column?.name ?? column?.val ?? String(column?.id ?? index),
+    type: column?.type ?? null,
+    format: column?.format ?? null,
+    index
+  }
+}
+
+function buildRowsFromColumnMatrix(columns, matrix) {
+  const rowCount = matrix.reduce((max, columnValues) => {
+    return Array.isArray(columnValues) ? Math.max(max, columnValues.length) : max
+  }, 0)
+
+  return Array.from({ length: rowCount }, (_, rowIndex) => {
+    return Object.fromEntries(columns.map((column, columnIndex) => {
+      const columnValues = Array.isArray(matrix[columnIndex]) ? matrix[columnIndex] : []
+      return [column.name, columnValues[rowIndex] ?? null]
+    }))
+  })
+}
+
+export function normalizeReportResponse(data = {}) {
+  if (Array.isArray(data)) {
+    const columns = Object.keys(data[0] ?? {}).map((name, index) => normalizeReportColumn(name, index))
+    return {
+      columns,
+      data,
+      rows: data,
+      raw: data
+    }
+  }
+
+  const reportKey = Object.keys(data).find(key => key.startsWith('&rep.'))
+  const reportData = reportKey ? data[reportKey] : data
+  const columns = toArray(reportData.columns ?? reportData.col).map(normalizeReportColumn)
+  const matrix = toArray(reportData.data)
+
+  return {
+    ...data,
+    columns,
+    data: matrix,
+    rows: buildRowsFromColumnMatrix(columns, matrix)
+  }
+}
+
+export function normalizeReferenceOptionsResponse(data = {}) {
+  if (Array.isArray(data.id) && Array.isArray(data.val)) {
+    return Object.fromEntries(data.id.map((id, index) => [id, data.val[index] ?? '']))
+  }
+
+  if (data && typeof data === 'object') {
+    return Object.fromEntries(Object.entries(data)
+      .filter(([key]) => !['more', 'selected', 'r'].includes(key))
+      .map(([id, value]) => [id, typeof value === 'object' && value !== null ? value.val ?? value.name ?? '' : value]))
+  }
+
+  return {}
+}
+
+export function normalizeMutationResponse(data = {}) {
+  return {
+    ...data,
+    ok: data.ok ?? data.success ?? true,
+    objectId: toOptionalNumber(data.id ?? data.objectId)
+  }
+}
+
+function hasBackendError(data) {
+  if (!data || typeof data !== 'object') return false
+  if (data.failed) return true
+  if (data.error && data.error !== false) return true
+  if (Array.isArray(data.errors) && data.errors.length > 0) return true
+  return false
+}
+
+function getBackendErrorPayload(data) {
+  if (!data || typeof data !== 'object') return {}
+  if (data.error && typeof data.error === 'object') return data.error
+  return data
+}
+
+function getErrorType(status, error) {
+  if (error?.code === 'ECONNABORTED' || error?.message?.includes('timeout')) return 'network'
+  if (error?.code === 'ERR_NETWORK' || error?.message === 'Network Error') return 'network'
+  if (status === 401 || status === 403) return 'auth'
+  if (status === 409) return 'conflict'
+  if (status === 422 || status === 400) return 'validation'
+  if (status === 404) return 'not_found'
+  if (status === 200 && (error?.response?.data?.failed || error?.response?.data?.error)) return 'business'
+  if (status >= 500) return 'server'
+  if (status >= 400) return 'client'
+  return 'unknown'
+}
+
+function getDefaultErrorMessage(status, error) {
+  if (error?.code === 'ECONNABORTED' || error?.message?.includes('timeout')) {
+    return 'Превышено время ожидания ответа от сервера.'
+  }
+  if (error?.code === 'ERR_NETWORK' || error?.message === 'Network Error') {
+    return 'Ошибка сети. Проверьте подключение к интернету.'
+  }
+  if (status === 401) return 'Сессия истекла. Обновите страницу или войдите заново.'
+  if (status === 403) return 'Доступ запрещен.'
+  if (status === 404) return 'Ресурс не найден.'
+  if (status >= 500) return 'Ошибка сервера.'
+  return error?.message || 'Ошибка запроса к API Интеграма.'
+}
+
+export function normalizeApiError(error) {
+  if (error instanceof IntegramApiError) return error
+
+  const status = error?.response?.status ?? error?.status ?? null
+  const data = error?.response?.data
+  const payload = getBackendErrorPayload(data)
+  const payloadError = typeof payload.error === 'string' ? payload.error : null
+  const payloadFailed = typeof payload.failed === 'string' ? payload.failed : null
+  const message = payload.message ?? payloadFailed ?? payloadError ?? data?.message ?? getApiMessage(data) ?? getDefaultErrorMessage(status, error)
+  const code = payload.code ?? data?.code ?? error?.code ?? (status ? `HTTP_${status}` : 'INTEGRAM_API_ERROR')
+  const retryableStatuses = [408, 429, 500, 502, 503, 504]
+
+  return new IntegramApiError({
+    message,
+    code,
+    status,
+    type: getErrorType(status, error),
+    details: payload.details ?? data?.details ?? null,
+    retryable: retryableStatuses.includes(status) || ['ECONNABORTED', 'ERR_NETWORK'].includes(error?.code),
+    canRetry: Boolean(error?.canRetry),
+    raw: data ?? error
+  })
+}
+
+export function normalizeApiResponse(data) {
+  if (hasBackendError(data)) {
+    throw normalizeApiError({
+      response: {
+        status: 200,
+        data
+      }
+    })
+  }
+  return data
+}
+
 function normalizeRequisiteKey(reqId) {
   const key = String(reqId)
   return /^(t|b)\d+$/.test(key) ? key : `t${key}`
@@ -709,7 +974,7 @@ export class IntegramApiClient {
     this.clearSession()
   }
 
-  async get(endpoint, params = {}) {
+  async get(endpoint, params = {}, options = {}) {
     try {
       if (!this.isAuthenticated() && endpoint !== 'xsrf') {
         throw new Error('Not authenticated. Call authenticate() first.')
@@ -717,15 +982,26 @@ export class IntegramApiClient {
 
       const url = this.buildURL(endpoint)
       const headers = this.getAuthHeaders(this.database)
+      const { jsonMode = 'JSON_KV', normalize = null, params: optionParams = {}, ...axiosOptions } = options
+      const requestParams = {
+        ...(jsonMode ? { [jsonMode]: '' } : {}),
+        ...params,
+        ...optionParams
+      }
 
       const response = await axios.get(url, {
-        params: { JSON_KV: '', ...params },
-        headers,
         timeout: 30000,
-        withCredentials: this.shouldUseCredentials(url)
+        withCredentials: this.shouldUseCredentials(url),
+        ...axiosOptions,
+        params: requestParams,
+        headers: {
+          ...headers,
+          ...(axiosOptions.headers || {})
+        }
       })
 
-      return response.data
+      const data = normalizeApiResponse(response.data)
+      return normalize ? normalize(data) : data
     } catch (error) {
       throw this.handleError(error)
     }
@@ -738,12 +1014,17 @@ export class IntegramApiClient {
       }
 
       const url = this.buildURL(endpoint)
-      const postData = new URLSearchParams()
-      postData.append('_xsrf', this.xsrfToken)
+      const postData = data instanceof URLSearchParams
+        ? new URLSearchParams(data)
+        : new URLSearchParams()
 
-      for (const [key, value] of Object.entries(data)) {
-        if (value !== null && value !== undefined) {
-          postData.append(key, value)
+      if (!postData.has('_xsrf')) postData.append('_xsrf', this.xsrfToken)
+
+      if (!(data instanceof URLSearchParams)) {
+        for (const [key, value] of Object.entries(data)) {
+          if (value !== null && value !== undefined) {
+            postData.append(key, value)
+          }
         }
       }
 
@@ -752,44 +1033,52 @@ export class IntegramApiClient {
         'Content-Type': 'application/x-www-form-urlencoded',
         ...authHeaders
       }
+      const { jsonMode = 'JSON_KV', normalize = null, params: optionParams = {}, ...axiosOptions } = options
+      const requestParams = {
+        ...(jsonMode ? { [jsonMode]: '' } : {}),
+        ...optionParams
+      }
 
       const response = await axios.post(url, postData, {
-        params: { JSON_KV: '' },
-        headers,
         timeout: 30000,
         withCredentials: this.shouldUseCredentials(url),
-        ...options
+        ...axiosOptions,
+        params: requestParams,
+        headers: {
+          ...headers,
+          ...(axiosOptions.headers || {})
+        }
       })
 
-      return response.data
+      const responseData = normalizeApiResponse(response.data)
+      return normalize ? normalize(responseData) : responseData
     } catch (error) {
       throw this.handleError(error)
     }
   }
 
   handleError(error) {
+    if (error instanceof IntegramApiError) return error
     if (error.code === 'ECONNABORTED' || error.message?.includes('timeout')) {
-      return new Error('Превышено время ожидания ответа от сервера.')
+      return normalizeApiError(error)
     }
     if (error.code === 'ERR_NETWORK' || error.message === 'Network Error') {
-      return new Error('Ошибка сети. Проверьте подключение к интернету.')
+      return normalizeApiError(error)
     }
     if (error.response) {
       const { status, data } = error.response
-      const message = getApiMessage(data)
       if (status === 401) {
         this.clearDatabaseSession(this.database)
-        return new Error(message || 'Сессия истекла. Обновите страницу или войдите заново.')
       }
-      if (status === 403) return new Error(message || 'Доступ запрещен.')
-      if (status === 404) return new Error('Ресурс не найден.')
-      if (status === 500) return new Error('Ошибка сервера: ' + (message || 'Internal server error'))
-      return new Error(message || `HTTP ${status}`)
+      return normalizeApiError({ ...error, response: { ...error.response, data } })
     }
     if (error.request) {
-      return new Error('Нет ответа от сервера. Проверьте подключение к сети.')
+      return normalizeApiError({
+        ...error,
+        message: 'Нет ответа от сервера. Проверьте подключение к сети.'
+      })
     }
-    return error
+    return normalizeApiError(error)
   }
 
   isSameOriginBase(baseURL) {
@@ -860,36 +1149,36 @@ export class IntegramApiClient {
     const data = { [`t${typeId}`]: value }
     data.up = parentId || 1
     Object.assign(data, buildRequisitePayload(requisites))
-    return this.post(`_m_new/${typeId}`, data)
+    return this.post(`_m_new/${typeId}`, data, { jsonMode: 'JSON', normalize: normalizeMutationResponse })
   }
 
   async saveObject(objectId, typeId, value, requisites = {}) {
     const data = { [`t${typeId}`]: value }
     Object.assign(data, buildRequisitePayload(requisites))
-    return this.post(`_m_save/${objectId}`, data)
+    return this.post(`_m_save/${objectId}`, data, { jsonMode: 'JSON', normalize: normalizeMutationResponse })
   }
 
   async setObjectRequisites(objectId, requisites = {}) {
     const data = buildRequisitePayload(requisites)
-    return this.post(`_m_set/${objectId}`, data)
+    return this.post(`_m_set/${objectId}`, data, { jsonMode: 'JSON', normalize: normalizeMutationResponse })
   }
 
   async addMultiselectItem(objectId, requisiteId, referencedObjectId) {
     return this.post(`_m_set/${objectId}`, {
       [`t${requisiteId}`]: referencedObjectId
-    })
+    }, { jsonMode: 'JSON', normalize: normalizeMutationResponse })
   }
 
   async removeMultiselectItem(multiselectItemId) {
-    return this.post(`_m_del/${multiselectItemId}`)
+    return this.post(`_m_del/${multiselectItemId}`, {}, { jsonMode: 'JSON', normalize: normalizeMutationResponse })
   }
 
   async deleteObject(objectId) {
-    return this.post(`_m_del/${objectId}`)
+    return this.post(`_m_del/${objectId}`, {}, { jsonMode: 'JSON', normalize: normalizeMutationResponse })
   }
 
   async moveObjectUp(objectId) {
-    return this.post(`_m_up/${objectId}`)
+    return this.post(`_m_up/${objectId}`, {}, { jsonMode: 'JSON', normalize: normalizeMutationResponse })
   }
 
   // Query Operations
@@ -897,8 +1186,12 @@ export class IntegramApiClient {
     return this.get('dict')
   }
 
-  async getTerms() {
-    return this.get('terms', { JSON: '' })
+  async getMetadata(params = {}) {
+    return this.get('metadata', params, { jsonMode: 'JSON', normalize: normalizeMetadataResponse })
+  }
+
+  async getTerms(params = {}) {
+    return this.get('terms', params, { jsonMode: 'JSON', normalize: normalizeTermsResponse })
   }
 
   async getTableUiSettings() {
@@ -915,30 +1208,34 @@ export class IntegramApiClient {
     if (settingsId) {
       return this.post(`_m_save/${settingsId}`, {
         t273: settingsJson
-      })
+      }, { jsonMode: 'JSON', normalize: normalizeMutationResponse })
     }
 
     return this.post('_m_new/269?JSON&up=1', {
       t269: this.userName || this.userId || '',
       t271: 'UI',
       t273: settingsJson
-    })
+    }, { jsonMode: null, normalize: normalizeMutationResponse })
   }
 
   async getTypeMetadata(typeId) {
-    return this.get(`metadata/${typeId}`)
+    return this.get(`metadata/${typeId}`, {}, { jsonMode: 'JSON', normalize: normalizeMetadataResponse })
   }
 
   async getObjectList(typeId, params = {}) {
-    return this.get(`object/${typeId}`, params)
+    return this.get(`object/${typeId}`, params, { jsonMode: 'JSON_DATA', normalize: normalizeObjectListResponse })
   }
 
   async getObjectCount(typeId, params = {}) {
-    const result = await this.get(`object/${typeId}`, { _count: '', ...params })
+    const result = await this.get(`object/${typeId}`, { _count: '', ...params }, { jsonMode: 'JSON_DATA' })
     return {
       typeId,
       count: parseInt(result.count, 10) || 0
     }
+  }
+
+  async getObjectRecord(objectId, params = {}) {
+    return this.get(`object/${objectId}`, params, { jsonMode: 'JSON_OBJ', normalize: normalizeObjectRecordResponse })
   }
 
   async getObjectEditData(objectId) {
@@ -951,9 +1248,9 @@ export class IntegramApiClient {
 
   async executeReport(reportId, params = {}) {
     if (params._m_confirmed) {
-      return this.post(`report/${reportId}`, params)
+      return this.post(`report/${reportId}`, params, { jsonMode: 'JSON', normalize: normalizeReportResponse })
     }
-    return this.get(`report/${reportId}`, params)
+    return this.get(`report/${reportId}`, params, { jsonMode: 'JSON', normalize: normalizeReportResponse })
   }
 
   async getDirAdmin(path = '') {
@@ -964,7 +1261,7 @@ export class IntegramApiClient {
     const params = { id: objectId }
     if (restrict) params.r = restrict
     if (query) { params.type = 'query'; params.q = query }
-    return this.get(`_ref_reqs/${requisiteId}`, params)
+    return this.get(`_ref_reqs/${requisiteId}`, params, { jsonMode: 'JSON', normalize: normalizeReferenceOptionsResponse })
   }
 
   async createBackup() {

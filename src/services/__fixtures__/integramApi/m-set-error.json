@@ -1,0 +1,9 @@
+{
+  "error": {
+    "message": "Object 5001 is locked by another user",
+    "code": "OBJECT_LOCKED",
+    "details": {
+      "objectId": 5001
+    }
+  }
+}

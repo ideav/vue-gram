@@ -1,0 +1,23 @@
+{
+  "terms": {
+    "3": "SHORT",
+    "4": "DATETIME",
+    "9": "DATE",
+    "11": "BOOLEAN",
+    "13": "NUMBER"
+  },
+  "base_types": [
+    {
+      "id": 3,
+      "val": "Short text"
+    },
+    {
+      "id": 9,
+      "val": "Date"
+    },
+    {
+      "id": 13,
+      "val": "Number"
+    }
+  ]
+}
