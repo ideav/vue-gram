@@ -232,6 +232,14 @@ describe('IntegramApiClient', () => {
   it('normalizes metadata and terms fixtures into stable arrays and maps', () => {
     const metadata = normalizeMetadataResponse(metadataFixture)
     const terms = normalizeTermsResponse(termsFixture)
+    const arrayTerms = normalizeTermsResponse([
+      { id: 18, type: 3, name: 'User' },
+      { id: 422, type: 9, name: 'Payment Date' }
+    ])
+    const dictionaryTerms = normalizeTermsResponse({
+      18: 'User',
+      42: { name: 'Role' }
+    })
 
     expect(metadata.types).toHaveLength(2)
     expect(metadata.requisites[0]).toEqual(expect.objectContaining({
@@ -242,6 +250,12 @@ describe('IntegramApiClient', () => {
     }))
     expect(terms.termById['3']).toBe('SHORT')
     expect(terms.baseTypes[1]).toEqual({ id: 9, name: 'Date' })
+    expect(arrayTerms.terms).toHaveLength(2)
+    expect(arrayTerms.termById['422']).toBe('Payment Date')
+    expect(dictionaryTerms.termById).toEqual({
+      18: 'User',
+      42: 'Role'
+    })
   })
 
   it('normalizes object JSON_DATA and JSON_OBJ fixtures without dropping legacy fields', () => {
