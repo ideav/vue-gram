@@ -1,0 +1,7 @@
+{
+  "failed": "Type name is required",
+  "code": "TYPE_VALIDATION",
+  "details": {
+    "field": "val"
+  }
+}

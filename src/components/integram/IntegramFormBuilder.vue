@@ -785,10 +785,21 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { useToast } from 'primevue/usetoast'
-import axios from 'axios'
 import IntegramBreadcrumb from './IntegramBreadcrumb.vue'
+import integramApiClient from '@/services/integramApiClient'
+import {
+  FORM_BUTTON_REQS,
+  FORM_FIELD_REQS,
+  FORM_PANEL_REQS,
+  LEGACY_FORM_BUTTON_TYPE_ID,
+  LEGACY_FORM_FIELD_TYPE_ID,
+  LEGACY_FORM_PANEL_TYPE_ID,
+  LEGACY_FORM_TYPE_ID,
+  getLegacyReqValue,
+  normalizeLegacyObjectCollection
+} from '@/utils/integramForms'
 
 // PrimeVue Components
 
@@ -925,38 +936,27 @@ const buttonData = reactive({
   buttonClass: ''
 })
 
-// API helpers
-const API_BASE = computed(() => {
-  const orchestratorUrl = import.meta.env.VITE_ORCHESTRATOR_URL || 'http://localhost:8081'
-  return `${orchestratorUrl}/api/integram/${props.session.database}`
-})
-
-const getHeaders = () => ({
-  'X-Authorization': props.session.sessionId
-})
+function setDatabase() {
+  integramApiClient.setDatabase(props.session.database || integramApiClient.getDatabase() || 'my')
+}
 
 // Load forms list
 async function loadFormsList() {
   loading.formsList = true
   try {
-    const response = await axios.get(`${API_BASE.value}/object/137`, {
-      headers: getHeaders()
+    setDatabase()
+    const response = await integramApiClient.getObjectList(LEGACY_FORM_TYPE_ID, { LIMIT: 1000 })
+    formsList.value = normalizeLegacyObjectCollection(response).objects.map(form => ({
+      id: form.id,
+      val: form.val || form.name || `Форма ${form.id}`
+    }))
+
+    toast.add({
+      severity: 'success',
+      summary: 'Успешно',
+      detail: `Загружено форм: ${formsList.value.length}`,
+      life: 3000
     })
-
-    if (response.data && response.data['&main.a.&uni_obj.&uni_obj_all']) {
-      const data = response.data['&main.a.&uni_obj.&uni_obj_all']
-      formsList.value = data.id.map((id, index) => ({
-        id: id,
-        val: data.val[index]
-      }))
-
-      toast.add({
-        severity: 'success',
-        summary: 'Успешно',
-        detail: `Загружено форм: ${formsList.value.length}`,
-        life: 3000
-      })
-    }
   } catch (error) {
     console.error('Error loading forms:', error)
     toast.add({
@@ -974,16 +974,8 @@ async function loadFormsList() {
 async function createForm() {
   loading.createForm = true
   try {
-    const response = await axios.post(
-      `${API_BASE.value}/_m_new`,
-      `typ=137&t100=${encodeURIComponent(newFormData.name)}`,
-      {
-        headers: {
-          ...getHeaders(),
-          'Content-Type': 'application/x-www-form-urlencoded'
-        }
-      }
-    )
+    setDatabase()
+    await integramApiClient.createObject(LEGACY_FORM_TYPE_ID, newFormData.name, {}, 1)
 
     toast.add({
       severity: 'success',
@@ -1011,16 +1003,13 @@ async function createForm() {
 // Edit form
 async function editForm(formId) {
   try {
-    // Load form details
-    const response = await axios.get(`${API_BASE.value}/object/${formId}`, {
-      headers: getHeaders()
-    })
-
-    if (response.data && response.data.obj) {
-      currentForm.value = response.data.obj
-      // Load panels for this form
-      await loadPanels(formId)
+    setDatabase()
+    const response = await integramApiClient.getObjectRecord(formId)
+    currentForm.value = response.obj || formsList.value.find(form => String(form.id) === String(formId)) || {
+      id: formId,
+      val: `Форма ${formId}`
     }
+    await loadPanels(formId)
   } catch (error) {
     console.error('Error loading form:', error)
     toast.add({
@@ -1035,48 +1024,45 @@ async function editForm(formId) {
 // Load panels for form
 async function loadPanels(formId) {
   try {
-    const response = await axios.get(`${API_BASE.value}/object/138?F_U=${formId}`, {
-      headers: getHeaders()
+    setDatabase()
+    const response = await integramApiClient.getObjectList(LEGACY_FORM_PANEL_TYPE_ID, { F_U: String(formId) })
+    const collection = normalizeLegacyObjectCollection(response)
+
+    panels.value = collection.objects.map(panel => {
+      let pivotConfig = null
+      const rawPivotConfig = getLegacyReqValue(collection.reqs, panel.id, FORM_PANEL_REQS.pivotConfig)
+      if (rawPivotConfig) {
+        try {
+          pivotConfig = typeof rawPivotConfig === 'string'
+            ? JSON.parse(rawPivotConfig)
+            : rawPivotConfig
+        } catch (e) {
+          console.warn('Failed to parse pivot config for panel', panel.id, e)
+        }
+      }
+
+      const typeId = getLegacyReqValue(collection.reqs, panel.id, FORM_PANEL_REQS.typeId, 0) || ''
+      const reportId = getLegacyReqValue(collection.reqs, panel.id, FORM_PANEL_REQS.reportId, 1) || ''
+
+      return {
+        id: panel.id,
+        val: panel.val || panel.name || `Панель ${panel.id}`,
+        type: typeId,
+        typeName: typeId,
+        report: reportId,
+        bgcolor: getLegacyReqValue(collection.reqs, panel.id, FORM_PANEL_REQS.backgroundColor, 5) || '',
+        color: getLegacyReqValue(collection.reqs, panel.id, FORM_PANEL_REQS.color, 4) || '',
+        nextAction: getLegacyReqValue(collection.reqs, panel.id, FORM_PANEL_REQS.nextAction, 6) || '',
+        filter: getLegacyReqValue(collection.reqs, panel.id, FORM_PANEL_REQS.filter, 7) || '',
+        pivotConfig,
+        fields: [],
+        buttons: []
+      }
     })
 
-    if (response.data && response.data['&main.a.&uni_obj.&uni_obj_all']) {
-      const data = response.data['&main.a.&uni_obj.&uni_obj_all']
-      const reqs = response.data['&object_reqs']
-
-      panels.value = data.id.map((id, index) => {
-        // Parse pivot config from requisite 225 if present
-        let pivotConfig = null
-        if (reqs[id] && reqs[id][225]) {
-          try {
-            pivotConfig = typeof reqs[id][225] === 'string'
-              ? JSON.parse(reqs[id][225])
-              : reqs[id][225]
-          } catch (e) {
-            console.warn('Failed to parse pivot config for panel', id, e)
-          }
-        }
-
-        return {
-          id: id,
-          val: data.val[index],
-          type: reqs[id] ? reqs[id][0] : '',
-          typeName: reqs[id] ? reqs[id][0] : '',
-          report: reqs[id] ? reqs[id][1] : '',
-          bgcolor: reqs[id] ? reqs[id][5] : '',
-          color: reqs[id] ? reqs[id][4] : '',
-          nextAction: reqs[id] ? reqs[id][6] : '',
-          filter: reqs[id] ? reqs[id][7] : '',
-          pivotConfig: pivotConfig,
-          fields: [],
-          buttons: []
-        }
-      })
-
-      // Load fields and buttons for each panel
-      for (const panel of panels.value) {
-        await loadPanelFields(panel)
-        await loadPanelButtons(panel)
-      }
+    for (const panel of panels.value) {
+      await loadPanelFields(panel)
+      await loadPanelButtons(panel)
     }
   } catch (error) {
     console.error('Error loading panels:', error)
@@ -1086,21 +1072,15 @@ async function loadPanels(formId) {
 // Load fields for panel
 async function loadPanelFields(panel) {
   try {
-    const response = await axios.get(`${API_BASE.value}/object/139?F_U=${panel.id}`, {
-      headers: getHeaders()
-    })
+    const response = await integramApiClient.getObjectList(LEGACY_FORM_FIELD_TYPE_ID, { F_U: String(panel.id) })
+    const collection = normalizeLegacyObjectCollection(response)
 
-    if (response.data && response.data['&main.a.&uni_obj.&uni_obj_all']) {
-      const data = response.data['&main.a.&uni_obj.&uni_obj_all']
-      const reqs = response.data['&object_reqs']
-
-      panel.fields = data.id.map((id, index) => ({
-        id: id,
-        fieldName: reqs[id] ? reqs[id][0] : '',
-        fieldAlias: data.val[index],
-        fieldValue: reqs[id] ? reqs[id][1] : ''
-      }))
-    }
+    panel.fields = collection.objects.map(field => ({
+      id: field.id,
+      fieldName: getLegacyReqValue(collection.reqs, field.id, FORM_FIELD_REQS.fieldId, 0) || '',
+      fieldAlias: getLegacyReqValue(collection.reqs, field.id, FORM_FIELD_REQS.alias, 1) || field.val || field.name || '',
+      fieldValue: getLegacyReqValue(collection.reqs, field.id, FORM_FIELD_REQS.defaultValue, 2) || ''
+    }))
   } catch (error) {
     console.error('Error loading panel fields:', error)
   }
@@ -1109,21 +1089,15 @@ async function loadPanelFields(panel) {
 // Load buttons for panel
 async function loadPanelButtons(panel) {
   try {
-    const response = await axios.get(`${API_BASE.value}/object/150?F_U=${panel.id}`, {
-      headers: getHeaders()
-    })
+    const response = await integramApiClient.getObjectList(LEGACY_FORM_BUTTON_TYPE_ID, { F_U: String(panel.id) })
+    const collection = normalizeLegacyObjectCollection(response)
 
-    if (response.data && response.data['&main.a.&uni_obj.&uni_obj_all']) {
-      const data = response.data['&main.a.&uni_obj.&uni_obj_all']
-      const reqs = response.data['&object_reqs']
-
-      panel.buttons = data.id.map((id, index) => ({
-        id: id,
-        buttonAlias: data.val[index],
-        buttonAction: reqs[id] ? reqs[id][0] : '',
-        buttonClass: reqs[id] ? reqs[id][1] : ''
-      }))
-    }
+    panel.buttons = collection.objects.map(button => ({
+      id: button.id,
+      buttonAlias: button.val || button.name || 'Кнопка',
+      buttonAction: getLegacyReqValue(collection.reqs, button.id, FORM_BUTTON_REQS.action, 0) || '',
+      buttonClass: getLegacyReqValue(collection.reqs, button.id, FORM_BUTTON_REQS.className, 1) || ''
+    }))
   } catch (error) {
     console.error('Error loading panel buttons:', error)
   }
@@ -1131,13 +1105,8 @@ async function loadPanelButtons(panel) {
 
 // View form (preview)
 function viewForm(formId) {
-  toast.add({
-    severity: 'info',
-    summary: 'Просмотр формы',
-    detail: `Форма ID: ${formId}`,
-    life: 3000
-  })
-  // TODO: Implement form preview
+  const database = props.session.database || integramApiClient.getDatabase() || 'my'
+  window.location.href = `/${database}/form/${formId}`
 }
 
 // Delete form
@@ -1145,16 +1114,8 @@ async function deleteForm(formId) {
   if (!confirm('Удалить форму?')) return
 
   try {
-    await axios.post(
-      `${API_BASE.value}/_m_delete/${formId}`,
-      '_xsrf=',
-      {
-        headers: {
-          ...getHeaders(),
-          'Content-Type': 'application/x-www-form-urlencoded'
-        }
-      }
-    )
+    setDatabase()
+    await integramApiClient.deleteObject(formId)
 
     toast.add({
       severity: 'success',
@@ -1186,16 +1147,8 @@ async function updateFormName() {
   if (!currentForm.value) return
 
   try {
-    await axios.post(
-      `${API_BASE.value}/_m_save/${currentForm.value.id}`,
-      `t100=${encodeURIComponent(currentForm.value.val)}`,
-      {
-        headers: {
-          ...getHeaders(),
-          'Content-Type': 'application/x-www-form-urlencoded'
-        }
-      }
-    )
+    setDatabase()
+    await integramApiClient.saveObject(currentForm.value.id, LEGACY_FORM_TYPE_ID, currentForm.value.val, {})
 
     toast.add({
       severity: 'success',
@@ -1224,29 +1177,29 @@ function editPanel(panel) {
 async function savePanel() {
   loading.savePanel = true
   try {
+    setDatabase()
+    const requisites = {
+      [FORM_PANEL_REQS.typeId]: panelData.typeId,
+      [FORM_PANEL_REQS.reportId]: panelData.reportId,
+      [FORM_PANEL_REQS.backgroundColor]: panelData.bgcolor,
+      [FORM_PANEL_REQS.color]: panelData.color,
+      [FORM_PANEL_REQS.filter]: panelData.filter,
+      [FORM_PANEL_REQS.nextAction]: panelData.nextAction
+    }
+
     if (editingPanel.value) {
-      // Update existing panel
-      await axios.post(
-        `${API_BASE.value}/_m_save/${editingPanel.value.id}`,
-        `t100=${encodeURIComponent(panelData.name)}&t102=${panelData.typeId}`,
-        {
-          headers: {
-            ...getHeaders(),
-            'Content-Type': 'application/x-www-form-urlencoded'
-          }
-        }
+      await integramApiClient.saveObject(
+        editingPanel.value.id,
+        LEGACY_FORM_PANEL_TYPE_ID,
+        panelData.name,
+        requisites
       )
     } else {
-      // Create new panel
-      await axios.post(
-        `${API_BASE.value}/_m_new`,
-        `typ=138&t100=${encodeURIComponent(panelData.name)}&t101=${currentForm.value.id}&t102=${panelData.typeId}`,
-        {
-          headers: {
-            ...getHeaders(),
-            'Content-Type': 'application/x-www-form-urlencoded'
-          }
-        }
+      await integramApiClient.createObject(
+        LEGACY_FORM_PANEL_TYPE_ID,
+        panelData.name,
+        requisites,
+        currentForm.value.id
       )
     }
 
@@ -1290,16 +1243,8 @@ async function deletePanel(panelId) {
   if (!confirm('Удалить панель?')) return
 
   try {
-    await axios.post(
-      `${API_BASE.value}/_m_delete/${panelId}`,
-      '_xsrf=',
-      {
-        headers: {
-          ...getHeaders(),
-          'Content-Type': 'application/x-www-form-urlencoded'
-        }
-      }
-    )
+    setDatabase()
+    await integramApiClient.deleteObject(panelId)
 
     toast.add({
       severity: 'success',
@@ -1356,29 +1301,27 @@ function editField(panel, field) {
 async function saveField() {
   loading.saveField = true
   try {
+    setDatabase()
+    const fieldAlias = fieldData.fieldAlias || fieldData.fieldId
+    const requisites = {
+      [FORM_FIELD_REQS.fieldId]: fieldData.fieldId,
+      [FORM_FIELD_REQS.alias]: fieldAlias,
+      [FORM_FIELD_REQS.defaultValue]: fieldData.fieldValue
+    }
+
     if (editingField.value) {
-      // Update existing field
-      await axios.post(
-        `${API_BASE.value}/_m_save/${editingField.value.id}`,
-        `t100=${encodeURIComponent(fieldData.fieldAlias)}&t102=${fieldData.fieldId}&t103=${encodeURIComponent(fieldData.fieldValue)}`,
-        {
-          headers: {
-            ...getHeaders(),
-            'Content-Type': 'application/x-www-form-urlencoded'
-          }
-        }
+      await integramApiClient.saveObject(
+        editingField.value.id,
+        LEGACY_FORM_FIELD_TYPE_ID,
+        fieldAlias,
+        requisites
       )
     } else {
-      // Create new field
-      await axios.post(
-        `${API_BASE.value}/_m_new`,
-        `typ=139&t100=${encodeURIComponent(fieldData.fieldAlias)}&t101=${currentPanelForField.value.id}&t102=${fieldData.fieldId}&t103=${encodeURIComponent(fieldData.fieldValue)}`,
-        {
-          headers: {
-            ...getHeaders(),
-            'Content-Type': 'application/x-www-form-urlencoded'
-          }
-        }
+      await integramApiClient.createObject(
+        LEGACY_FORM_FIELD_TYPE_ID,
+        fieldAlias,
+        requisites,
+        currentPanelForField.value.id
       )
     }
 
@@ -1419,16 +1362,8 @@ async function deleteField(panel, fieldId) {
   if (!confirm('Удалить поле?')) return
 
   try {
-    await axios.post(
-      `${API_BASE.value}/_m_delete/${fieldId}`,
-      '_xsrf=',
-      {
-        headers: {
-          ...getHeaders(),
-          'Content-Type': 'application/x-www-form-urlencoded'
-        }
-      }
-    )
+    setDatabase()
+    await integramApiClient.deleteObject(fieldId)
 
     toast.add({
       severity: 'success',
@@ -1467,29 +1402,25 @@ function editButton(panel, button) {
 async function saveButton() {
   loading.saveButton = true
   try {
+    setDatabase()
+    const requisites = {
+      [FORM_BUTTON_REQS.action]: buttonData.buttonAction,
+      [FORM_BUTTON_REQS.className]: buttonData.buttonClass
+    }
+
     if (editingButton.value) {
-      // Update existing button
-      await axios.post(
-        `${API_BASE.value}/_m_save/${editingButton.value.id}`,
-        `t100=${encodeURIComponent(buttonData.buttonAlias)}&t102=${encodeURIComponent(buttonData.buttonAction)}&t103=${encodeURIComponent(buttonData.buttonClass)}`,
-        {
-          headers: {
-            ...getHeaders(),
-            'Content-Type': 'application/x-www-form-urlencoded'
-          }
-        }
+      await integramApiClient.saveObject(
+        editingButton.value.id,
+        LEGACY_FORM_BUTTON_TYPE_ID,
+        buttonData.buttonAlias,
+        requisites
       )
     } else {
-      // Create new button
-      await axios.post(
-        `${API_BASE.value}/_m_new`,
-        `typ=150&t100=${encodeURIComponent(buttonData.buttonAlias)}&t101=${currentPanelForButton.value.id}&t102=${encodeURIComponent(buttonData.buttonAction)}&t103=${encodeURIComponent(buttonData.buttonClass)}`,
-        {
-          headers: {
-            ...getHeaders(),
-            'Content-Type': 'application/x-www-form-urlencoded'
-          }
-        }
+      await integramApiClient.createObject(
+        LEGACY_FORM_BUTTON_TYPE_ID,
+        buttonData.buttonAlias,
+        requisites,
+        currentPanelForButton.value.id
       )
     }
 
@@ -1530,16 +1461,8 @@ async function deleteButton(panel, buttonId) {
   if (!confirm('Удалить кнопку?')) return
 
   try {
-    await axios.post(
-      `${API_BASE.value}/_m_delete/${buttonId}`,
-      '_xsrf=',
-      {
-        headers: {
-          ...getHeaders(),
-          'Content-Type': 'application/x-www-form-urlencoded'
-        }
-      }
-    )
+    setDatabase()
+    await integramApiClient.deleteObject(buttonId)
 
     toast.add({
       severity: 'success',
@@ -1615,40 +1538,26 @@ async function loadReportFields() {
 
   loading.pivotFields = true
   try {
-    // Execute report to get column headers
-    const response = await axios.get(
-      `${API_BASE.value}/report/${currentPanelForPivot.value.report}?LIMIT=1`,
-      { headers: getHeaders() }
-    )
+    setDatabase()
+    const response = await integramApiClient.executeReport(currentPanelForPivot.value.report, { LIMIT: 1 })
+    pivotAvailableFields.value = (response.columns || [])
+      .map(column => column.name)
+      .filter(Boolean)
 
-    if (response.data) {
-      // Extract field names from the report response
-      // Reports return data in format: { '&rep.XXX': { col: [...], data: [...] } }
-      const reportData = response.data
-      const reportKey = Object.keys(reportData).find(key => key.startsWith('&rep.'))
-
-      if (reportKey && reportData[reportKey]?.col) {
-        pivotAvailableFields.value = reportData[reportKey].col.filter(col => col && col.trim())
-        toast.add({
-          severity: 'success',
-          summary: 'Загружено',
-          detail: `Найдено полей: ${pivotAvailableFields.value.length}`,
-          life: 3000
-        })
-      } else {
-        // Try to extract from headers or alternative structure
-        const keys = Object.keys(reportData).filter(k => !k.startsWith('&'))
-        if (keys.length > 0) {
-          pivotAvailableFields.value = keys
-        } else {
-          toast.add({
-            severity: 'warn',
-            summary: 'Внимание',
-            detail: 'Не удалось извлечь поля из отчета',
-            life: 3000
-          })
-        }
-      }
+    if (pivotAvailableFields.value.length > 0) {
+      toast.add({
+        severity: 'success',
+        summary: 'Загружено',
+        detail: `Найдено полей: ${pivotAvailableFields.value.length}`,
+        life: 3000
+      })
+    } else {
+      toast.add({
+        severity: 'warn',
+        summary: 'Внимание',
+        detail: 'Не удалось извлечь поля из отчета',
+        life: 3000
+      })
     }
   } catch (error) {
     console.error('Error loading report fields:', error)
@@ -1729,16 +1638,10 @@ async function savePivotConfig() {
 
     // Save to requisite 225 (Pivot Config) via _m_set
     const configJson = JSON.stringify(config)
-    await axios.post(
-      `${API_BASE.value}/_m_set/${currentPanelForPivot.value.id}?t225=${encodeURIComponent(configJson)}`,
-      '',
-      {
-        headers: {
-          ...getHeaders(),
-          'Content-Type': 'application/x-www-form-urlencoded'
-        }
-      }
-    )
+    setDatabase()
+    await integramApiClient.setObjectRequisites(currentPanelForPivot.value.id, {
+      [FORM_PANEL_REQS.pivotConfig]: configJson
+    })
 
     // Update local panel data
     currentPanelForPivot.value.pivotConfig = config
@@ -1768,17 +1671,10 @@ async function clearPivotConfig(panel) {
   if (!confirm('Очистить настройки сводной таблицы?')) return
 
   try {
-    // Clear requisite 225
-    await axios.post(
-      `${API_BASE.value}/_m_set/${panel.id}?t225=`,
-      '',
-      {
-        headers: {
-          ...getHeaders(),
-          'Content-Type': 'application/x-www-form-urlencoded'
-        }
-      }
-    )
+    setDatabase()
+    await integramApiClient.setObjectRequisites(panel.id, {
+      [FORM_PANEL_REQS.pivotConfig]: ''
+    })
 
     // Update local panel data
     panel.pivotConfig = null
@@ -1799,6 +1695,10 @@ async function clearPivotConfig(panel) {
     })
   }
 }
+
+onMounted(() => {
+  loadFormsList()
+})
 </script>
 
 <style scoped>

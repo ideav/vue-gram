@@ -8,6 +8,7 @@ import {
   normalizeMetadataResponse,
   normalizeObjectListResponse,
   normalizeObjectRecordResponse,
+  normalizeUploadResponse,
   normalizeReferenceOptionsResponse,
   normalizeReportResponse,
   normalizeTermsResponse
@@ -20,6 +21,11 @@ import reportFixture from '../__fixtures__/integramApi/report-json.json'
 import referenceOptionsFixture from '../__fixtures__/integramApi/reference-options.json'
 import mNewErrorFixture from '../__fixtures__/integramApi/m-new-error.json'
 import mSetErrorFixture from '../__fixtures__/integramApi/m-set-error.json'
+import uploadSuccessFixture from '../__fixtures__/integramApi/upload-success.json'
+import uploadErrorFixture from '../__fixtures__/integramApi/upload-error.json'
+import editTypesFixture from '../__fixtures__/integramApi/edit-types.json'
+import typeMetadataFixture from '../__fixtures__/integramApi/type-metadata.json'
+import ddlErrorFixture from '../__fixtures__/integramApi/ddl-error.json'
 import { INTEGRAM_API_CONTRACTS } from '../integramApiContracts'
 import { integramApiFixtures } from '../__fixtures__/integramApi'
 import { dirAdminDirectoryHtml } from '../../components/integram/__fixtures__/dirAdminFixtures'
@@ -123,10 +129,85 @@ describe('IntegramApiClient', () => {
     expect(axios.post.mock.calls[0][2].params).toEqual({ JSON: '' })
   })
 
+  it('normalizes upload responses into stable file metadata', () => {
+    const file = new File(['hello world'], 'demo.txt', { type: 'text/plain' })
+
+    expect(normalizeUploadResponse(uploadSuccessFixture, file)).toEqual(expect.objectContaining({
+      ok: true,
+      filename: 'demo.txt',
+      name: 'demo.txt',
+      path: 'uploads/2026/demo.txt',
+      href: 'uploads/2026/demo.txt',
+      size: 11,
+      mimeType: 'text/plain',
+      extension: 'txt'
+    }))
+  })
+
+  it('normalizes upload backend failures into explicit retryable UI errors', () => {
+    const uploadError = normalizeApiError({
+      response: {
+        status: 413,
+        data: uploadErrorFixture
+      }
+    })
+
+    expect(uploadError).toEqual(expect.objectContaining({
+      name: 'IntegramApiError',
+      status: 413,
+      code: 'UPLOAD_TOO_LARGE',
+      type: 'client',
+      message: 'Uploaded file is too large'
+    }))
+    expect(uploadError.details).toEqual({ maxSize: 52428800 })
+  })
+
+  it('posts standalone uploads to the legacy _upload endpoint with progress support', async () => {
+    const file = new File(['hello world'], 'demo.txt', { type: 'text/plain' })
+    const onUploadProgress = vi.fn()
+    axios.post.mockResolvedValue({ data: uploadSuccessFixture })
+
+    const result = await client.uploadFile(file, '', { onUploadProgress })
+
+    expect(result).toEqual(expect.objectContaining({
+      ok: true,
+      filename: 'demo.txt',
+      path: 'uploads/2026/demo.txt'
+    }))
+    expect(axios.post).toHaveBeenCalledTimes(1)
+    const [url, body, config] = axios.post.mock.calls[0]
+    expect(url).toBe('https://app.integram.io/api/my/_upload')
+    expect(body).toBeInstanceOf(FormData)
+    expect(body.get('file')).toBe(file)
+    expect(body.get('_xsrf')).toBe('xsrf-token')
+    expect(config.params).toEqual({ JSON: '' })
+    expect(config.headers['X-Authorization']).toBe('auth-token')
+    expect(config.onUploadProgress).toBe(onUploadProgress)
+  })
+
+  it('uploads FILE requisites through _m_set using the t{requisiteId} file field', async () => {
+    const file = new File(['hello world'], 'demo.txt', { type: 'text/plain' })
+    axios.post.mockResolvedValue({ data: uploadSuccessFixture })
+
+    const result = await client.uploadRequisiteFile(285, 100, file)
+
+    expect(result).toEqual(expect.objectContaining({
+      ok: true,
+      filename: 'demo.txt'
+    }))
+    expect(axios.post).toHaveBeenCalledTimes(1)
+    const [url, body, config] = axios.post.mock.calls[0]
+    expect(url).toBe('https://app.integram.io/api/my/_m_set/285')
+    expect(body).toBeInstanceOf(FormData)
+    expect(body.get('t100')).toBe(file)
+    expect(body.get('_xsrf')).toBe('xsrf-token')
+    expect(config.params).toEqual({ JSON: '' })
+  })
+
   it('creates objects with normalized form-style requisite keys and parent id', async () => {
     axios.post.mockResolvedValue({ data: { id: 901 } })
 
-    await client.createObject(77, 'Copy source', {
+    const result = await client.createObject(77, 'Copy source', {
       t100: 'text value',
       101: false
     }, 285)
@@ -141,6 +222,37 @@ describe('IntegramApiClient', () => {
     expect(body.get('b101')).toBe('1')
     expect(body.get('tt100')).toBeNull()
     expect(axios.post.mock.calls[0][2].params).toEqual({ JSON: '' })
+    expect(result.objectId).toBe(901)
+  })
+
+  it('normalizes legacy obj mutation identifiers', async () => {
+    axios.post.mockResolvedValue({ data: { obj: '902' } })
+
+    const result = await client.createObject(77, 'Legacy response', {}, 1)
+
+    expect(result).toMatchObject({
+      id: 902,
+      objectId: 902,
+      obj: '902',
+      ok: true
+    })
+  })
+
+  it('uses multipart payloads when form submissions include files', async () => {
+    const file = new File(['file body'], 'doc.txt', { type: 'text/plain' })
+    axios.post.mockResolvedValue({ data: { obj: 903 } })
+
+    await client.createObject(42, 'With file', {
+      104: file
+    }, 1)
+
+    const [, body, config] = axios.post.mock.calls[0]
+
+    expect(body).toBeInstanceOf(FormData)
+    expect(body.get('_xsrf')).toBe('xsrf-token')
+    expect(body.get('t42')).toBe('With file')
+    expect(body.get('t104')).toBe(file)
+    expect(config.headers['Content-Type']).toBeUndefined()
   })
 
   it('restores legacy localStorage sessions for the saved database', () => {
@@ -238,7 +350,8 @@ describe('IntegramApiClient', () => {
     ])
     const dictionaryTerms = normalizeTermsResponse({
       18: 'User',
-      42: { name: 'Role' }
+      42: { name: 'Role' },
+      422: 'Payment Date'
     })
 
     expect(metadata.types).toHaveLength(2)
@@ -254,8 +367,93 @@ describe('IntegramApiClient', () => {
     expect(arrayTerms.termById['422']).toBe('Payment Date')
     expect(dictionaryTerms.termById).toEqual({
       18: 'User',
+      42: 'Role',
+      422: 'Payment Date'
+    })
+  })
+
+  it('normalizes raw array terms without turning array indexes into payload keys', () => {
+    const terms = normalizeTermsResponse([
+      { id: 18, type: 3, name: 'User' },
+      { id: 42, type: 3, name: 'Role' }
+    ])
+
+    expect(terms.terms).toHaveLength(2)
+    expect(terms.termById).toEqual({ 18: 'User', 42: 'Role' })
+    expect(terms).not.toHaveProperty('0')
+  })
+
+  it('normalizes raw dictionary terms from the legacy /terms endpoint', () => {
+    const terms = normalizeTermsResponse({ 18: 'User', 42: 'Role' })
+
+    expect(terms.termById).toEqual({ 18: 'User', 42: 'Role' })
+    expect(terms.baseTypes).toEqual([])
+  })
+
+  it('normalizes array-shaped legacy terms responses', () => {
+    const terms = normalizeTermsResponse([
+      { id: 18, type: 3, name: 'User' },
+      { id: 42, type: 3, val: 'Role' }
+    ])
+
+    expect(terms.terms).toHaveLength(2)
+    expect(terms.termById).toEqual({
+      18: 'User',
       42: 'Role'
     })
+  })
+
+  it('normalizes dictionary-shaped legacy terms responses', () => {
+    const terms = normalizeTermsResponse({
+      18: 'User',
+      42: 'Role'
+    })
+
+    expect(terms.terms).toEqual({
+      18: 'User',
+      42: 'Role'
+    })
+    expect(terms.termById).toEqual({
+      18: 'User',
+      42: 'Role'
+    })
+  })
+
+  it('normalizes raw legacy terms arrays into a term map', () => {
+    const terms = normalizeTermsResponse([
+      { id: 18, val: 'User' },
+      { id: 42, name: 'Role' },
+    ])
+
+    expect(terms.termById).toEqual({
+      18: 'User',
+      42: 'Role',
+    })
+  })
+
+  it('normalizes dictionary-shaped legacy terms responses into a term map', () => {
+    const terms = normalizeTermsResponse({
+      18: 'User',
+      42: 'Role',
+    })
+
+    expect(terms.termById).toEqual({
+      18: 'User',
+      42: 'Role',
+    })
+  })
+
+  it('does not treat metadata-only terms payload fields as term entries', () => {
+    const terms = normalizeTermsResponse({
+      base_types: [
+        { id: 3, val: 'Short text' },
+      ],
+    })
+
+    expect(terms.termById).toEqual({})
+    expect(terms.baseTypes).toEqual([
+      { id: 3, name: 'Short text' },
+    ])
   })
 
   it('normalizes object JSON_DATA and JSON_OBJ fixtures without dropping legacy fields', () => {
@@ -341,6 +539,54 @@ describe('IntegramApiClient', () => {
     expect(axios.get.mock.calls[0][1].params).toEqual({ JSON_KV: '' })
   })
 
+  it('uses the legacy JSON contracts for dictionary/type editor metadata and DDL mutations', async () => {
+    axios.get
+      .mockResolvedValueOnce({ data: editTypesFixture })
+      .mockResolvedValueOnce({ data: typeMetadataFixture })
+    axios.post.mockResolvedValue({ data: { obj: '300' } })
+
+    await client.getTypeEditorData()
+    await client.getTypeMetadata(300)
+    await client.createType('Invoices', 3, true)
+    await client.saveType(300, 'Contracts', 3, false)
+    await client.createTypeReference(200)
+    await client.addRequisite(300, 200)
+    await client.saveRequisiteAlias(701, 'Customer', 300)
+    await client.saveRequisiteDefaultValue(701, '[USER_ID]', 300)
+    await client.toggleRequisiteNull(701, 300)
+
+    expect(axios.get.mock.calls[0][0]).toBe('https://app.integram.io/api/my/edit_types')
+    expect(axios.get.mock.calls[0][1].params).toEqual({ JSON: '' })
+    expect(axios.get.mock.calls[1][0]).toBe('https://app.integram.io/api/my/metadata/300')
+    expect(axios.get.mock.calls[1][1].params).toEqual({ JSON: '' })
+
+    expect(axios.post.mock.calls[0][0]).toBe('https://app.integram.io/api/my/_d_new')
+    expect(axios.post.mock.calls[0][1].get('val')).toBe('Invoices')
+    expect(axios.post.mock.calls[0][1].get('t')).toBe('3')
+    expect(axios.post.mock.calls[0][1].get('unique')).toBe('1')
+    expect(axios.post.mock.calls[0][2].params).toEqual({ JSON: '' })
+
+    expect(axios.post.mock.calls[1][0]).toBe('https://app.integram.io/api/my/_d_save/300')
+    expect(axios.post.mock.calls[1][1].get('val')).toBe('Contracts')
+    expect(axios.post.mock.calls[1][1].get('t')).toBe('3')
+    expect(axios.post.mock.calls[1][1].get('unique')).toBeNull()
+    expect(axios.post.mock.calls[1][2].params).toEqual({ JSON: '' })
+
+    expect(axios.post.mock.calls[2][0]).toBe('https://app.integram.io/api/my/_d_ref/200')
+    expect(axios.post.mock.calls[2][2].params).toEqual({ JSON: '' })
+    expect(axios.post.mock.calls[3][0]).toBe('https://app.integram.io/api/my/_d_req/300')
+    expect(axios.post.mock.calls[3][1].get('t')).toBe('200')
+    expect(axios.post.mock.calls[3][2].params).toEqual({ JSON: '' })
+    expect(axios.post.mock.calls[4][0]).toBe('https://app.integram.io/api/my/_d_alias/701')
+    expect(axios.post.mock.calls[4][1].get('val')).toBe('Customer')
+    expect(axios.post.mock.calls[4][2].params).toEqual({ JSON: '', up: '300' })
+    expect(axios.post.mock.calls[5][0]).toBe('https://app.integram.io/api/my/_d_attrs/701')
+    expect(axios.post.mock.calls[5][1].get('val')).toBe('[USER_ID]')
+    expect(axios.post.mock.calls[5][2].params).toEqual({ JSON: '', up: '300' })
+    expect(axios.post.mock.calls[6][0]).toBe('https://app.integram.io/api/my/_d_null/701')
+    expect(axios.post.mock.calls[6][2].params).toEqual({ JSON: '', up: '300' })
+  })
+
   it('loads dir_admin through the legacy HTML endpoint without JSON flags', async () => {
     axios.get.mockResolvedValue({ data: dirAdminDirectoryHtml })
 
@@ -417,6 +663,24 @@ describe('IntegramApiClient', () => {
     expect(setError.details).toEqual({ objectId: 5001 })
   })
 
+  it('normalizes DDL edit errors for the type editor UI', () => {
+    const ddlError = normalizeApiError({
+      response: {
+        status: 422,
+        data: ddlErrorFixture
+      }
+    })
+
+    expect(ddlError).toEqual(expect.objectContaining({
+      name: 'IntegramApiError',
+      status: 422,
+      code: 'TYPE_VALIDATION',
+      type: 'validation',
+      message: 'Type name is required'
+    }))
+    expect(ddlError.details).toEqual({ field: 'val' })
+  })
+
   it('throws normalized mutation errors when the backend returns failed JSON', async () => {
     axios.post
       .mockResolvedValueOnce({ data: mNewErrorFixture })
@@ -445,7 +709,7 @@ describe('IntegramApiClient', () => {
     })
   })
 
-  it('keeps every issue 14 API contract backed by a fixture', () => {
+  it('keeps Integram API contracts backed by fixtures', () => {
     expect(INTEGRAM_API_CONTRACTS.map(contract => contract.method)).toEqual([
       'getMetadata',
       'getTerms',
@@ -454,7 +718,22 @@ describe('IntegramApiClient', () => {
       'executeReport',
       'getReferenceOptions',
       'createObject',
-      'setObjectRequisites'
+      'setObjectRequisites',
+      'uploadFile',
+      'uploadRequisiteFile',
+      'getTypeEditorData',
+      'getTypeMetadata',
+      'createType',
+      'saveType',
+      'createTypeReference',
+      'addRequisite',
+      'deleteType',
+      'deleteRequisite',
+      'saveRequisiteAlias',
+      'saveRequisiteDefaultValue',
+      'toggleRequisiteNull',
+      'toggleRequisiteMulti',
+      'moveRequisiteUp'
     ])
 
     for (const contract of INTEGRAM_API_CONTRACTS) {

@@ -1,0 +1,7 @@
+{
+  "failed": "Uploaded file is too large",
+  "code": "UPLOAD_TOO_LARGE",
+  "details": {
+    "maxSize": 52428800
+  }
+}

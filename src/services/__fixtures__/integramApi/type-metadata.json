@@ -1,0 +1,22 @@
+{
+  "type": {
+    "id": "300",
+    "val": "Contracts",
+    "t": "3",
+    "unique": false
+  },
+  "reqs": [
+    {
+      "id": "701",
+      "typ": "300",
+      "val": "Client",
+      "type": "200",
+      "reft": "200",
+      "attrs": ":MULTI::ALIAS=Customer:"
+    }
+  ],
+  "grants": {
+    "role": "admin",
+    "canEdit": true
+  }
+}

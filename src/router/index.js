@@ -93,7 +93,7 @@ const routes = [
         component: () => import('../views/integram/IntegramSqlView.vue')
       },
       {
-        path: 'smartq',
+        path: 'smartq/:reportId?',
         name: 'IntegramSmartQuery',
         component: () => import('../views/integram/IntegramSmartQueryView.vue')
       },
@@ -118,6 +118,11 @@ const routes = [
         component: () => import('../views/integram/IntegramReportView.vue')
       },
       {
+        path: 'dash/:dashboardId',
+        name: 'IntegramDashboard',
+        component: () => import('../views/integram/IntegramDashboardView.vue')
+      },
+      {
         path: 'query/:pathMatch(.*)*',
         redirect: legacyChildRedirect('report')
       },
@@ -139,6 +144,19 @@ const routes = [
         path: 'cabinet',
         name: 'IntegramCabinet',
         component: () => import('../views/integram/IntegramCabinetView.vue')
+      },
+      {
+        path: 'quiz/:quizId?',
+        name: 'IntegramQuiz',
+        component: () => import('../views/integram/IntegramQuizView.vue')
+      },
+      {
+        path: 'iquiz/:quizId?',
+        redirect: to => ({
+          path: `/${to.params.database}/quiz${to.params.quizId ? `/${to.params.quizId}` : ''}`,
+          query: to.query,
+          hash: to.hash
+        })
       },
       {
         path: 'upload',

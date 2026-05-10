@@ -26,6 +26,7 @@
     <div v-if="viewMode === 'legacy'" class="legacy-view-container">
       <IntegramSchemaLegacy
         :types-data="typesList"
+        :can-edit="canEditTypes"
         @open-table="handleOpenTable"
         @edit-type="handleEditType"
       />
@@ -35,6 +36,7 @@
     <div v-else-if="viewMode === 'tree'" class="tree-view-container">
       <IntegramSchemaTree
         :types-data="typesList"
+        :can-edit="canEditTypes"
         @open-table="handleOpenTable"
         @edit-type="handleEditType"
       />
@@ -64,7 +66,7 @@
     </div>
 
     <!-- Create New Type Panel -->
-    <Panel header="Добавить тип" class="mb-2">
+    <Panel v-if="canEditTypes" header="Добавить тип" class="mb-2">
       <div class="grid">
         <div class="col-12 md:col-4">
           <div class="field">
@@ -245,6 +247,7 @@
                 <!-- Actions -->
                 <div class="integram-actions mb-3">
                   <Button
+                    v-if="canEditTypes"
                     icon="fi fi-rr-pencil"
                     label="Редактировать тип"
                     @click="editType(type)"
@@ -259,6 +262,7 @@
                     aria-label="Открыть таблицу"
                   />
                   <Button
+                    v-if="canEditTypes"
                     icon="fi fi-rr-sitemap"
                     label="Создать подчинённый"
                     @click="showSubordinateTypeDialog(type)"
@@ -268,6 +272,7 @@
                     v-tooltip.top="'Создать подчинённый тип (таблица со ссылкой на родителя)'"
                   />
                   <Button
+                    v-if="canEditTypes"
                     icon="fi fi-rr-link"
                     label="Создать ссылку"
                     @click="createReferenceToType(type)"
@@ -278,7 +283,7 @@
                   />
                   <!-- Кнопка удаления визуально отделена (margin-left: auto в CSS) -->
                   <Button
-                    v-if="!type.hasReferences"
+                    v-if="canEditTypes && !type.hasReferences"
                     icon="fi fi-rr-trash"
                     label="Удалить тип"
                     @click="confirmDeleteType(type)"
@@ -294,6 +299,7 @@
                     <div class="flex justify-content-between align-items-center w-full">
                       <span>Реквизиты (колонки)</span>
                       <Button
+                        v-if="canEditTypes"
                         icon="fi fi-rr-plus"
                         label="Добавить реквизит"
                         @click="showAddRequisiteDialog(type)"
@@ -337,6 +343,7 @@
                         <template #body="{ data }">
                           <div class="integram-actions">
                             <Button
+                              v-if="canEditTypes"
                               icon="fi fi-rr-arrow-up"
                               @click="moveRequisiteUp(type, data)"
                               text
@@ -345,6 +352,7 @@
                               aria-label="Переместить реквизит выше"
                             />
                             <Button
+                              v-if="canEditTypes"
                               icon="fi fi-rr-arrow-down"
                               @click="moveRequisiteDown(type, data)"
                               text
@@ -353,6 +361,7 @@
                               aria-label="Переместить реквизит ниже"
                             />
                             <Button
+                              v-if="canEditTypes"
                               icon="fi fi-rr-pencil"
                               @click="editRequisite(type, data)"
                               text
@@ -362,6 +371,7 @@
                             />
                             <!-- Кнопка удаления визуально отделена -->
                             <Button
+                              v-if="canEditTypes"
                               icon="fi fi-rr-trash"
                               @click="confirmDeleteRequisite(type, data)"
                               severity="danger"
@@ -684,6 +694,7 @@
             :disabled="!editTypeDialog.name"
             :loading="loading.editType"
             aria-label="Сохранить изменения"
+            data-testid="save-edited-type"
           />
         </div>
       </template>
@@ -695,6 +706,10 @@
 import { ref, reactive, computed, onMounted } from 'vue';
 import { useToast } from 'primevue/usetoast';
 import integramApiClient from '@/services/integramApiClient';
+import {
+  getTypeIdFromName,
+  normalizeTypeEditorData
+} from '@/utils/integramTypeEditor';
 import IntegramSchemaLegacy from './IntegramSchemaLegacy.vue';
 import IntegramSchemaTree from './IntegramSchemaTree.vue';
 
@@ -742,31 +757,6 @@ const baseTypesAll = [
 const baseTypes = baseTypesAll.filter(t => !t.hidden);
 
 const requisiteTypes = baseTypes;
-
-// Mapping type names to Integram type IDs
-const typeNameToId = {
-  'HTML': 2,
-  'SHORT': 3,
-  'DATETIME': 4,
-  'GRANT': 5,
-  'PWD': 6,
-  'BUTTON': 7,
-  'CHARS': 8,
-  'DATE': 9,
-  'FILE': 10,
-  'BOOLEAN': 11,
-  'MEMO': 12,
-  'NUMBER': 13,
-  'SIGNED': 14,
-  'CALCULATABLE': 15,
-  'REPORT_COLUMN': 16,
-  'PATH': 17,
-  '0': 0  // Tab delimiter
-};
-
-function getTypeIdFromName(typeName) {
-  return typeNameToId[typeName] || typeName;
-}
 
 // State
 const newType = reactive({
@@ -880,6 +870,15 @@ const canCreateType = computed(() => {
   return newType.name && newType.baseType;
 });
 
+const canEditTypes = computed(() => {
+  const grants = props.session?.grants;
+  if (typeof grants?.canEdit === 'boolean') return grants.canEdit;
+
+  const role = props.session?.userRole || props.session?.role || props.session?.user?.role || grants?.role;
+  if (!role) return true;
+  return role === 'admin';
+});
+
 const filteredTypes = computed(() => {
   // Issue #4104: Ensure typesList.value is always an array before filtering
   // Prevents "result.filter is not a function" error
@@ -904,44 +903,6 @@ const filteredTypes = computed(() => {
   return result;
 });
 
-// Base type ID to name mapping (system types 0-20)
-const baseTypeNameMap = {
-  '0': 'tab',        // Tab delimiter
-  '1': 'short',      // SHORT (legacy ID)
-  '2': 'html',       // HTML/LONG
-  '3': 'short',      // SHORT
-  '4': 'datetime',   // DATETIME
-  '5': 'grant',      // GRANT
-  '6': 'pwd',        // PWD
-  '7': 'button',     // BUTTON
-  '8': 'chars',      // CHARS
-  '9': 'date',       // DATE
-  '10': 'file',      // FILE
-  '11': 'boolean',   // BOOLEAN
-  '12': 'memo',      // MEMO
-  '13': 'number',    // NUMBER
-  '14': 'signed',    // SIGNED
-  '15': 'calculatable', // CALCULATABLE
-  '16': 'path',      // PATH
-  '17': 'report_column', // REPORT_COLUMN
-  '18': 'user',      // User type (system)
-  '19': 'connect',   // CONNECT
-  '20': 'time'       // TIME
-};
-
-// Set of base type IDs for quick lookup
-const baseTypeIds = new Set(Object.keys(baseTypeNameMap));
-
-function getBaseTypeNameFromId(baseTypeId) {
-  return baseTypeNameMap[String(baseTypeId)] || 'reference';
-}
-
-// Check if a type ID is a base/system type (not a user-defined reference)
-function isBaseType(typeId) {
-  const id = String(typeId);
-  return baseTypeIds.has(id) || parseInt(id) <= 20;
-}
-
 // Methods
 async function loadTypes() {
   loading.list = true;
@@ -954,175 +915,8 @@ async function loadTypes() {
 
     const response = await integramApiClient.getTypeEditorData();
 
-    // Parse response - API returns columnar format in edit_types:
-    // edit_types.0 = array of type IDs (repeats for each requisite of that type)
-    // edit_types.1 = array of base types OR reference target type IDs
-    // edit_types.2 = array of ref_val (reference target type ID for FK)
-    // edit_types.3 = array of uniqueness flags
-    // edit_types.4 = array of names (type name or requisite name)
-    // Data is interleaved: first occurrence of type ID = type definition,
-    // subsequent occurrences = requisites of that type
     if (response && response.edit_types) {
-      const editTypes = response.edit_types;
-
-      // DEBUG: Log all available keys in editTypes to understand API structure
-      console.log('[IntegramTypeEditor] DEBUG: editTypes keys:', Object.keys(editTypes));
-      console.log('[IntegramTypeEditor] DEBUG: Sample data (first 5 rows):');
-      const sampleKeys = Object.keys(editTypes).slice(0, 10);
-      sampleKeys.forEach(key => {
-        const arr = editTypes[key];
-        if (Array.isArray(arr)) {
-          console.log(`  ${key}: [${arr.slice(0, 5).join(', ')}] (${arr.length} items)`);
-        }
-      });
-
-      // DEBUG: Find and log rows where req_t (column 7) > 20 (potential references)
-      const reqTypesCol = editTypes['7'] || editTypes['req_t'] || [];
-      const refCandidates = reqTypesCol
-        .map((val, idx) => ({ idx, val: parseInt(val) || 0 }))
-        .filter(item => item.val > 20)
-        .slice(0, 5);
-      if (refCandidates.length > 0) {
-        console.log('[IntegramTypeEditor] DEBUG: Potential reference rows (req_t > 20):');
-        refCandidates.forEach(({ idx, val }) => {
-          const typeId = (editTypes['0'] || [])[idx];
-          const name = (editTypes['4'] || [])[idx];
-          console.log(`  Row ${idx}: typeId=${typeId}, req_t=${val}, name="${name}"`);
-        });
-      } else {
-        console.log('[IntegramTypeEditor] DEBUG: No potential references found (all req_t <= 20)');
-      }
-
-      const ids = editTypes['0'] || editTypes['id'] || [];
-      const baseTypesList = editTypes['1'] || editTypes['t'] || [];
-      const refVals = editTypes['2'] || editTypes['ref_val'] || [];
-      const uniqueFlags = editTypes['3'] || editTypes['uniq'] || [];
-      const names = editTypes['4'] || editTypes['val'] || [];
-      // Additional columns for requisites (from legacy: ord, req_id, req_t, attrs, reft)
-      const orders = editTypes['5'] || editTypes['ord'] || [];
-      const reqIds = editTypes['6'] || editTypes['req_id'] || [];
-      const reqTypes = editTypes['7'] || editTypes['req_t'] || [];
-      const attrs = editTypes['8'] || editTypes['attrs'] || [];
-      const refts = editTypes['9'] || editTypes['reft'] || []; // Reference type for requisites!
-
-      // Group rows by type ID - first occurrence is type, rest are requisites
-      const typeMap = new Map();
-      const typeOrder = []; // Preserve order of first occurrences
-
-      for (let i = 0; i < ids.length; i++) {
-        const typeId = String(ids[i]);
-        const baseType = baseTypesList[i];
-        const refVal = refVals[i];
-        const unique = uniqueFlags[i];
-        const name = names[i] || '';
-        const order = orders[i];
-        const reqId = reqIds[i];
-        const reft = refts[i]; // Reference type ID for requisites
-
-        // Use 'ord' (order) to distinguish: empty = type definition, non-empty = requisite
-        const isRequisiteRow = order !== undefined && order !== '' && order !== null;
-
-        if (!isRequisiteRow && !typeMap.has(typeId)) {
-          // Type definition row (no order or first occurrence)
-          typeOrder.push(typeId);
-          const isReferenceTable = refVal && refVal !== '' && refVal !== '0' && refVal !== 0;
-          typeMap.set(typeId, {
-            id: typeId,
-            name: name,
-            baseType: baseType,
-            refVal: refVal,
-            unique: unique === 1 || unique === '1' || unique === true,
-            requisites: [],
-            isService: baseType === 0 || baseType === '0',
-            isSimple: !refVal || refVal === '' || refVal === '0' || refVal === 0,
-            isReferenceTable: isReferenceTable
-          });
-        } else if (isRequisiteRow && typeMap.has(typeId)) {
-          // Requisite row (has order value)
-          const type = typeMap.get(typeId);
-
-          // Get the requisite's type ID from column 7 (req_t)
-          const reqTypeId = reqTypes[i];
-
-          // LEGACY LOGIC: A requisite is a reference if its type ID is NOT a base type
-          // Base types are 0-20 (SHORT, CHARS, NUMBER, etc.)
-          // If reqTypeId > 20 or not in baseTypeNameMap, it's a reference to a user-defined table
-          const isReference = reqTypeId && !isBaseType(reqTypeId);
-
-          // For references, the refTypeId IS the reqTypeId (the user-defined type it references)
-          // For base types, refTypeId is null
-          const reqRefTypeId = isReference ? String(reqTypeId) : null;
-
-          type.requisites.push({
-            id: reqId ? String(reqId) : `${typeId}-req-${i}`,
-            name: name,
-            type: isReference ? 'reference' : getBaseTypeNameFromId(baseType),
-            baseTypeId: baseType,
-            refTypeId: reqRefTypeId,
-            isReference: isReference,
-            order: order
-          });
-        } else if (!typeMap.has(typeId)) {
-          // Type definition (fallback for APIs that don't have 'ord' column)
-          typeOrder.push(typeId);
-          const isReferenceTable = refVal && refVal !== '' && refVal !== '0' && refVal !== 0;
-          typeMap.set(typeId, {
-            id: typeId,
-            name: name,
-            baseType: baseType,
-            refVal: refVal,
-            unique: unique === 1 || unique === '1' || unique === true,
-            requisites: [],
-            isService: baseType === 0 || baseType === '0',
-            isSimple: !refVal || refVal === '' || refVal === '0' || refVal === 0,
-            isReferenceTable: isReferenceTable
-          });
-        }
-      }
-
-      // Second pass: resolve reference type names
-      typeMap.forEach((type) => {
-        type.requisites.forEach((req) => {
-          if (req.refTypeId && typeMap.has(req.refTypeId)) {
-            req.refTypeName = typeMap.get(req.refTypeId).name;
-          }
-        });
-      });
-
-      // Convert to array preserving order
-      const types = typeOrder.map(id => typeMap.get(id));
-      typesList.value = types;
-
-      const totalRequisites = types.reduce((sum, t) => sum + t.requisites.length, 0);
-      const totalRefRequisites = types.reduce((sum, t) =>
-        sum + t.requisites.filter(r => r.isReference).length, 0);
-      console.log(`[IntegramTypeEditor] Loaded ${types.length} types with ${totalRequisites} requisites (${totalRefRequisites} are references)`);
-
-      // DEBUG: Log first few reference requisites found
-      if (totalRefRequisites > 0) {
-        console.log('[IntegramTypeEditor] DEBUG: Sample reference requisites:');
-        let count = 0;
-        for (const type of types) {
-          for (const req of type.requisites) {
-            if (req.isReference && count < 5) {
-              console.log(`  ${type.name}.${req.name} -> type ${req.refTypeId} "${req.refTypeName || 'NOT FOUND'}"`);
-              count++;
-            }
-          }
-          if (count >= 5) break;
-        }
-      } else {
-        console.log('[IntegramTypeEditor] DEBUG: No reference requisites found. Checking raw data...');
-        // Log sample requisite type IDs to debug
-        const sampleReqs = [];
-        for (const type of types) {
-          for (const req of type.requisites.slice(0, 2)) {
-            sampleReqs.push(`${type.name}.${req.name}: baseTypeId=${req.baseTypeId}, refTypeId=${req.refTypeId}`);
-          }
-          if (sampleReqs.length >= 5) break;
-        }
-        console.log('[IntegramTypeEditor] DEBUG: Sample requisites:', sampleReqs);
-      }
+      typesList.value = normalizeTypeEditorData(response);
     } else if (response && response.types) {
       // Fallback: support older format with response.types array
       typesList.value = Array.isArray(response.types) ? response.types : [];
@@ -1153,9 +947,7 @@ async function createType() {
       integramApiClient.setDatabase(props.session.database);
     }
 
-    // Find base type ID from label (integramApiClient expects baseTypeId as number/string)
-    const baseType = baseTypes.find(t => t.value === newType.baseType);
-    const baseTypeId = baseType ? baseType.value : newType.baseType;
+    const baseTypeId = getTypeIdFromName(newType.baseType);
 
     const response = await integramApiClient.createType(
       newType.name,
@@ -1251,11 +1043,6 @@ async function saveEditedType() {
       integramApiClient.setDatabase(props.session.database);
     }
 
-    // Get the base type value (convert label to ID if needed)
-    let baseTypeValue = editTypeDialog.baseType;
-
-    // If baseType is a string label like 'SHORT', convert to the numeric ID
-    // The API expects the base type ID from the metadata
     const typeMetadata = await integramApiClient.getTypeMetadata(editTypeDialog.type.id);
     const baseTypeId = typeMetadata.type?.t || editTypeDialog.type.baseTypeId || 3;
 
@@ -1399,6 +1186,9 @@ function handleEditType(typeId) {
         element.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
     }, 100);
+    if (canEditTypes.value) {
+      editType(type);
+    }
   }
 }
 
@@ -1495,24 +1285,29 @@ async function saveRequisite() {
 
       // Set alias if provided
       if (response && response.id && requisiteDialog.data.name) {
-        await integramApiClient.saveRequisiteAlias(response.id, requisiteDialog.data.name);
+        await integramApiClient.saveRequisiteAlias(
+          response.id,
+          requisiteDialog.data.name,
+          requisiteDialog.typeId
+        );
       }
 
       // Set nullable flag if specified
       if (response && response.id && !requisiteDialog.data.nullable) {
-        await integramApiClient.toggleRequisiteNull(response.id);
+        await integramApiClient.toggleRequisiteNull(response.id, requisiteDialog.typeId);
       }
 
       // Set multi flag if specified
       if (response && response.id && requisiteDialog.data.multi) {
-        await integramApiClient.toggleRequisiteMulti(response.id);
+        await integramApiClient.toggleRequisiteMulti(response.id, requisiteDialog.typeId);
       }
 
       // Set default value if specified (supports macros like [TODAY], [NOW])
       if (response && response.id && requisiteDialog.data.defaultValue) {
         await integramApiClient.saveRequisiteDefaultValue(
           response.id,
-          requisiteDialog.data.defaultValue
+          requisiteDialog.data.defaultValue,
+          requisiteDialog.typeId
         );
       }
     } else {
@@ -1520,7 +1315,8 @@ async function saveRequisite() {
       if (requisiteDialog.data.name) {
         await integramApiClient.saveRequisiteAlias(
           requisiteDialog.data.id,
-          requisiteDialog.data.name
+          requisiteDialog.data.name,
+          requisiteDialog.typeId
         );
       }
 
@@ -1528,7 +1324,8 @@ async function saveRequisite() {
       if (requisiteDialog.data.defaultValue !== undefined) {
         await integramApiClient.saveRequisiteDefaultValue(
           requisiteDialog.data.id,
-          requisiteDialog.data.defaultValue || ''
+          requisiteDialog.data.defaultValue || '',
+          requisiteDialog.typeId
         );
       }
     }
@@ -1627,9 +1424,8 @@ async function moveRequisiteDown(type, requisite) {
       return;
     }
 
-    // Use setRequisiteOrder to move down (order = currentIndex + 2 for 1-based)
-    const newOrder = currentIndex + 2;
-    await integramApiClient.setRequisiteOrder(requisite.id, newOrder);
+    const nextRequisite = reqs[currentIndex + 1];
+    await integramApiClient.moveRequisiteUp(nextRequisite.id);
 
     toast.add({
       severity: 'success',

@@ -174,16 +174,37 @@ export function normalizeMetadataResponse(data = {}) {
 }
 
 export function normalizeTermsResponse(data = {}) {
-  const rawTerms = Array.isArray(data)
+  const isArrayPayload = Array.isArray(data)
+  const hasWrappedTerms = !isArrayPayload && Object.prototype.hasOwnProperty.call(data, 'terms')
+  const hasTermById = !isArrayPayload && Object.prototype.hasOwnProperty.call(data, 'termById')
+  const hasBaseTypes = !isArrayPayload && (
+    Object.prototype.hasOwnProperty.call(data, 'base_types') ||
+    Object.prototype.hasOwnProperty.call(data, 'baseTypes')
+  )
+  const isDictionaryPayload = !isArrayPayload && !hasWrappedTerms && !hasTermById && !hasBaseTypes && isTermsDictionary(data)
+  const rawTerms = isArrayPayload
     ? data
-    : data.terms ?? data.termById ?? data
-  const payload = Array.isArray(data) ? { terms: data } : data
+    : hasWrappedTerms
+      ? data.terms ?? {}
+      : hasTermById
+        ? data.termById ?? {}
+        : isDictionaryPayload
+          ? data
+          : {}
+  const payload = isArrayPayload || isDictionaryPayload ? { terms: rawTerms } : data
+  const terms = Array.isArray(rawTerms)
+    ? rawTerms.map(term => ({
+      ...term,
+      id: toOptionalNumber(term.id),
+      name: term.name ?? term.val ?? ''
+    }))
+    : rawTerms
   const termById = Array.isArray(rawTerms)
-    ? Object.fromEntries(rawTerms.map(term => [String(term.id), term.val ?? term.name ?? '']))
+    ? Object.fromEntries(terms.map(term => [String(term.id), term.name]))
     : Object.fromEntries(Object.entries(rawTerms).map(([id, term]) => [
-        String(id),
-        term && typeof term === 'object' ? term.val ?? term.name ?? '' : term ?? ''
-      ]))
+      String(id),
+      term && typeof term === 'object' ? term.val ?? term.name ?? '' : term ?? ''
+    ]))
   const baseTypes = toArray(payload.base_types ?? payload.baseTypes).map(type => ({
     id: toOptionalNumber(type.id),
     name: type.name ?? type.val ?? ''
@@ -191,9 +212,20 @@ export function normalizeTermsResponse(data = {}) {
 
   return {
     ...payload,
+    terms,
     termById,
     baseTypes
   }
+}
+
+function isTermsDictionary(data) {
+  return Boolean(
+    data &&
+    typeof data === 'object' &&
+    !Array.isArray(data) &&
+    !('terms' in data) &&
+    Object.keys(data).some(key => /^\d+$/.test(key))
+  )
 }
 
 export function normalizeObjectListResponse(data = {}) {
@@ -314,10 +346,75 @@ export function normalizeReferenceOptionsResponse(data = {}) {
 }
 
 export function normalizeMutationResponse(data = {}) {
+  const objectId = toOptionalNumber(data.id ?? data.objectId ?? data.obj)
   return {
     ...data,
     ok: data.ok ?? data.success ?? true,
-    objectId: toOptionalNumber(data.id ?? data.objectId)
+    id: data.id ?? objectId,
+    objectId
+  }
+}
+
+function getFilenameFromPath(path = '') {
+  const value = String(path || '').split('?')[0].split('#')[0]
+  return value.split('/').filter(Boolean).pop() || ''
+}
+
+function getFileExtension(filename = '') {
+  const name = String(filename || '')
+  const dotIndex = name.lastIndexOf('.')
+  return dotIndex >= 0 ? name.slice(dotIndex + 1).toLowerCase() : ''
+}
+
+function getUploadPayload(data = {}) {
+  const payload = firstPayload(data)
+  if (Array.isArray(payload.files) && payload.files.length > 0) return payload.files[0]
+  if (Array.isArray(payload.file) && payload.file.length > 0) return payload.file[0]
+  if (payload.file && typeof payload.file === 'object') return payload.file
+  return payload
+}
+
+export function normalizeUploadResponse(data = {}, fallbackFile = null) {
+  const payload = firstPayload(data)
+  const filePayload = getUploadPayload(data)
+  const path = filePayload.path ??
+    filePayload.url ??
+    filePayload.href ??
+    filePayload.args ??
+    payload.path ??
+    payload.url ??
+    payload.href ??
+    payload.args ??
+    ''
+  const filename = filePayload.name ??
+    filePayload.filename ??
+    payload.name ??
+    payload.filename ??
+    fallbackFile?.name ??
+    getFilenameFromPath(path)
+  const href = filePayload.href ?? filePayload.url ?? payload.href ?? payload.url ?? path
+  const size = filePayload.size ?? payload.size ?? fallbackFile?.size ?? null
+  const mimeType = filePayload.mimeType ??
+    filePayload.mime ??
+    filePayload.type ??
+    payload.mimeType ??
+    payload.mime ??
+    payload.type ??
+    fallbackFile?.type ??
+    ''
+
+  return {
+    ok: payload.ok ?? payload.success ?? true,
+    id: toOptionalNumber(filePayload.id ?? payload.id),
+    name: filename || getFilenameFromPath(path),
+    filename: filename || getFilenameFromPath(path),
+    path,
+    href,
+    url: filePayload.url ?? payload.url ?? '',
+    size: toOptionalNumber(size),
+    mimeType,
+    extension: getFileExtension(filename || path),
+    raw: data
   }
 }
 
@@ -419,6 +516,53 @@ export function buildRequisitePayload(requisites = {}) {
   }
 
   return data
+}
+
+function isFormDataPayload(data) {
+  return typeof FormData !== 'undefined' && data instanceof FormData
+}
+
+function isBinaryPayloadValue(value) {
+  return (
+    (typeof File !== 'undefined' && value instanceof File) ||
+    (typeof Blob !== 'undefined' && value instanceof Blob)
+  )
+}
+
+function hasBinaryPayload(data) {
+  if (!data || typeof data !== 'object' || data instanceof URLSearchParams || isFormDataPayload(data)) return false
+  return Object.values(data).some(isBinaryPayloadValue)
+}
+
+function appendPayloadValue(payload, key, value) {
+  if (Array.isArray(value)) {
+    value.forEach(item => appendPayloadValue(payload, key, item))
+    return
+  }
+
+  if (value !== null && value !== undefined) {
+    payload.append(key, value)
+  }
+}
+
+function buildPostPayload(data = {}, xsrfToken = null) {
+  const postData = isFormDataPayload(data)
+    ? data
+    : hasBinaryPayload(data)
+      ? new FormData()
+      : data instanceof URLSearchParams
+        ? new URLSearchParams(data)
+        : new URLSearchParams()
+
+  if (!postData.has('_xsrf')) postData.append('_xsrf', xsrfToken)
+
+  if (!(data instanceof URLSearchParams) && !isFormDataPayload(data)) {
+    for (const [key, value] of Object.entries(data)) {
+      appendPayloadValue(postData, key, value)
+    }
+  }
+
+  return postData
 }
 
 export class IntegramApiClient {
@@ -1047,25 +1191,12 @@ export class IntegramApiClient {
       }
 
       const url = this.buildURL(endpoint)
-      const postData = data instanceof URLSearchParams
-        ? new URLSearchParams(data)
-        : new URLSearchParams()
-
-      if (!postData.has('_xsrf')) postData.append('_xsrf', this.xsrfToken)
-
-      if (!(data instanceof URLSearchParams)) {
-        for (const [key, value] of Object.entries(data)) {
-          if (value !== null && value !== undefined) {
-            postData.append(key, value)
-          }
-        }
-      }
-
+      const postData = buildPostPayload(data, this.xsrfToken)
       const authHeaders = this.getAuthHeaders(this.database)
       const headers = {
-        'Content-Type': 'application/x-www-form-urlencoded',
         ...authHeaders
       }
+      if (!isFormDataPayload(postData)) headers['Content-Type'] = 'application/x-www-form-urlencoded'
       const { jsonMode = 'JSON_KV', normalize = null, params: optionParams = {}, ...axiosOptions } = options
       const requestParams = {
         ...(jsonMode ? { [jsonMode]: '' } : {}),
@@ -1138,6 +1269,40 @@ export class IntegramApiClient {
     return this.post(endpoint, data, { ...options, jsonMode: jsonFlag })
   }
 
+  async postMultipart(endpoint, formData, options = {}) {
+    try {
+      if (!this.isAuthenticated()) {
+        throw new Error('Not authenticated. Call authenticate() first.')
+      }
+
+      const url = this.buildURL(endpoint)
+      if (!formData.has('_xsrf')) formData.append('_xsrf', this.xsrfToken)
+
+      const authHeaders = this.getAuthHeaders(this.database)
+      const { jsonMode = 'JSON', normalize = null, params: optionParams = {}, ...axiosOptions } = options
+      const requestParams = {
+        ...(jsonMode ? { [jsonMode]: '' } : {}),
+        ...optionParams
+      }
+
+      const response = await axios.post(url, formData, {
+        timeout: 30000,
+        withCredentials: this.shouldUseCredentials(url),
+        ...axiosOptions,
+        params: requestParams,
+        headers: {
+          ...authHeaders,
+          ...(axiosOptions.headers || {})
+        }
+      })
+
+      const responseData = normalizeApiResponse(response.data)
+      return normalize ? normalize(responseData) : responseData
+    } catch (error) {
+      throw this.handleError(error)
+    }
+  }
+
   handleError(error) {
     if (error instanceof IntegramApiError) return error
     if (error.code === 'ECONNABORTED' || error.message?.includes('timeout')) {
@@ -1188,41 +1353,65 @@ export class IntegramApiClient {
   async createType(name, baseTypeId, unique = false) {
     const data = { val: name, t: baseTypeId }
     if (unique) data.unique = 1
-    return this.post('_d_new', data)
+    return this.post('_d_new', data, { jsonMode: 'JSON', normalize: normalizeMutationResponse })
   }
 
   async saveType(typeId, name, baseTypeId, unique = false) {
     const data = { val: name, t: baseTypeId }
     if (unique) data.unique = 1
-    return this.post(`_d_save/${typeId}`, data)
+    return this.post(`_d_save/${typeId}`, data, { jsonMode: 'JSON', normalize: normalizeMutationResponse })
   }
 
   async deleteType(typeId) {
-    return this.post(`_d_del/${typeId}`)
+    return this.post(`_d_del/${typeId}`, {}, { jsonMode: 'JSON', normalize: normalizeMutationResponse })
+  }
+
+  async createTypeReference(typeId) {
+    return this.post(`_d_ref/${typeId}`, {}, { jsonMode: 'JSON', normalize: normalizeMutationResponse })
   }
 
   async addRequisite(typeId, requisiteTypeId) {
-    return this.post(`_d_req/${typeId}`, { t: requisiteTypeId })
+    return this.post(`_d_req/${typeId}`, { t: requisiteTypeId }, { jsonMode: 'JSON', normalize: normalizeMutationResponse })
   }
 
   async deleteRequisite(requisiteId, forced = true) {
-    return this.post(`_d_del_req/${requisiteId}`, forced ? { forced: '1' } : {})
+    return this.post(`_d_del_req/${requisiteId}`, forced ? { forced: '1' } : {}, { jsonMode: 'JSON', normalize: normalizeMutationResponse })
   }
 
-  async saveRequisiteAlias(requisiteId, alias) {
-    return this.post(`_d_alias/${requisiteId}`, { val: alias })
+  async saveRequisiteAlias(requisiteId, alias, typeId = null) {
+    return this.post(`_d_alias/${requisiteId}`, { val: alias }, {
+      jsonMode: 'JSON',
+      normalize: normalizeMutationResponse,
+      params: typeId ? { up: String(typeId) } : {}
+    })
   }
 
-  async toggleRequisiteNull(requisiteId) {
-    return this.post(`_d_null/${requisiteId}`)
+  async saveRequisiteDefaultValue(requisiteId, value, typeId = null) {
+    return this.post(`_d_attrs/${requisiteId}`, { val: value }, {
+      jsonMode: 'JSON',
+      normalize: normalizeMutationResponse,
+      params: typeId ? { up: String(typeId) } : {}
+    })
   }
 
-  async toggleRequisiteMulti(requisiteId) {
-    return this.post(`_d_multi/${requisiteId}`)
+  async toggleRequisiteNull(requisiteId, typeId = null) {
+    return this.post(`_d_null/${requisiteId}`, {}, {
+      jsonMode: 'JSON',
+      normalize: normalizeMutationResponse,
+      params: typeId ? { up: String(typeId) } : {}
+    })
+  }
+
+  async toggleRequisiteMulti(requisiteId, typeId = null) {
+    return this.post(`_d_multi/${requisiteId}`, {}, {
+      jsonMode: 'JSON',
+      normalize: normalizeMutationResponse,
+      params: typeId ? { up: String(typeId) } : {}
+    })
   }
 
   async moveRequisiteUp(requisiteId) {
-    return this.post(`_d_up/${requisiteId}`)
+    return this.post(`_d_up/${requisiteId}`, {}, { jsonMode: 'JSON', normalize: normalizeMutationResponse })
   }
 
   // DML Operations
@@ -1324,7 +1513,7 @@ export class IntegramApiClient {
   }
 
   async getTypeEditorData() {
-    return this.get('edit_types')
+    return this.get('edit_types', {}, { jsonMode: 'JSON' })
   }
 
   async executeReport(reportId, params = {}) {
@@ -1337,6 +1526,10 @@ export class IntegramApiClient {
     }
 
     return this.get(endpoint, requestParams, { jsonMode: jsonFlag, normalize: normalizeReportResponse })
+  }
+
+  async sendAiChatMessage(payload = {}) {
+    return this.post('ai-chat', payload, { jsonMode: 'JSON' })
   }
 
   async getDirAdmin(options = {}) {
@@ -1407,26 +1600,29 @@ export class IntegramApiClient {
     return this.post('backup')
   }
 
-  async uploadFile(file, path = '') {
+  async uploadFile(file, path = '', options = {}) {
+    if (path && typeof path === 'object') {
+      options = path
+      path = ''
+    }
     const formData = new FormData()
     formData.append('file', file)
-    formData.append('path', path)
-    formData.append('_xsrf', this.xsrfToken)
-
-    const url = this.buildURL('dir_admin')
-    const headers = { 'Content-Type': 'multipart/form-data' }
-
-    if (this.database === 'my' || this.authDatabase === this.database) {
-      headers['X-Authorization'] = this.token
-    } else {
-      headers['my'] = this.token
-    }
-
-    const response = await axios.post(url, formData, {
-      params: { JSON_KV: '' },
-      headers
+    if (path) formData.append('path', path)
+    return this.postMultipart('_upload', formData, {
+      ...options,
+      jsonMode: 'JSON',
+      normalize: data => normalizeUploadResponse(data, file)
     })
-    return response.data
+  }
+
+  async uploadRequisiteFile(objectId, requisiteId, file, options = {}) {
+    const formData = new FormData()
+    formData.append(normalizeRequisiteKey(requisiteId), file)
+    return this.postMultipart(`_m_set/${objectId}`, formData, {
+      ...options,
+      jsonMode: 'JSON',
+      normalize: data => normalizeUploadResponse(data, file)
+    })
   }
 
   async uploadDirAdminFile({ file, folder = 'templates', addPath = '', rewrite = false }) {

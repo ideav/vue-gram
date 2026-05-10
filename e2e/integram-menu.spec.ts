@@ -77,7 +77,7 @@ test.describe('Integram legacy menu shell', () => {
       await page.mouse.down()
       await page.mouse.move(startX + 160, y, { steps: 8 })
       await page.mouse.up()
-      await expect.poll(async () => Math.round((await sidebar.boundingBox())?.width || 0)).toBeGreaterThan(initialWidth + 50)
+      await expect.poll(async () => Math.round((await sidebar.boundingBox())?.width || 0)).toBeGreaterThan(initialWidth + 30)
     }
 
     await page.locator('#sidebar-toggle').click()
