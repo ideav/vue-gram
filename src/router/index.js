@@ -51,9 +51,14 @@ const routes = [
         component: () => import('../views/integram/IntegramTypeEditor.vue')
       },
       {
-        path: 'sql',
+        path: 'sql/:reportId?',
         name: 'IntegramSql',
         component: () => import('../views/integram/IntegramSqlView.vue')
+      },
+      {
+        path: 'query/:reportId?',
+        name: 'IntegramQuery',
+        component: () => import('../views/integram/IntegramReportView.vue')
       },
       {
         path: 'report/:reportId?',
