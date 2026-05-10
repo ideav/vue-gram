@@ -146,6 +146,19 @@ const routes = [
         component: () => import('../views/integram/IntegramCabinetView.vue')
       },
       {
+        path: 'quiz/:quizId?',
+        name: 'IntegramQuiz',
+        component: () => import('../views/integram/IntegramQuizView.vue')
+      },
+      {
+        path: 'iquiz/:quizId?',
+        redirect: to => ({
+          path: `/${to.params.database}/quiz${to.params.quizId ? `/${to.params.quizId}` : ''}`,
+          query: to.query,
+          hash: to.hash
+        })
+      },
+      {
         path: 'upload',
         name: 'IntegramUpload',
         component: () => import('../views/integram/IntegramUploadView.vue')

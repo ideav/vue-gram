@@ -181,7 +181,7 @@ export function normalizeTermsResponse(data = {}) {
     Object.prototype.hasOwnProperty.call(data, 'base_types') ||
     Object.prototype.hasOwnProperty.call(data, 'baseTypes')
   )
-  const isDictionaryPayload = !isArrayPayload && !hasWrappedTerms && !hasTermById && !hasBaseTypes
+  const isDictionaryPayload = !isArrayPayload && !hasWrappedTerms && !hasTermById && !hasBaseTypes && isTermsDictionary(data)
   const rawTerms = isArrayPayload
     ? data
     : hasWrappedTerms
@@ -208,6 +208,16 @@ export function normalizeTermsResponse(data = {}) {
     termById,
     baseTypes
   }
+}
+
+function isTermsDictionary(data) {
+  return Boolean(
+    data &&
+    typeof data === 'object' &&
+    !Array.isArray(data) &&
+    !('terms' in data) &&
+    Object.keys(data).some(key => /^\d+$/.test(key))
+  )
 }
 
 export function normalizeObjectListResponse(data = {}) {
@@ -328,10 +338,12 @@ export function normalizeReferenceOptionsResponse(data = {}) {
 }
 
 export function normalizeMutationResponse(data = {}) {
+  const objectId = toOptionalNumber(data.id ?? data.objectId ?? data.obj)
   return {
     ...data,
     ok: data.ok ?? data.success ?? true,
-    objectId: toOptionalNumber(data.id ?? data.objectId)
+    id: data.id ?? objectId,
+    objectId
   }
 }
 
@@ -433,6 +445,53 @@ export function buildRequisitePayload(requisites = {}) {
   }
 
   return data
+}
+
+function isFormDataPayload(data) {
+  return typeof FormData !== 'undefined' && data instanceof FormData
+}
+
+function isBinaryPayloadValue(value) {
+  return (
+    (typeof File !== 'undefined' && value instanceof File) ||
+    (typeof Blob !== 'undefined' && value instanceof Blob)
+  )
+}
+
+function hasBinaryPayload(data) {
+  if (!data || typeof data !== 'object' || data instanceof URLSearchParams || isFormDataPayload(data)) return false
+  return Object.values(data).some(isBinaryPayloadValue)
+}
+
+function appendPayloadValue(payload, key, value) {
+  if (Array.isArray(value)) {
+    value.forEach(item => appendPayloadValue(payload, key, item))
+    return
+  }
+
+  if (value !== null && value !== undefined) {
+    payload.append(key, value)
+  }
+}
+
+function buildPostPayload(data = {}, xsrfToken = null) {
+  const postData = isFormDataPayload(data)
+    ? data
+    : hasBinaryPayload(data)
+      ? new FormData()
+      : data instanceof URLSearchParams
+        ? new URLSearchParams(data)
+        : new URLSearchParams()
+
+  if (!postData.has('_xsrf')) postData.append('_xsrf', xsrfToken)
+
+  if (!(data instanceof URLSearchParams) && !isFormDataPayload(data)) {
+    for (const [key, value] of Object.entries(data)) {
+      appendPayloadValue(postData, key, value)
+    }
+  }
+
+  return postData
 }
 
 export class IntegramApiClient {
@@ -1061,25 +1120,12 @@ export class IntegramApiClient {
       }
 
       const url = this.buildURL(endpoint)
-      const postData = data instanceof URLSearchParams
-        ? new URLSearchParams(data)
-        : new URLSearchParams()
-
-      if (!postData.has('_xsrf')) postData.append('_xsrf', this.xsrfToken)
-
-      if (!(data instanceof URLSearchParams)) {
-        for (const [key, value] of Object.entries(data)) {
-          if (value !== null && value !== undefined) {
-            postData.append(key, value)
-          }
-        }
-      }
-
+      const postData = buildPostPayload(data, this.xsrfToken)
       const authHeaders = this.getAuthHeaders(this.database)
       const headers = {
-        'Content-Type': 'application/x-www-form-urlencoded',
         ...authHeaders
       }
+      if (!isFormDataPayload(postData)) headers['Content-Type'] = 'application/x-www-form-urlencoded'
       const { jsonMode = 'JSON_KV', normalize = null, params: optionParams = {}, ...axiosOptions } = options
       const requestParams = {
         ...(jsonMode ? { [jsonMode]: '' } : {}),

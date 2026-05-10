@@ -1,7 +1,7 @@
 <template>
-  <IntegramForm
+  <IntegramQuiz
     :database="database"
-    :form-id="formId"
+    :quiz-id="quizId"
     :session="session"
   />
 </template>
@@ -10,13 +10,13 @@
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 
-import IntegramForm from '@/components/integram/IntegramForm.vue'
+import IntegramQuiz from '@/components/integram/IntegramQuiz.vue'
 import integramApiClient from '@/services/integramApiClient'
 
 const route = useRoute()
 
 const database = computed(() => route.params.database || integramApiClient.getDatabase() || 'my')
-const formId = computed(() => route.params.formId || null)
+const quizId = computed(() => route.params.quizId || null)
 const session = computed(() => ({
   database: database.value,
   ...integramApiClient.getAuthInfo()

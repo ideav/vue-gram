@@ -62,10 +62,7 @@ async function mockTablesApi(page: Page) {
     }
 
     if (path.endsWith('/terms')) {
-      await route.fulfill({
-        json: Object.fromEntries(tableTerms.map(table => [String(table.id), table.name])),
-        headers: corsHeaders,
-      })
+      await route.fulfill({ json: { terms: tableTerms }, headers: corsHeaders })
       return
     }
 

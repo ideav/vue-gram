@@ -28,6 +28,11 @@ describe('tableWorkspace helpers', () => {
       { id: '42', type: 3, name: 'Role' },
       { id: '18', type: 3, name: 'User' },
     ])
+
+    expect(normalizeTableList({ 18: 'User', 42: 'Role', termById: {}, baseTypes: [] })).toEqual([
+      { id: '42', type: 3, name: 'Role' },
+      { id: '18', type: 3, name: 'User' },
+    ])
   })
 
   it('normalizes the API client terms wrapper without losing table metadata', () => {
@@ -43,6 +48,11 @@ describe('tableWorkspace helpers', () => {
     })).toEqual([
       { id: '422', type: 9, name: 'Payment Date' },
       { id: '42', type: 3, name: 'Role' },
+    ])
+
+    expect(normalizeTableList({ termById: { 18: 'User', 42: 'Role' } })).toEqual([
+      { id: '42', type: 3, name: 'Role' },
+      { id: '18', type: 3, name: 'User' },
     ])
   })
 
