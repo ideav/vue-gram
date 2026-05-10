@@ -5,7 +5,7 @@ type Grants = Record<string, string>
 
 async function seedSession(page: Page, grants: Grants) {
   await page.addInitScript(({ seededGrants }) => {
-    const server = 'https://app.integram.io'
+    const server = 'http://localhost:3000'
     const session = {
       version: 2,
       server,

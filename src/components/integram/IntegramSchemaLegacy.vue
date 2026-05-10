@@ -156,12 +156,14 @@
               @click="emit('open-table', type.id)"
             />
             <Button
+              v-if="props.canEdit"
               icon="fi fi-rr-settings"
               text
               rounded
               size="small"
               severity="secondary"
               v-tooltip.bottom="'Редактировать структуру'"
+              :data-testid="`schema-legacy-edit-${type.id}`"
               @click="emit('edit-type', type.id)"
             />
           </div>
@@ -224,6 +226,10 @@ const props = defineProps({
   typesData: {
     type: Array,
     default: () => []
+  },
+  canEdit: {
+    type: Boolean,
+    default: true
   }
 })
 

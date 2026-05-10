@@ -192,8 +192,15 @@ export function normalizeTermsResponse(data = {}) {
           ? data
           : {}
   const payload = isArrayPayload || isDictionaryPayload ? { terms: rawTerms } : data
+  const terms = Array.isArray(rawTerms)
+    ? rawTerms.map(term => ({
+      ...term,
+      id: toOptionalNumber(term.id),
+      name: term.name ?? term.val ?? ''
+    }))
+    : rawTerms
   const termById = Array.isArray(rawTerms)
-    ? Object.fromEntries(rawTerms.map(term => [String(term.id), term.val ?? term.name ?? '']))
+    ? Object.fromEntries(terms.map(term => [String(term.id), term.name]))
     : Object.fromEntries(Object.entries(rawTerms).map(([id, term]) => [
       String(id),
       term && typeof term === 'object' ? term.val ?? term.name ?? '' : term ?? ''
@@ -205,6 +212,7 @@ export function normalizeTermsResponse(data = {}) {
 
   return {
     ...payload,
+    terms,
     termById,
     baseTypes
   }
@@ -1345,41 +1353,65 @@ export class IntegramApiClient {
   async createType(name, baseTypeId, unique = false) {
     const data = { val: name, t: baseTypeId }
     if (unique) data.unique = 1
-    return this.post('_d_new', data)
+    return this.post('_d_new', data, { jsonMode: 'JSON', normalize: normalizeMutationResponse })
   }
 
   async saveType(typeId, name, baseTypeId, unique = false) {
     const data = { val: name, t: baseTypeId }
     if (unique) data.unique = 1
-    return this.post(`_d_save/${typeId}`, data)
+    return this.post(`_d_save/${typeId}`, data, { jsonMode: 'JSON', normalize: normalizeMutationResponse })
   }
 
   async deleteType(typeId) {
-    return this.post(`_d_del/${typeId}`)
+    return this.post(`_d_del/${typeId}`, {}, { jsonMode: 'JSON', normalize: normalizeMutationResponse })
+  }
+
+  async createTypeReference(typeId) {
+    return this.post(`_d_ref/${typeId}`, {}, { jsonMode: 'JSON', normalize: normalizeMutationResponse })
   }
 
   async addRequisite(typeId, requisiteTypeId) {
-    return this.post(`_d_req/${typeId}`, { t: requisiteTypeId })
+    return this.post(`_d_req/${typeId}`, { t: requisiteTypeId }, { jsonMode: 'JSON', normalize: normalizeMutationResponse })
   }
 
   async deleteRequisite(requisiteId, forced = true) {
-    return this.post(`_d_del_req/${requisiteId}`, forced ? { forced: '1' } : {})
+    return this.post(`_d_del_req/${requisiteId}`, forced ? { forced: '1' } : {}, { jsonMode: 'JSON', normalize: normalizeMutationResponse })
   }
 
-  async saveRequisiteAlias(requisiteId, alias) {
-    return this.post(`_d_alias/${requisiteId}`, { val: alias })
+  async saveRequisiteAlias(requisiteId, alias, typeId = null) {
+    return this.post(`_d_alias/${requisiteId}`, { val: alias }, {
+      jsonMode: 'JSON',
+      normalize: normalizeMutationResponse,
+      params: typeId ? { up: String(typeId) } : {}
+    })
   }
 
-  async toggleRequisiteNull(requisiteId) {
-    return this.post(`_d_null/${requisiteId}`)
+  async saveRequisiteDefaultValue(requisiteId, value, typeId = null) {
+    return this.post(`_d_attrs/${requisiteId}`, { val: value }, {
+      jsonMode: 'JSON',
+      normalize: normalizeMutationResponse,
+      params: typeId ? { up: String(typeId) } : {}
+    })
   }
 
-  async toggleRequisiteMulti(requisiteId) {
-    return this.post(`_d_multi/${requisiteId}`)
+  async toggleRequisiteNull(requisiteId, typeId = null) {
+    return this.post(`_d_null/${requisiteId}`, {}, {
+      jsonMode: 'JSON',
+      normalize: normalizeMutationResponse,
+      params: typeId ? { up: String(typeId) } : {}
+    })
+  }
+
+  async toggleRequisiteMulti(requisiteId, typeId = null) {
+    return this.post(`_d_multi/${requisiteId}`, {}, {
+      jsonMode: 'JSON',
+      normalize: normalizeMutationResponse,
+      params: typeId ? { up: String(typeId) } : {}
+    })
   }
 
   async moveRequisiteUp(requisiteId) {
-    return this.post(`_d_up/${requisiteId}`)
+    return this.post(`_d_up/${requisiteId}`, {}, { jsonMode: 'JSON', normalize: normalizeMutationResponse })
   }
 
   // DML Operations
@@ -1481,7 +1513,7 @@ export class IntegramApiClient {
   }
 
   async getTypeEditorData() {
-    return this.get('edit_types')
+    return this.get('edit_types', {}, { jsonMode: 'JSON' })
   }
 
   async executeReport(reportId, params = {}) {

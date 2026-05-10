@@ -23,6 +23,24 @@ describe('tableWorkspace helpers', () => {
     ])
   })
 
+  it('normalizes terms after the API client has wrapped the response', () => {
+    expect(
+      normalizeTableList({
+        terms: [
+          { id: 42, type: 3, name: 'Role&nbsp;' },
+          { id: 18, type: 9, name: 'User' },
+        ],
+        termById: {
+          42: 'Role',
+          18: 'User',
+        },
+      })
+    ).toEqual([
+      { id: '42', type: 3, name: 'Role' },
+      { id: '18', type: 9, name: 'User' },
+    ])
+  })
+
   it('normalizes dictionary-shaped table payloads as an API fallback', () => {
     expect(normalizeTableList({ 18: 'User', 42: 'Role' })).toEqual([
       { id: '42', type: 3, name: 'Role' },

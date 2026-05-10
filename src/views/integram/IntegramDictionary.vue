@@ -176,7 +176,7 @@ import IntegramBreadcrumb from '@/components/integram/IntegramBreadcrumb.vue';
 const router = useRouter();
 const route = useRoute();
 const toast = useToast();
-const { authenticate, logout, isAuthenticated, sessionId } = useIntegramSession();
+const { logout, isAuthenticated } = useIntegramSession();
 
 // State
 const loading = ref(false);
@@ -200,7 +200,7 @@ const settingsId = ref(null); // Settings object ID for server persistence
 // Default categories configuration
 const DEFAULT_CATEGORIES = [
   { name: 'Избранное', open: true, tables: [], tableIds: ['18', '42'] },
-  { name: 'Основные', open: true, tables: [], tableIds: [] },
+  { name: 'Справочники', open: false, tables: [], tableIds: [] },
   { name: 'Служебные', open: false, tables: [], tableIds: ['22', '269'] },
   { name: 'Скрытые', open: false, tables: [], tableIds: ['47', '65', '137', '29', '63'] }
 ];
@@ -229,8 +229,11 @@ const baseTypes = [
 const database = computed(() => integramApiClient.getDatabase() || '');
 
 const canCreateTypes = computed(() => {
-  // Only admins can create types (in real app, check role)
-  return true; // For now, allow all authenticated users
+  const authInfo = integramApiClient.getAuthInfo();
+  const role = authInfo?.userRole || authInfo?.grants?.role;
+  if (typeof authInfo?.grants?.canEdit === 'boolean') return authInfo.grants.canEdit;
+  if (!role) return true;
+  return role === 'admin';
 });
 
 const filteredCategories = computed(() => {
@@ -272,37 +275,88 @@ async function handleLogout() {
   }
 }
 
+function parseCategoryConfig(rawConfig) {
+  if (!rawConfig) return null;
+  try {
+    const parsed = typeof rawConfig === 'string' ? JSON.parse(rawConfig) : rawConfig;
+    return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : null;
+  } catch (err) {
+    if (import.meta.env.DEV) {
+      console.warn('Failed to parse dictionary category settings:', err);
+    }
+    return null;
+  }
+}
+
+function buildCategoriesFromConfig(categoryConfig) {
+  return Object.entries(categoryConfig).map(([name, config]) => ({
+    name,
+    open: config.open ?? true,
+    tables: [],
+    tableIds: Array.isArray(config.tabs) ? config.tabs.map(String) : []
+  }));
+}
+
+function unwrapSettingsValue(value) {
+  if (!value || typeof value !== 'object') return value;
+  return value.val ?? value.value ?? value.UI ?? value.settings ?? null;
+}
+
+function getSettingsValue(row, reqs) {
+  const candidates = [
+    reqs?.t273,
+    reqs?.['273'],
+    reqs?.UI,
+    row?.t273,
+    row?.['273'],
+    row?.UI,
+    row?.settings,
+    row?.reqs?.t273,
+    row?.reqs?.['273'],
+    row?.reqs?.UI,
+    row?.requisites?.t273,
+    row?.requisites?.['273']
+  ];
+
+  for (const candidate of candidates) {
+    const value = unwrapSettingsValue(candidate);
+    if (value) return value;
+  }
+
+  return null;
+}
+
+function extractCategorySettings(settings) {
+  const objectRows = settings?.object || settings?.objects || settings?.list || [];
+  const objectReqs = settings?.reqs || settings?.objectRequisites || settings?.['&object_reqs'] || {};
+
+  for (const row of objectRows) {
+    const id = String(row.id || row.obj || '');
+    const rawConfig = getSettingsValue(row, objectReqs[id]);
+    const config = parseCategoryConfig(rawConfig);
+    if (id && config) return { id, config };
+  }
+
+  const editObjectId = settings?.obj?.id ? String(settings.obj.id) : null;
+  const editConfig = parseCategoryConfig(getSettingsValue(settings?.obj, settings?.reqs));
+  return editObjectId && editConfig ? { id: editObjectId, config: editConfig } : null;
+}
+
 async function loadCategoryConfiguration() {
   try {
-    // Try to load settings from server (type 269)
-    // In legacy code, this is stored in localStorage.getItem('settingsID')
-    const localSettingsId = localStorage.getItem('dictionarySettingsId');
+    const settings = await integramApiClient.getTableUiSettings();
+    const serverConfig = extractCategorySettings(settings);
 
-    if (localSettingsId) {
-      try {
-        const settings = await integramApiClient.getObjectEditData(localSettingsId);
-        if (settings && settings.obj) {
-          settingsId.value = localSettingsId;
-          // Parse configuration from settings object
-          const configData = settings.reqs?.['t269']?.value;
-          if (configData) {
-            const categoryConfig = JSON.parse(configData);
+    if (serverConfig) {
+      settingsId.value = serverConfig.id;
+      categories.value = buildCategoriesFromConfig(serverConfig.config);
+      return;
+    }
 
-            // Restore categories from saved configuration
-            categories.value = Object.entries(categoryConfig).map(([name, config]) => ({
-              name,
-              open: config.open ?? true,
-              tables: [],
-              tableIds: config.tabs || []
-            }));
-            return;
-          }
-        }
-      } catch (err) {
-        if (import.meta.env.DEV) {
-          console.warn('Failed to load settings from server, using defaults:', err);
-        }
-      }
+    const localConfig = parseCategoryConfig(localStorage.getItem('settingsID'));
+    if (localConfig) {
+      categories.value = buildCategoriesFromConfig(localConfig);
+      return;
     }
 
     // Fallback to default categories
@@ -324,29 +378,13 @@ async function saveCategoryConfiguration() {
       };
     });
 
-    const configJson = JSON.stringify(config);
+    const result = await integramApiClient.saveTableUiSettings(settingsId.value, config);
 
-    if (settingsId.value) {
-      // Update existing settings object
-      await integramApiClient.setObjectRequisites(settingsId.value, {
-        't269': configJson
-      });
-    } else {
-      // Create new settings object (type 269)
-      const result = await integramApiClient.createObject(
-        '269', // Settings type
-        '{_global_.user}', // Object value (username)
-        {
-          't269': configJson
-        },
-        '1' // parent ID
-      );
-
-      if (result.obj) {
-        settingsId.value = result.obj;
-        localStorage.setItem('dictionarySettingsId', result.obj);
-      }
+    if (result?.obj || result?.objectId) {
+      settingsId.value = String(result.obj || result.objectId);
+      localStorage.setItem('dictionarySettingsId', settingsId.value);
     }
+    localStorage.setItem('settingsID', JSON.stringify(config));
 
     toast.add({
       severity: 'success',
@@ -389,15 +427,21 @@ async function loadDictionary() {
     });
 
     // Add remaining tables to "Основные" category
-    const mainCategory = categories.value.find(cat => cat.name.includes('Основные') || cat.name.includes('Main'));
-    if (mainCategory) {
+    const mainCategory = categories.value.find(cat =>
+      cat.name.includes('Основные') || cat.name.includes('Справочники') || cat.name.includes('Main')
+    );
+    const unassignedCategory = mainCategory || categories.value[0];
+    if (unassignedCategory) {
       const assignedIds = new Set(
         categories.value.flatMap(cat => cat.tableIds)
       );
 
-      mainCategory.tables = allTableIds
+      unassignedCategory.tables = [
+        ...unassignedCategory.tables,
+        ...allTableIds
         .filter(id => !assignedIds.has(id))
-        .map(id => ({ id, name: dict[id] }));
+        .map(id => ({ id, name: dict[id] }))
+      ];
     }
   } catch (err) {
     error.value = err.message;
