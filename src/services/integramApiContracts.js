@@ -89,6 +89,31 @@ export const INTEGRAM_API_CONTRACTS = [
     responseFixture: 'm-set-success.json',
     errorFixture: 'm-set-error.json',
     normalizer: 'normalizeMutationResponse'
+  },
+  {
+    method: 'uploadFile',
+    httpMethod: 'POST',
+    endpoint: '/_upload',
+    jsonFlag: 'JSON',
+    input: {
+      body: ['_xsrf', 'file', 'path']
+    },
+    responseFixture: 'upload-success.json',
+    errorFixture: 'upload-error.json',
+    normalizer: 'normalizeUploadResponse'
+  },
+  {
+    method: 'uploadRequisiteFile',
+    httpMethod: 'POST',
+    endpoint: '/_m_set/{objectId}',
+    jsonFlag: 'JSON',
+    input: {
+      path: ['objectId'],
+      body: ['_xsrf', 't{requisiteId}=File']
+    },
+    responseFixture: 'upload-success.json',
+    errorFixture: 'upload-error.json',
+    normalizer: 'normalizeUploadResponse'
   }
 ]
 

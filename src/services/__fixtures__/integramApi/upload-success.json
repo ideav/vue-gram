@@ -1,0 +1,9 @@
+{
+  "ok": true,
+  "args": "uploads/2026/demo.txt",
+  "file": {
+    "name": "demo.txt",
+    "size": 11,
+    "type": "text/plain"
+  }
+}

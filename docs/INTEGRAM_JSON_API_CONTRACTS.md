@@ -14,6 +14,8 @@ Fixtures live in `src/services/__fixtures__/integramApi/`. The machine-readable 
 | `getReferenceOptions` | GET | `/_ref_reqs/{requisiteId}?JSON` | `requisiteId`, `id`, optional `r`, `type`, `q`, `LIMIT` | `reference-options.json` | `normalizeReferenceOptionsResponse` |
 | `createObject` | POST | `/_m_new/{typeId}?JSON` | `typeId`, `up`, `t{typeId}`, optional `t{requisiteId}` | `m-new-success.json`, `m-new-error.json` | `normalizeMutationResponse`, `normalizeApiError` |
 | `setObjectRequisites` | POST | `/_m_set/{objectId}?JSON` | `objectId`, `t{requisiteId}` body fields | `m-set-success.json`, `m-set-error.json` | `normalizeMutationResponse`, `normalizeApiError` |
+| `uploadFile` | POST multipart | `/_upload?JSON` | `file`, optional `path`, `_xsrf` | `upload-success.json`, `upload-error.json` | `normalizeUploadResponse`, `normalizeApiError` |
+| `uploadRequisiteFile` | POST multipart | `/_m_set/{objectId}?JSON` | `objectId`, `t{requisiteId}` file field, `_xsrf` | `upload-success.json`, `upload-error.json` | `normalizeUploadResponse`, `normalizeApiError` |
 
 Normalized UI errors use `IntegramApiError`:
 

@@ -62,9 +62,10 @@ async function seedSession(page: Page) {
       database: 'my',
       token: 'auth-token',
       xsrfToken: 'xsrf-token',
-      authServer: 'https://app.integram.io',
+      authServer: window.location.origin,
       authDatabase: 'my'
     }))
+    localStorage.setItem('integram_server', window.location.origin)
   })
 }
 
@@ -72,11 +73,18 @@ test('SQL query builder loads report, saves a column setting, and refreshes prev
   const setRequests: string[] = []
 
   await seedSession(page)
-  await page.route(`**/api/my/edit_obj/${reportId}?**`, route => fulfillJson(route, editData))
-  await page.route('**/api/my/object/28?**', route => fulfillJson(route, columnsData))
-  await page.route('**/api/my/object/44?**', route => fulfillJson(route, joinsData))
-  await page.route(`**/api/my/report/${reportId}?**`, route => fulfillJson(route, previewData))
-  await page.route('**/api/my/_m_set/1001?**', async (route) => {
+  await page.route(/\/(?:api\/)?my\/xsrf(?:\?|$)/, route => fulfillJson(route, {
+    token: 'auth-token',
+    _xsrf: 'xsrf-token',
+    id: '1',
+    user: 'tester',
+    role: 'admin'
+  }))
+  await page.route(/\/(?:api\/)?my\/edit_obj\/900(?:\?|$)/, route => fulfillJson(route, editData))
+  await page.route(/\/(?:api\/)?my\/object\/28(?:\?|$)/, route => fulfillJson(route, columnsData))
+  await page.route(/\/(?:api\/)?my\/object\/44(?:\?|$)/, route => fulfillJson(route, joinsData))
+  await page.route(/\/(?:api\/)?my\/report\/900(?:\?|$)/, route => fulfillJson(route, previewData))
+  await page.route(/\/(?:api\/)?my\/_m_set\/1001(?:\?|$)/, async (route) => {
     setRequests.push(route.request().postData() || '')
     await fulfillJson(route, { ok: true })
   })
