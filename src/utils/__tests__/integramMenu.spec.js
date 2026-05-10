@@ -1,10 +1,13 @@
-import { describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it } from 'vitest'
 
 import {
   buildLegacyMenuPath,
   filterMenuTree,
   findActiveMenuItem,
   flattenMenuTree,
+  getExpandedMenuStorageKey,
+  loadExpandedMenuIds,
+  saveExpandedMenuIds,
   normalizeMenuData
 } from '../integramMenu'
 
@@ -18,6 +21,10 @@ const legacyMenuData = [
 ]
 
 describe('integram menu adapter', () => {
+  beforeEach(() => {
+    localStorage.clear()
+  })
+
   it('normalizes legacy server menuData into a stable tree', () => {
     const tree = normalizeMenuData(legacyMenuData)
 
@@ -75,5 +82,13 @@ describe('integram menu adapter', () => {
 
     expect(rows.map(row => row.item.label)).toEqual(['Рабочие места', 'Запросы'])
     expect(rows[1].isSearchMatch).toBe(true)
+  })
+
+  it('persists expanded menu ids with the Vue menuExpanded database key', () => {
+    saveExpandedMenuIds('my', new Set(['root', 42]))
+
+    expect(getExpandedMenuStorageKey('my')).toBe('menuExpanded_my')
+    expect(JSON.parse(localStorage.getItem('menuExpanded_my'))).toEqual(['root', '42'])
+    expect(loadExpandedMenuIds('my')).toEqual(new Set(['root', '42']))
   })
 })

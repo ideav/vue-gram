@@ -274,8 +274,11 @@ import {
   getAssignedTableIds,
   getTypeIconClass,
   hasStructureWriteGrant,
-  normalizeFolderConfig,
+  loadTableFolderConfigFromStorage,
+  loadTableSettingsIdFromStorage,
   normalizeTableList,
+  saveTableFolderConfigToStorage,
+  saveTableSettingsIdToStorage,
   tableMatchesQuery
 } from '@/utils/tableWorkspace'
 
@@ -285,14 +288,11 @@ const toast = useToast()
 const confirm = useConfirm()
 const { isAuthenticated } = useIntegramSession()
 
-const TABLE_CONFIG_STORAGE_KEY = 'integram-table-folders-config'
-const TABLE_SETTINGS_ID_STORAGE_KEY = 'integram-table-folders-settings-id'
-
 const loading = ref(false)
 const error = ref(null)
 const tables = ref([])
 const folderConfig = ref(cloneFolderConfig())
-const settingsId = ref(localStorage.getItem(TABLE_SETTINGS_ID_STORAGE_KEY))
+const settingsId = ref(loadTableSettingsIdFromStorage())
 const grants = ref({})
 const searchQuery = ref('')
 const searchInput = ref(null)
@@ -377,8 +377,8 @@ async function loadWorkspace() {
 
     tables.value = tablesResult.value
 
-    const localConfig = localStorage.getItem(TABLE_CONFIG_STORAGE_KEY)
-    let nextConfig = localConfig ? normalizeFolderConfig(localConfig) : cloneFolderConfig(DEFAULT_TABLE_FOLDERS)
+    const localConfig = loadTableFolderConfigFromStorage()
+    let nextConfig = localConfig || cloneFolderConfig(DEFAULT_TABLE_FOLDERS)
 
     if (settingsResult.status === 'fulfilled') {
       const extracted = extractTableSettings(settingsResult.value)
@@ -386,13 +386,13 @@ async function loadWorkspace() {
         nextConfig = extracted.config
         if (extracted.settingsId) {
           settingsId.value = extracted.settingsId
-          localStorage.setItem(TABLE_SETTINGS_ID_STORAGE_KEY, extracted.settingsId)
+          saveTableSettingsIdToStorage(extracted.settingsId)
         }
       }
     }
 
     folderConfig.value = nextConfig
-    localStorage.setItem(TABLE_CONFIG_STORAGE_KEY, JSON.stringify(nextConfig))
+    saveTableFolderConfigToStorage(nextConfig)
   } catch (err) {
     console.error('Error loading tables workspace:', err)
     error.value = err.message || 'Не удалось загрузить таблицы'
@@ -650,14 +650,14 @@ function reorderFolders(sourceName, targetName) {
 
 async function saveFolderConfig({ silent = false } = {}) {
   const normalizedConfig = cloneFolderConfig(folderConfig.value)
-  localStorage.setItem(TABLE_CONFIG_STORAGE_KEY, JSON.stringify(normalizedConfig))
+  saveTableFolderConfigToStorage(normalizedConfig)
 
   try {
     const result = await integramApiClient.saveTableUiSettings(settingsId.value, normalizedConfig)
     const nextSettingsId = result.id || result.obj
     if (nextSettingsId) {
       settingsId.value = String(nextSettingsId)
-      localStorage.setItem(TABLE_SETTINGS_ID_STORAGE_KEY, String(nextSettingsId))
+      saveTableSettingsIdToStorage(nextSettingsId)
     }
     if (!silent) {
       toast.add({ severity: 'success', summary: 'Сохранено', detail: 'Настройки таблиц обновлены', life: 2000 })

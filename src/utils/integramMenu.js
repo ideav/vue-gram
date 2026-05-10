@@ -234,6 +234,35 @@ export function findActiveMenuItem(tree, fullPath, database) {
   )
 }
 
+function canUseLocalStorage() {
+  return typeof localStorage !== 'undefined'
+}
+
+export function getExpandedMenuStorageKey(database) {
+  return `menuExpanded_${database || 'default'}`
+}
+
+export function loadExpandedMenuIds(database) {
+  if (!canUseLocalStorage()) return new Set()
+
+  try {
+    const raw = localStorage.getItem(getExpandedMenuStorageKey(database))
+    const ids = raw ? JSON.parse(raw) : []
+    return new Set(Array.isArray(ids) ? ids.map(String) : [])
+  } catch {
+    return new Set()
+  }
+}
+
+export function saveExpandedMenuIds(database, ids) {
+  if (!canUseLocalStorage()) return false
+
+  const values = ids instanceof Set ? [...ids] : ids
+  const normalized = Array.isArray(values) ? values.map(String) : []
+  localStorage.setItem(getExpandedMenuStorageKey(database), JSON.stringify(normalized))
+  return true
+}
+
 export function buildLegacyMenuPath(database, href) {
   const rawHref = String(href || '').trim()
   if (!rawHref) return ''
