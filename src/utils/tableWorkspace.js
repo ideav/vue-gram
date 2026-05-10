@@ -96,11 +96,25 @@ export function normalizeTableList(payload) {
   }
 
   if (payload && typeof payload === 'object') {
-    const terms = payload.termById && typeof payload.termById === 'object'
-      ? payload.termById
-      : payload
+    if (Array.isArray(payload.terms)) {
+      return normalizeTableList(payload.terms)
+    }
 
-    return Object.entries(terms)
+    if (payload.termById && typeof payload.termById === 'object') {
+      return Object.entries(payload.termById)
+        .map(([id, term]) => {
+          const source = term && typeof term === 'object' ? term : {}
+          return {
+            id: String(id),
+            type: Number(source.type ?? source.t ?? source.baseType ?? 3),
+            name: String(source.name ?? source.val ?? term ?? '').replace(/&nbsp;/g, ' ').trim()
+          }
+        })
+        .filter(table => table.id && table.name)
+        .sort(compareTablesByName)
+    }
+
+    return Object.entries(payload)
       .map(([id, term]) => ({
         id: String(id),
         type: Number(term?.type ?? term?.t ?? term?.baseType ?? 3),
