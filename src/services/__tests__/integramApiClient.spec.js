@@ -258,6 +258,12 @@ describe('IntegramApiClient', () => {
 
   it('normalizes report and reference fixtures for UI adapters', () => {
     const report = normalizeReportResponse(reportFixture)
+    const rowMatrixReport = normalizeReportResponse({
+      columns: reportFixture.columns,
+      data: [
+        ['5001', 'Prepare contract', 'Open']
+      ]
+    })
     const refs = normalizeReferenceOptionsResponse(referenceOptionsFixture)
 
     expect(report.columns.map(column => column.name)).toEqual(['Task ID', 'Task', 'Status'])
@@ -268,6 +274,7 @@ describe('IntegramApiClient', () => {
         Status: 'Open'
       }
     ])
+    expect(rowMatrixReport.rows).toEqual(report.rows)
     expect(refs).toEqual({
       3001: 'Open',
       3002: 'Closed'

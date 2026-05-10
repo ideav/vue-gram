@@ -246,6 +246,22 @@ function buildRowsFromColumnMatrix(columns, matrix) {
   })
 }
 
+function buildRowsFromRowMatrix(columns, matrix) {
+  return matrix.map(row => {
+    if (row && typeof row === 'object' && !Array.isArray(row)) return row
+    const values = Array.isArray(row) ? row : [row]
+    return Object.fromEntries(columns.map((column, columnIndex) => {
+      return [column.name, values[columnIndex] ?? null]
+    }))
+  })
+}
+
+function isColumnMatrix(columns, matrix) {
+  if (columns.length === 0 || matrix.length !== columns.length) return false
+  if (!matrix.every(Array.isArray)) return false
+  return matrix.some(columnValues => columnValues.length !== columns.length)
+}
+
 export function normalizeReportResponse(data = {}) {
   if (Array.isArray(data)) {
     const columns = Object.keys(data[0] ?? {}).map((name, index) => normalizeReportColumn(name, index))
@@ -260,13 +276,15 @@ export function normalizeReportResponse(data = {}) {
   const reportKey = Object.keys(data).find(key => key.startsWith('&rep.'))
   const reportData = reportKey ? data[reportKey] : data
   const columns = toArray(reportData.columns ?? reportData.col).map(normalizeReportColumn)
-  const matrix = toArray(reportData.data)
+  const matrix = toArray(reportData.rows ?? reportData.data)
 
   return {
     ...data,
     columns,
     data: matrix,
-    rows: buildRowsFromColumnMatrix(columns, matrix)
+    rows: isColumnMatrix(columns, matrix)
+      ? buildRowsFromColumnMatrix(columns, matrix)
+      : buildRowsFromRowMatrix(columns, matrix)
   }
 }
 
@@ -1007,6 +1025,10 @@ export class IntegramApiClient {
     }
   }
 
+  async getJson(endpoint, params = {}, jsonFlag = 'JSON_KV') {
+    return this.get(endpoint, params, { jsonMode: jsonFlag })
+  }
+
   async post(endpoint, data = {}, options = {}) {
     try {
       if (!this.isAuthenticated()) {
@@ -1055,6 +1077,10 @@ export class IntegramApiClient {
     } catch (error) {
       throw this.handleError(error)
     }
+  }
+
+  async postJson(endpoint, data = {}, jsonFlag = 'JSON_KV', options = {}) {
+    return this.post(endpoint, data, { ...options, jsonMode: jsonFlag })
   }
 
   handleError(error) {
@@ -1247,10 +1273,15 @@ export class IntegramApiClient {
   }
 
   async executeReport(reportId, params = {}) {
-    if (params._m_confirmed) {
-      return this.post(`report/${reportId}`, params, { jsonMode: 'JSON', normalize: normalizeReportResponse })
+    const { _jsonFormat, ...requestParams } = params || {}
+    const jsonFlag = _jsonFormat || 'JSON'
+    const endpoint = `report/${encodeURIComponent(String(reportId))}`
+
+    if (requestParams._m_confirmed) {
+      return this.post(endpoint, requestParams, { jsonMode: jsonFlag, normalize: normalizeReportResponse })
     }
-    return this.get(`report/${reportId}`, params, { jsonMode: 'JSON', normalize: normalizeReportResponse })
+
+    return this.get(endpoint, requestParams, { jsonMode: jsonFlag, normalize: normalizeReportResponse })
   }
 
   async getDirAdmin(path = '') {

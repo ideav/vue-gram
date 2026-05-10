@@ -80,6 +80,16 @@ const routes = [
         component: () => import('../views/integram/IntegramSmartQueryView.vue')
       },
       {
+        path: 'report/:reportId/embed',
+        name: 'IntegramReportEmbed',
+        component: () => import('../components/integram/IntegramReportEmbed.vue'),
+        props: route => ({
+          reportId: route.params.reportId,
+          database: route.params.database,
+          params: route.query
+        })
+      },
+      {
         path: 'report/:reportId?',
         name: 'IntegramReport',
         component: () => import('../views/integram/IntegramReportView.vue')

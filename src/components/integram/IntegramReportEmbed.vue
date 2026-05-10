@@ -23,8 +23,11 @@
       :loading="loading"
       :showTotals="showTotals"
       :title="reportTitle"
+      :initialFilters="activeFilters"
+      filterMode="server"
       @refresh="loadReport"
       @apply-filters="onApplyFilters"
+      @clear-filters="onClearFilters"
       @go-home="$emit('go-home')"
       @export="$emit('export', $event)"
     />
@@ -32,10 +35,17 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
 import { useToast } from 'primevue/usetoast'
 import integramService from '@/services/integramService'
 import { logger } from '@/utils/logger'
+import {
+  deserializeReportFilters,
+  normalizeReportParams,
+  normalizeReportResponse,
+  serializeReportFilters,
+  withoutReportFilterParams
+} from '@/utils/reportData'
 import IntegramReportViewer from './IntegramReportViewer.vue'
 
 const props = defineProps({
@@ -67,10 +77,15 @@ const props = defineProps({
   database: {
     type: String,
     default: null
+  },
+  // Query/body parameters accepted by the legacy report endpoint.
+  params: {
+    type: Object,
+    default: () => ({})
   }
 })
 
-const emit = defineEmits(['loaded', 'error', 'refresh', 'go-home', 'export'])
+const emit = defineEmits(['loaded', 'error', 'refresh', 'go-home', 'export', 'apply-filters', 'clear-filters'])
 
 const toast = useToast()
 
@@ -79,6 +94,8 @@ const loading = ref(false)
 const error = ref(null)
 const reportData = ref(null)
 const autoRefreshTimer = ref(null)
+const activeParams = ref(normalizeReportParams(props.params))
+const activeFilters = ref({})
 
 // Computed
 const reportTitle = computed(() => {
@@ -92,14 +109,7 @@ const reportTitle = computed(() => {
 })
 
 const reportColumns = computed(() => {
-  if (!reportData.value?.columns) return []
-
-  // Convert column names to column objects
-  return reportData.value.columns.map(colName => ({
-    field: colName,
-    header: colName,
-    align: 'left'
-  }))
+  return reportData.value?.columns || []
 })
 
 const reportTotals = computed(() => {
@@ -112,7 +122,7 @@ const reportTotals = computed(() => {
 })
 
 // Methods
-async function loadReport() {
+async function loadReport(params = activeParams.value) {
   if (!props.reportId && !props.reportName) {
     error.value = 'Не указан ID или имя отчета'
     emit('error', error.value)
@@ -121,26 +131,27 @@ async function loadReport() {
 
   loading.value = true
   error.value = null
+  activeParams.value = normalizeReportParams(params)
 
   // Issue #5112: Ensure integramService is authenticated before calling executeReport
   if (!integramService.isAuthenticated()) {
-    console.log('🔄 IntegramReportEmbed: Authenticating integramService...')
+    logger.info('IntegramReportEmbed: restoring integramService session')
 
     // Issue #5112: Use integramService.loadSession() which properly handles v2 format
     // This method already knows how to parse both old and new session formats
     integramService.loadSession()
 
     if (integramService.isAuthenticated()) {
-      console.log('✅ IntegramReportEmbed: Restored integramService session from localStorage')
+      logger.info('IntegramReportEmbed: restored integramService session from localStorage')
     } else {
-      console.warn('⚠️ IntegramReportEmbed: No valid session in localStorage')
+      logger.warn('IntegramReportEmbed: no valid session in localStorage')
       error.value = 'Требуется авторизация. Пожалуйста, войдите в систему.'
       loading.value = false
       emit('error', error.value)
       return
     }
   } else {
-    console.log('✅ IntegramReportEmbed: integramService already authenticated')
+    logger.info('IntegramReportEmbed: integramService already authenticated')
   }
 
   const startTime = performance.now()
@@ -149,60 +160,21 @@ async function loadReport() {
     // Determine which identifier to use
     const identifier = props.reportId || props.reportName
 
-    // Execute report via Integram API
-    const response = await integramService.executeReport(identifier, {})
+    // Execute report via Integram API using legacy-compatible JSON response.
+    const response = await integramService.executeReport(identifier, activeParams.value)
 
     const endTime = performance.now()
     const executionTimeMs = endTime - startTime
 
     if (response) {
       logger.info('Report response:', response)
-
-      let columns = []
-      let rows = []
-
-      // Check if response is an array (direct JSON data)
-      if (Array.isArray(response)) {
-        // Response is an array of objects
-        if (response.length > 0) {
-          columns = Object.keys(response[0])
-          rows = response
-        }
-        logger.info(
-          `Direct array response detected. Rows: ${rows.length}, Columns: ${columns.join(', ')}`
-        )
-      } else if (response.columns && response.data) {
-        // Legacy format: { report_name, columns: [...], data: [[...], [...]] }
-        columns = response.columns
-        const data = response.data
-
-        // Convert data array to rows with column names
-        rows = data.map(row => {
-          const rowObj = {}
-          columns.forEach((col, index) => {
-            rowObj[col] = row[index]
-          })
-          return rowObj
-        })
-        logger.info(
-          `Legacy format detected. Rows: ${rows.length}, Columns: ${columns.join(', ')}`
-        )
-      } else {
-        // Unknown format
-        logger.warn('Unexpected report response format:', response)
-        throw new Error(
-          'Неподдерживаемый формат ответа от сервера'
-        )
-      }
-
-      reportData.value = {
-        report_name: response.report_name || props.title || props.reportName || `Отчет #${props.reportId}`,
-        columns: columns,
-        rows: rows,
-        total_rows: rows.length,
-        execution_time_ms: response.execution_time_ms || executionTimeMs,
-        totals: response.totals || null
-      }
+      reportData.value = normalizeReportResponse(response, {
+        reportId: identifier,
+        reportName: props.reportName,
+        title: props.title,
+        executionTimeMs
+      })
+      activeFilters.value = deserializeReportFilters(activeParams.value, reportData.value.columns)
 
       logger.info(`Report loaded successfully`, reportData.value)
 
@@ -226,11 +198,24 @@ async function loadReport() {
   }
 }
 
-function onApplyFilters(filters) {
+async function onApplyFilters(filters) {
   logger.info('Apply filters:', filters)
-  // Filters are applied client-side in IntegramReportViewer
-  // We could emit this event if parent needs to know
   emit('apply-filters', filters)
+
+  const filterParams = serializeReportFilters(filters, reportData.value?.columns || [])
+  activeParams.value = {
+    ...withoutReportFilterParams(activeParams.value),
+    ...filterParams
+  }
+
+  await loadReport(activeParams.value)
+}
+
+async function onClearFilters() {
+  activeParams.value = withoutReportFilterParams(activeParams.value)
+  activeFilters.value = {}
+  emit('clear-filters')
+  await loadReport(activeParams.value)
 }
 
 function setupAutoRefresh() {
@@ -251,21 +236,28 @@ function setupAutoRefresh() {
 
 // Lifecycle
 onMounted(() => {
-  loadReport()
+  activeParams.value = normalizeReportParams(props.params)
+  loadReport(activeParams.value)
   setupAutoRefresh()
 })
 
 // Watch for prop changes
 watch(() => [props.reportId, props.reportName], () => {
-  loadReport()
+  activeParams.value = normalizeReportParams(props.params)
+  loadReport(activeParams.value)
+})
+
+watch(() => props.params, () => {
+  activeParams.value = normalizeReportParams(props.params)
+  loadReport(activeParams.value)
+}, {
+  deep: true
 })
 
 watch(() => props.autoRefresh, () => {
   setupAutoRefresh()
 })
 
-// Cleanup on unmount
-import { onBeforeUnmount } from 'vue'
 onBeforeUnmount(() => {
   if (autoRefreshTimer.value) {
     clearInterval(autoRefreshTimer.value)

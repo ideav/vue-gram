@@ -147,44 +147,6 @@
             />
             <span>{{ reportData?.report_name || (selectedReportId ? `Отчет #${selectedReportId}` : 'Отчет') }}</span>
           </div>
-          <div class="flex gap-2 align-items-center ml-auto">
-            <Button
-              icon="fi fi-rr-filter"
-              @click="showFilters = !showFilters"
-              size="small"
-              rounded
-              :severity="showFilters ? 'info' : 'secondary'"
-              :outlined="!showFilters"
-              v-tooltip.bottom="showFilters ? 'Скрыть фильтры' : 'Показать фильтры'"
-            />
-            <Button
-              icon="fi fi-rr-arrows-alt-h"
-              @click="compactMode = !compactMode"
-              size="small"
-              rounded
-              outlined
-              v-tooltip.bottom="compactMode ? 'Обычный' : 'Компактный'"
-            />
-            <Button
-              icon="fi fi-rr-download"
-              @click="exportToExcel"
-              size="small"
-              rounded
-              severity="success"
-              outlined
-              :disabled="!reportData || !reportData.rows || reportData.rows.length === 0"
-              v-tooltip.bottom="'Excel'"
-            />
-            <Button
-              icon="fi fi-rr-refresh"
-              @click="executeReport"
-              size="small"
-              rounded
-              :loading="executingReport"
-              outlined
-              v-tooltip.bottom="'Обновить'"
-            />
-          </div>
         </div>
       </template>
       <template #content>
@@ -203,62 +165,22 @@
       </div>
 
       <!-- Report Data Table -->
-      <DataTable
-        v-else-if="reportData && reportData.rows"
-        :value="reportData.rows"
-        :size="compactMode ? 'small' : 'normal'"
-        showGridlines
-        stripedRows
+      <IntegramReportViewer
+        v-else-if="reportData"
+        :reportId="selectedReportId"
+        :reportData="reportData.rows"
+        :columns="reportData.columns"
+        :totals="reportData.totals"
         :loading="executingReport"
-        :paginator="reportData.rows.length > 20"
-        :rows="20"
-        :rowsPerPageOptions="[20, 50, 100]"
-        responsiveLayout="scroll"
-        @row-contextmenu="onReportDataContextMenu"
-        contextMenu
-      >
-        <!-- Dynamic Columns -->
-        <Column
-          v-for="(column, index) in reportData.columns"
-          :key="index"
-          :field="column"
-          :header="column"
-          :sortable="true"
-        >
-          <template v-if="showFilters" #filter="{ filterModel }">
-            <div class="flex gap-1 align-items-center">
-              <InputText
-                v-model="filterModel.from"
-                placeholder="От"
-                size="small"
-                class="p-column-filter"
-                style="width: 50px"
-              />
-              <span>-</span>
-              <InputText
-                v-model="filterModel.to"
-                placeholder="До"
-                size="small"
-                class="p-column-filter"
-                style="width: 50px"
-              />
-            </div>
-          </template>
-        </Column>
-
-        <!-- Footer with execution info -->
-        <template #footer>
-          <div class="flex justify-content-between align-items-center">
-            <div class="font-bold">
-              Всего строк: {{ reportData.total_rows }}
-            </div>
-            <div class="text-sm text-500">
-              Время выполнения:
-              {{ reportData.execution_time_ms?.toFixed(2) }} мс
-            </div>
-          </div>
-        </template>
-      </DataTable>
+        :title="reportData.report_name"
+        :initialFilters="reportFilters"
+        filterMode="server"
+        @refresh="executeReport"
+        @apply-filters="applyReportFilters"
+        @clear-filters="clearReportFilters"
+        @go-home="closeReport"
+        @export="onReportExport"
+      />
 
       <!-- Empty Result -->
       <div v-else class="text-center p-5">
@@ -277,7 +199,15 @@ import { useToast } from 'primevue/usetoast'
 
 import integramService from '@/services/integramService'
 import { logger } from '@/utils/logger'
+import {
+  deserializeReportFilters,
+  normalizeReportParams,
+  normalizeReportResponse,
+  serializeReportFilters,
+  withoutReportFilterParams
+} from '@/utils/reportData'
 import IntegramBreadcrumb from '@/components/integram/IntegramBreadcrumb.vue'
+import IntegramReportViewer from '@/components/integram/IntegramReportViewer.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -290,8 +220,8 @@ const reports = ref([])
 const selectedReportId = ref(null)
 const reportData = ref(null)
 const reportError = ref(null)
-const showFilters = ref(false)
-const compactMode = ref(false)
+const reportParams = ref({})
+const reportFilters = ref({})
 
 // Context menu refs and state
 const reportListMenuRef = ref(null)
@@ -489,7 +419,8 @@ onMounted(async () => {
   // Check if reportId is in route params
   if (route.params.reportId && route.params.reportId !== 'undefined') {
     selectedReportId.value = route.params.reportId
-    await executeReport()
+    reportParams.value = normalizeReportParams(route.query)
+    await executeReport(reportParams.value)
   } else {
     // If no reportId or reportId is 'undefined', show the list
     await loadReportList()
@@ -669,7 +600,7 @@ async function loadMoreReports() {
   }
 }
 
-async function executeReport() {
+async function executeReport(params = reportParams.value) {
   if (!selectedReportId.value) {
     toast.add({
       severity: 'warn',
@@ -682,16 +613,12 @@ async function executeReport() {
 
   executingReport.value = true
   reportError.value = null
+  reportParams.value = normalizeReportParams(params)
 
   const startTime = performance.now()
 
   try {
-    // Execute report via Integram API
-    // GET /{db}/report/{report_id}
-    const response = await integramService.executeReport(
-      selectedReportId.value,
-      {},
-    )
+    const response = await integramService.executeReport(selectedReportId.value, reportParams.value)
 
     const endTime = performance.now()
     const executionTimeMs = endTime - startTime
@@ -699,51 +626,11 @@ async function executeReport() {
     if (response) {
       logger.info('Report response:', response)
 
-      let columns = []
-      let rows = []
-
-      // Check if response is an array (direct JSON data)
-      if (Array.isArray(response)) {
-        // Response is an array of objects like [{"Name":"...", "HREF":"...", "Меню":"..."}, ...]
-        // Extract column names from the first object
-        if (response.length > 0) {
-          columns = Object.keys(response[0])
-          rows = response
-        }
-        logger.info(
-          `Direct array response detected. Rows: ${rows.length}, Columns: ${columns.join(', ')}`,
-        )
-      } else if (response.columns && response.data) {
-        // Legacy format: { report_name, columns: [...], data: [[...], [...]] }
-        columns = response.columns
-        const data = response.data
-
-        // Convert data array to rows with column names
-        rows = data.map(row => {
-          const rowObj = {}
-          columns.forEach((col, index) => {
-            rowObj[col] = row[index]
-          })
-          return rowObj
-        })
-        logger.info(
-          `Legacy format detected. Rows: ${rows.length}, Columns: ${columns.join(', ')}`,
-        )
-      } else {
-        // Unknown format
-        logger.warn('Unexpected report response format:', response)
-        throw new Error(
-          'Неподдерживаемый формат ответа от сервера. Ожидается массив объектов или {columns, data}',
-        )
-      }
-
-      reportData.value = {
-        report_name: response.report_name || `Отчет #${selectedReportId.value}`,
-        columns: columns,
-        rows: rows,
-        total_rows: rows.length,
-        execution_time_ms: response.execution_time_ms || executionTimeMs,
-      }
+      reportData.value = normalizeReportResponse(response, {
+        reportId: selectedReportId.value,
+        executionTimeMs
+      })
+      reportFilters.value = deserializeReportFilters(reportParams.value, reportData.value.columns)
 
       logger.info(
         `Report ${selectedReportId.value} executed successfully`,
@@ -753,7 +640,7 @@ async function executeReport() {
       toast.add({
         severity: 'success',
         summary: 'Успех',
-        detail: `Отчет выполнен. Получено строк: ${rows.length}`,
+        detail: `Отчет выполнен. Получено строк: ${reportData.value.rows.length}`,
         life: 3000,
       })
     } else {
@@ -778,31 +665,78 @@ function onReportSelect(event) {
   selectReport(event.data.id)
 }
 
-function selectReport(reportId) {
+async function selectReport(reportId) {
   selectedReportId.value = reportId
   reportData.value = null
   reportError.value = null
+  reportParams.value = {}
+  reportFilters.value = {}
 
   // Update URL
-  router.push({
+  await router.push({
     name: 'IntegramReport',
-    params: { database: database.value, reportId },
+    params: {
+      database: database.value,
+      reportId
+    },
+    query: {}
   })
 
   // Execute the report
-  executeReport()
+  await executeReport(reportParams.value)
 }
 
-function closeReport() {
+async function closeReport() {
   selectedReportId.value = null
   reportData.value = null
   reportError.value = null
+  reportParams.value = {}
+  reportFilters.value = {}
 
   // Update URL
-  router.push({
+  await router.push({
     name: 'IntegramReport',
-    params: { database: database.value },
+    params: {
+      database: database.value
+    },
+    query: {}
   })
+}
+
+function syncReportQuery(params) {
+  if (!selectedReportId.value) return Promise.resolve()
+
+  return router.replace({
+    name: 'IntegramReport',
+    params: {
+      database: database.value,
+      reportId: selectedReportId.value
+    },
+    query: normalizeReportParams(params)
+  })
+}
+
+async function applyReportFilters(filters) {
+  const serializedFilters = serializeReportFilters(filters, reportData.value?.columns || [])
+  reportParams.value = {
+    ...withoutReportFilterParams(reportParams.value),
+    ...serializedFilters
+  }
+
+  await syncReportQuery(reportParams.value)
+  await executeReport(reportParams.value)
+}
+
+async function clearReportFilters() {
+  reportParams.value = withoutReportFilterParams(reportParams.value)
+  reportFilters.value = {}
+
+  await syncReportQuery(reportParams.value)
+  await executeReport(reportParams.value)
+}
+
+function onReportExport(event) {
+  logger.info('Report exported', event)
 }
 
 function exportToExcel() {
