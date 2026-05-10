@@ -710,6 +710,7 @@ import {
   getTypeIdFromName,
   normalizeTypeEditorData
 } from '@/utils/integramTypeEditor';
+import { canEditTypes as canEditTypesAccess } from '@/utils/integramPermissions';
 import IntegramSchemaLegacy from './IntegramSchemaLegacy.vue';
 import IntegramSchemaTree from './IntegramSchemaTree.vue';
 
@@ -871,12 +872,7 @@ const canCreateType = computed(() => {
 });
 
 const canEditTypes = computed(() => {
-  const grants = props.session?.grants;
-  if (typeof grants?.canEdit === 'boolean') return grants.canEdit;
-
-  const role = props.session?.userRole || props.session?.role || props.session?.user?.role || grants?.role;
-  if (!role) return true;
-  return role === 'admin';
+  return canEditTypesAccess(props.session || {});
 });
 
 const filteredTypes = computed(() => {

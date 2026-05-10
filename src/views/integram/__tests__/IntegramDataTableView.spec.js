@@ -3,6 +3,11 @@ import { flushPromises, mount } from '@vue/test-utils'
 import { ref } from 'vue'
 import IntegramDataTableView from '../IntegramDataTableView.vue'
 import integramApiClient from '@/services/integramApiClient'
+import {
+  missingPermissionContext,
+  readOnlyPermissionContext,
+  writePermissionContext
+} from '@/utils/__fixtures__/permissions'
 
 const mockRoute = vi.hoisted(() => ({
   params: {
@@ -52,6 +57,7 @@ vi.mock('@/services/integramApiClient', () => ({
     getServer: vi.fn(() => 'https://app.integram.io'),
     getObjectList: vi.fn(),
     getObjectCount: vi.fn(),
+    getAuthInfo: vi.fn(),
     saveObject: vi.fn(),
     setObjectRequisites: vi.fn()
   }
@@ -82,7 +88,10 @@ function mountView() {
         Card: passiveStub,
         Checkbox: inputStub,
         ConfirmDialog: passiveStub,
-        DataTable: passiveStub,
+        DataTable: {
+          props: ['disableEditing', 'disableTypeEditing'],
+          template: '<div data-testid="data-table" :data-disable-editing="String(disableEditing)" :data-disable-type-editing="String(disableTypeEditing)" />'
+        },
         Dialog: passiveStub,
         IconField: passiveStub,
         InputIcon: passiveStub,
@@ -129,6 +138,7 @@ describe('IntegramDataTableView', () => {
       reqs: { 7: { 100: 'Open' } }
     })
     integramApiClient.getObjectCount.mockResolvedValue({ count: 1 })
+    integramApiClient.getAuthInfo.mockReturnValue(writePermissionContext)
   })
 
   it('passes legacy URL table state to the initial object list request', async () => {
@@ -164,5 +174,25 @@ describe('IntegramDataTableView', () => {
       F_100: 'Open',
       lnx: '1'
     })
+  })
+
+  it('disables table write actions for read-only permissions', async () => {
+    integramApiClient.getAuthInfo.mockReturnValue(readOnlyPermissionContext)
+
+    const wrapper = mountView()
+    await flushPromises()
+
+    expect(wrapper.get('[data-testid="data-table"]').attributes('data-disable-editing')).toBe('true')
+    expect(wrapper.get('[data-testid="data-table"]').attributes('data-disable-type-editing')).toBe('true')
+  })
+
+  it('does not expose table write actions when permission state is missing', async () => {
+    integramApiClient.getAuthInfo.mockReturnValue(missingPermissionContext)
+
+    const wrapper = mountView()
+    await flushPromises()
+
+    expect(wrapper.get('[data-testid="data-table"]').attributes('data-disable-editing')).toBe('true')
+    expect(wrapper.get('[data-testid="data-table"]').attributes('data-disable-type-editing')).toBe('true')
   })
 })

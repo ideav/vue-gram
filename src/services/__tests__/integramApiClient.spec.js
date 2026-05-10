@@ -185,6 +185,45 @@ describe('IntegramApiClient', () => {
     expect(config.onUploadProgress).toBe(onUploadProgress)
   })
 
+  it('preserves legacy grants and role ids in saved sessions', () => {
+    client.applySession('my', {
+      token: 'auth-token',
+      xsrfToken: 'xsrf-token',
+      userName: 'writer',
+      userRole: 'writer',
+      roleId: 20,
+      grants: { 1: 'WRITE', 42: 'WRITE' }
+    })
+
+    expect(client.getAuthInfo()).toMatchObject({
+      userName: 'writer',
+      userRole: 'writer',
+      roleId: 20,
+      grants: { 1: 'WRITE', 42: 'WRITE' }
+    })
+
+    client.saveSession()
+    const stored = JSON.parse(localStorage.getItem('integram_session'))
+    expect(stored.databases.my.grants).toEqual({ 1: 'WRITE', 42: 'WRITE' })
+    expect(localStorage.getItem('integram_grants')).toBe(JSON.stringify({ 1: 'WRITE', 42: 'WRITE' }))
+  })
+
+  it('clears stale legacy permission storage when the active session has no grants', () => {
+    localStorage.setItem('role', 'writer')
+    localStorage.setItem('roleId', '20')
+    localStorage.setItem('integram_grants', '{"1":"WRITE"}')
+
+    client.userRole = null
+    client.roleId = null
+    client.databases.my.grants = null
+
+    client.saveSession()
+
+    expect(localStorage.getItem('role')).toBeNull()
+    expect(localStorage.getItem('roleId')).toBeNull()
+    expect(localStorage.getItem('integram_grants')).toBeNull()
+  })
+
   it('uploads FILE requisites through _m_set using the t{requisiteId} file field', async () => {
     const file = new File(['hello world'], 'demo.txt', { type: 'text/plain' })
     axios.post.mockResolvedValue({ data: uploadSuccessFixture })
@@ -323,6 +362,9 @@ describe('IntegramApiClient', () => {
     localStorage.setItem('_xsrf', 'xsrf-token')
     localStorage.setItem('user', 'alice')
     localStorage.setItem('id', '42')
+    localStorage.setItem('role', 'writer')
+    localStorage.setItem('roleId', '20')
+    localStorage.setItem('integram_grants', '{"1":"WRITE"}')
     localStorage.setItem('db', 'my')
     localStorage.setItem('session_timestamp', '1')
     document.cookie = 'idb_my=auth-token; path=/'
@@ -335,6 +377,9 @@ describe('IntegramApiClient', () => {
     expect(localStorage.getItem('_xsrf')).toBeNull()
     expect(localStorage.getItem('user')).toBeNull()
     expect(localStorage.getItem('id')).toBeNull()
+    expect(localStorage.getItem('role')).toBeNull()
+    expect(localStorage.getItem('roleId')).toBeNull()
+    expect(localStorage.getItem('integram_grants')).toBeNull()
     expect(localStorage.getItem('db')).toBeNull()
     expect(localStorage.getItem('session_timestamp')).toBeNull()
     expect(document.cookie).not.toContain('idb_my=')

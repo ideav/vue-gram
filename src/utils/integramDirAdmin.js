@@ -1,3 +1,10 @@
+import {
+  ACCESS_LEVELS,
+  canAdmin,
+  hasWriteRole,
+  normalizeGrantValue
+} from './integramPermissions'
+
 export const DIR_ADMIN_GRANTS = {
   WRITE: 'WRITE',
   READ: 'READ',
@@ -5,9 +12,6 @@ export const DIR_ADMIN_GRANTS = {
 }
 
 const FOLDERS = new Set(['templates', 'download'])
-const WRITE_GRANT_VALUES = new Set(['WRITE', 'WRITER', 'ADMIN', 'W', '2', '3'])
-const READ_GRANT_VALUES = new Set(['READ', 'READER', 'VIEW', 'VIEWER', 'R', '1'])
-const BARRED_GRANT_VALUES = new Set(['BARRED', 'DENY', 'DENIED', 'NONE', 'NO', 'FALSE', '0'])
 
 export function normalizeDirAdminFolder(folder = 'templates') {
   return FOLDERS.has(folder) ? folder : 'templates'
@@ -35,14 +39,13 @@ export function buildDirAdminParams(folder = 'templates', addPath = '', extra = 
 }
 
 export function normalizeDirAdminGrant(value) {
-  if (value === true) return DIR_ADMIN_GRANTS.WRITE
-  if (value === false || value === null) return DIR_ADMIN_GRANTS.BARRED
   if (value === undefined) return null
 
-  const normalized = String(value).trim().toUpperCase()
-  if (WRITE_GRANT_VALUES.has(normalized)) return DIR_ADMIN_GRANTS.WRITE
-  if (READ_GRANT_VALUES.has(normalized)) return DIR_ADMIN_GRANTS.READ
-  if (BARRED_GRANT_VALUES.has(normalized)) return DIR_ADMIN_GRANTS.BARRED
+  const level = normalizeGrantValue(value)
+  if (level === null) return null
+  if (level >= ACCESS_LEVELS.WRITE) return DIR_ADMIN_GRANTS.WRITE
+  if (level >= ACCESS_LEVELS.READ) return DIR_ADMIN_GRANTS.READ
+  if (level <= ACCESS_LEVELS.NONE) return DIR_ADMIN_GRANTS.BARRED
   return null
 }
 
@@ -75,16 +78,13 @@ export function resolveDirAdminGrant(authInfo = {}, database = '') {
   if (explicitGrant) return explicitGrant
 
   const userName = String(authInfo?.userName || '').trim()
-  const userRole = String(authInfo?.userRole || '').trim().toLowerCase()
   const dbName = String(database || authInfo?.database || '').trim()
 
-  if (userName === 'admin' || userRole === 'admin' || (userName && userName === dbName)) {
+  if (userName === 'admin' || canAdmin(authInfo) || hasWriteRole(authInfo) || (userName && userName === dbName)) {
     return DIR_ADMIN_GRANTS.WRITE
   }
 
-  // The legacy endpoint is still the final authority. Existing Vue sessions
-  // do not always carry repository grants, so do not block optimistically.
-  return DIR_ADMIN_GRANTS.WRITE
+  return DIR_ADMIN_GRANTS.BARRED
 }
 
 export function isDirAdminPermissionError(text = '') {

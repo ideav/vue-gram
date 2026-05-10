@@ -170,6 +170,7 @@ import { useToast } from 'primevue/usetoast';
 import { useIntegramSession } from '@/composables/useIntegramSession';
 import integramApiClient from '@/services/integramApiClient';
 import IntegramBreadcrumb from '@/components/integram/IntegramBreadcrumb.vue';
+import { canEditTypes as canEditTypesAccess } from '@/utils/integramPermissions';
 
 // PrimeVue Components
 
@@ -229,11 +230,7 @@ const baseTypes = [
 const database = computed(() => integramApiClient.getDatabase() || '');
 
 const canCreateTypes = computed(() => {
-  const authInfo = integramApiClient.getAuthInfo();
-  const role = authInfo?.userRole || authInfo?.grants?.role;
-  if (typeof authInfo?.grants?.canEdit === 'boolean') return authInfo.grants.canEdit;
-  if (!role) return true;
-  return role === 'admin';
+  return canEditTypesAccess(integramApiClient.getAuthInfo());
 });
 
 const filteredCategories = computed(() => {

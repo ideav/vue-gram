@@ -340,7 +340,7 @@ const rewriteUpload = ref(false)
 const warning = ref('')
 const loadError = ref('')
 const backendAccessDenied = ref(false)
-const resolvedGrant = ref(DIR_ADMIN_GRANTS.WRITE)
+const resolvedGrant = ref(DIR_ADMIN_GRANTS.BARRED)
 const counts = ref({ files: 0, folders: 0 })
 const breadcrumbs = ref([])
 

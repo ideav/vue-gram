@@ -21,6 +21,9 @@ const LEGACY_AUTH_STORAGE_KEYS = [
   '_xsrf',
   'user',
   'id',
+  'role',
+  'roleId',
+  'integram_grants',
   'db',
   'session_timestamp',
   'my_token',
@@ -64,6 +67,15 @@ function getIdbCookieDatabases() {
     .filter((name) => name.startsWith('idb_'))
     .map((name) => name.slice(4))
     .filter(Boolean)
+}
+
+function readStoredJson(key, fallback = null) {
+  try {
+    const value = localStorage.getItem(key)
+    return value ? JSON.parse(value) : fallback
+  } catch {
+    return fallback
+  }
 }
 
 export function formatRequisiteValue(value) {
@@ -589,6 +601,7 @@ export class IntegramApiClient {
     this.xsrfToken = null
     this.userId = null
     this.userRole = null
+    this.roleId = null
     this.userName = null
     this.authDatabase = null
 
@@ -616,6 +629,7 @@ export class IntegramApiClient {
     this.userId = session.userId ?? this.userId
     this.userName = session.userName ?? this.userName
     this.userRole = session.userRole ?? this.userRole
+    this.roleId = session.roleId ?? session.role_id ?? this.roleId
 
     if (database && token) {
       const existing = this.databases[database] || {}
@@ -626,6 +640,8 @@ export class IntegramApiClient {
         userId: this.userId,
         userName: this.userName,
         userRole: this.userRole,
+        roleId: this.roleId,
+        grants: session.grants ?? existing.grants ?? null,
         ownedDatabases: existing.ownedDatabases || []
       }
     }
@@ -653,6 +669,8 @@ export class IntegramApiClient {
         userId: this.userId,
         userName: this.userName,
         userRole: this.userRole,
+        roleId: this.roleId,
+        grants: this.databases?.[this.database]?.grants || null,
         authServer: this.baseURL,
         authDatabase: this.authDatabase
       }
@@ -671,6 +689,17 @@ export class IntegramApiClient {
     localStorage.setItem('session_timestamp', Date.now().toString())
     if (this.userName) localStorage.setItem('user', this.userName)
     if (this.userId) localStorage.setItem('id', this.userId)
+    if (this.userRole) localStorage.setItem('role', this.userRole)
+    else localStorage.removeItem('role')
+    if (this.roleId) localStorage.setItem('roleId', this.roleId)
+    else localStorage.removeItem('roleId')
+
+    const grants = this.databases?.[this.database]?.grants
+    if (grants && typeof grants === 'object') {
+      localStorage.setItem('integram_grants', JSON.stringify(grants))
+    } else {
+      localStorage.removeItem('integram_grants')
+    }
 
     if (this.shouldWriteSameOriginCookies()) {
       setCookie(`idb_${this.database}`, this.token)
@@ -690,9 +719,11 @@ export class IntegramApiClient {
     this.userId = session.userId || session.id || this.userId
     this.userName = session.userName || session.user || this.userName
     this.userRole = session.userRole || session.role || this.userRole
+    this.roleId = session.roleId ?? session.role_id ?? this.roleId
     this.authDatabase = authDatabase || session.authDatabase || database
 
     const existing = this.databases[database] || {}
+    const grants = session.grants ?? existing.grants ?? null
     this.databases[database] = {
       ...existing,
       token: this.token,
@@ -700,6 +731,8 @@ export class IntegramApiClient {
       userId: this.userId,
       userName: this.userName,
       userRole: this.userRole,
+      roleId: this.roleId,
+      grants,
       ownedDatabases: session.ownedDatabases || existing.ownedDatabases || []
     }
 
@@ -757,7 +790,10 @@ export class IntegramApiClient {
           token: myToken,
           xsrfToken: myXsrf,
           userId: myUserId,
-          userName: myUser
+          userName: myUser,
+          userRole: localStorage.getItem('role'),
+          roleId: localStorage.getItem('roleId'),
+          grants: readStoredJson('integram_grants')
         }, 'my')
       }
 
@@ -772,7 +808,10 @@ export class IntegramApiClient {
           token: legacyToken,
           xsrfToken: legacyXsrf,
           userId: legacyUserId,
-          userName: legacyUser
+          userName: legacyUser,
+          userRole: localStorage.getItem('role'),
+          roleId: localStorage.getItem('roleId'),
+          grants: readStoredJson('integram_grants')
         }, currentDb)
       }
 
@@ -799,7 +838,9 @@ export class IntegramApiClient {
       xsrfToken,
       userId: window.uid || window.id,
       userName: window.user,
-      userRole: window.role
+      userRole: window.role,
+      roleId: window.roleId || window.role_id,
+      grants: window.grants
     }, database)
   }
 
@@ -836,7 +877,9 @@ export class IntegramApiClient {
         xsrfToken: data._xsrf || data.xsrf,
         userId: data.id,
         userName: data.user,
-        userRole: data.role
+        userRole: data.role,
+        roleId: data.roleId || data.role_id,
+        grants: data.grants || data.permissions
       }, this.authDatabase || this.database)
       this.saveSession()
       return true
@@ -911,7 +954,8 @@ export class IntegramApiClient {
       userName: this.userName,
       userRole: this.userRole,
       database: this.database,
-      grants: this.databases?.[this.database]?.grants || null
+      grants: this.databases?.[this.database]?.grants || null,
+      roleId: this.roleId
     }
   }
 
@@ -975,6 +1019,8 @@ export class IntegramApiClient {
         userId: data.id,
         userName: data.user || login,
         userRole: data.role || 'user',
+        roleId: data.roleId || data.role_id,
+        grants: data.grants || data.permissions || null,
         ownedDatabases: []
       }
 
@@ -984,6 +1030,7 @@ export class IntegramApiClient {
       this.userId = data.id
       this.userName = data.user || login
       this.userRole = data.role || 'user'
+      this.roleId = data.roleId || data.role_id
       this.database = database
       this.authDatabase = database
 
@@ -1007,6 +1054,8 @@ export class IntegramApiClient {
         userId: this.userId,
         userName: this.userName,
         userRole: this.userRole,
+        roleId: this.roleId,
+        grants: this.databases[database].grants,
         ownedDatabases: this.databases[database].ownedDatabases
       }
     } catch (error) {
@@ -1113,6 +1162,7 @@ export class IntegramApiClient {
       this.userId = null
       this.userName = null
       this.userRole = null
+      this.roleId = null
       this.database = null
       this.currentDatabase = null
       this.authDatabase = null
@@ -1141,6 +1191,7 @@ export class IntegramApiClient {
     this.userId = null
     this.userName = null
     this.userRole = null
+    this.roleId = null
     this.database = null
     this.databases = all ? {} : this.databases
     this.currentDatabase = null
