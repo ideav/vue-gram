@@ -36,6 +36,15 @@ const routes = [
         component: () => import('../views/integram/IntegramTableList.vue')
       },
       {
+        path: 'tables',
+        redirect: to => ({
+          name: 'IntegramTableList',
+          params: { database: to.params.database },
+          query: to.query,
+          hash: to.hash
+        })
+      },
+      {
         path: 'table/:typeId',
         name: 'IntegramDataTableView',
         component: () => import('../views/integram/IntegramDataTableView.vue')
