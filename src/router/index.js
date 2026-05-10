@@ -15,6 +15,14 @@ function legacyChildRedirect(target) {
   }
 }
 
+function sportzaniaRedirect(workspace) {
+  return (to) => ({
+    path: `/${to.params.database}/sportzania/${workspace}`,
+    query: to.query,
+    hash: to.hash
+  })
+}
+
 const routes = [
   {
     path: '/',
@@ -76,6 +84,31 @@ const routes = [
         name: 'IntegramCardsWorkspace',
         component: () => import('../views/integram/IntegramCrmWorkspace.vue'),
         meta: { workspace: 'cards' }
+      },
+      {
+        path: 'sportzania',
+        redirect: sportzaniaRedirect('taskdash')
+      },
+      {
+        path: 'sportzania/:workspace(taskdash|rating|struct|procvac)',
+        name: 'IntegramSportzaniaWorkspace',
+        component: () => import('../views/integram/IntegramSportzaniaView.vue')
+      },
+      {
+        path: 'taskdash',
+        redirect: sportzaniaRedirect('taskdash')
+      },
+      {
+        path: 'rating',
+        redirect: sportzaniaRedirect('rating')
+      },
+      {
+        path: 'struct',
+        redirect: sportzaniaRedirect('struct')
+      },
+      {
+        path: 'procvac',
+        redirect: sportzaniaRedirect('procvac')
       },
       {
         path: 'edit_obj/:objectId',
