@@ -174,6 +174,11 @@ const routes = [
         component: () => import('../views/integram/IntegramDirAdmin.vue')
       },
       {
+        path: 'migr',
+        name: 'IntegramMigration',
+        component: () => import('../views/integram/IntegramMigrationView.vue')
+      },
+      {
         path: 'info',
         name: 'IntegramInfo',
         component: () => import('../views/integram/IntegramInfoView.vue')
