@@ -33,8 +33,13 @@ async function mockTablesApi(page: Page) {
   const createdTables: Array<Record<string, string>> = []
   const savedSettings: Array<string> = []
 
-  await page.route(/\/(?:api\/)?my\/(?:xsrf|terms|dict|object\/269|_m_save\/777|_m_new\/269|_d_new)(?:[?#]|$)/, async (route: Route) => {
+  await page.route(/\/(?:api\/)?my\//, async (route: Route) => {
     const request = route.request()
+    if (request.resourceType() === 'document') {
+      await route.continue()
+      return
+    }
+
     const url = new URL(request.url())
     const path = url.pathname
     const corsHeaders = {

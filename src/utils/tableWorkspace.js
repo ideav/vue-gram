@@ -88,10 +88,6 @@ export function normalizeTableList(payload) {
     return normalizeTableList(payload.terms)
   }
 
-  if (payload?.termById && typeof payload.termById === 'object') {
-    return normalizeTableList(payload.termById)
-  }
-
   if (Array.isArray(payload)) {
     return payload
       .map(table => ({
@@ -104,7 +100,31 @@ export function normalizeTableList(payload) {
   }
 
   if (payload && typeof payload === 'object') {
-    return Object.entries(payload)
+    if (payload.termById && typeof payload.termById === 'object') {
+      const termsById = new Map(
+        Array.isArray(payload.terms)
+          ? payload.terms.map(term => [String(term.id), term])
+          : []
+      )
+
+      return Object.entries(payload.termById)
+        .map(([id, name]) => {
+          const source = termsById.get(String(id)) || {}
+          return {
+            id: String(id),
+            type: Number(source.type ?? source.t ?? source.baseType ?? 3),
+            name: String(name ?? source.name ?? source.val ?? '').replace(/&nbsp;/g, ' ').trim()
+          }
+        })
+        .filter(table => table.id && table.name)
+        .sort(compareTablesByName)
+    }
+
+    const dictionary = payload.terms && typeof payload.terms === 'object'
+      ? payload.terms
+      : payload
+
+    return Object.entries(dictionary)
       .map(([id, name]) => ({
         id: String(id),
         type: 3,

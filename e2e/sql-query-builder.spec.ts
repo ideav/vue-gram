@@ -72,12 +72,12 @@ test('SQL query builder loads report, saves a column setting, and refreshes prev
   const setRequests: string[] = []
 
   await seedSession(page)
-  await page.route('**/api/my/xsrf?**', route => fulfillJson(route, {
+  await page.route('**/api/my/xsrf**', route => fulfillJson(route, {
     token: 'auth-token',
     _xsrf: 'xsrf-token',
-    id: 'fixture-user-id',
-    user: 'fixture-user',
-    role: 'user'
+    id: '1',
+    user: 'tester',
+    role: 'admin'
   }))
   await page.route(`**/api/my/edit_obj/${reportId}?**`, route => fulfillJson(route, editData))
   await page.route('**/api/my/object/28?**', route => fulfillJson(route, columnsData))
