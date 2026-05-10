@@ -11,6 +11,56 @@
 
 import axios from 'axios'
 
+const LEGACY_AUTH_STORAGE_KEYS = [
+  'token',
+  '_xsrf',
+  'user',
+  'id',
+  'db',
+  'session_timestamp',
+  'my_token',
+  'my_xsrf',
+  'my_user',
+  'my_id'
+]
+
+function firstPayload(data) {
+  if (Array.isArray(data)) return data[0] || {}
+  return data || {}
+}
+
+function getApiMessage(data) {
+  const payload = firstPayload(data)
+  return payload.error || payload.message || payload.msg || payload.warning || payload.hint || ''
+}
+
+function getCookie(name) {
+  if (typeof document === 'undefined') return null
+  const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  const match = document.cookie.match(new RegExp(`(?:^|; )${escaped}=([^;]*)`))
+  return match ? decodeURIComponent(match[1]) : null
+}
+
+function setCookie(name, value, maxAge = 2592000) {
+  if (typeof document === 'undefined' || !value) return
+  document.cookie = `${name}=${encodeURIComponent(value)}; path=/; max-age=${maxAge}`
+}
+
+function deleteCookie(name) {
+  if (typeof document === 'undefined') return
+  document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/`
+}
+
+function getIdbCookieDatabases() {
+  if (typeof document === 'undefined') return []
+  return document.cookie
+    .split(';')
+    .map((cookie) => cookie.trim().split('=')[0])
+    .filter((name) => name.startsWith('idb_'))
+    .map((name) => name.slice(4))
+    .filter(Boolean)
+}
+
 export function formatRequisiteValue(value) {
   if (value === null || value === undefined || value === '') return value
 
@@ -88,14 +138,33 @@ export class IntegramApiClient {
     return this.baseURL
   }
 
-  setCredentials(database, token, xsrf = null, authDatabase = null) {
+  setCredentials(database, token, xsrf = null, authDatabase = null, session = {}) {
     this.database = database
     this.token = token
     this.xsrfToken = xsrf || token
+    this.currentDatabase = database
     this.authDatabase = authDatabase || database
+    this.userId = session.userId ?? this.userId
+    this.userName = session.userName ?? this.userName
+    this.userRole = session.userRole ?? this.userRole
+
+    if (database && token) {
+      const existing = this.databases[database] || {}
+      this.databases[database] = {
+        ...existing,
+        token,
+        xsrfToken: this.xsrfToken,
+        userId: this.userId,
+        userName: this.userName,
+        userRole: this.userRole,
+        ownedDatabases: existing.ownedDatabases || []
+      }
+    }
   }
 
   saveSession() {
+    this.saveLegacyAuthState()
+
     if (Object.keys(this.databases).length > 0) {
       const sessionData = {
         version: 2,
@@ -124,6 +193,50 @@ export class IntegramApiClient {
     }
   }
 
+  saveLegacyAuthState() {
+    if (!this.token || !this.xsrfToken || !this.database) return
+
+    localStorage.setItem('token', this.token)
+    localStorage.setItem('_xsrf', this.xsrfToken)
+    localStorage.setItem('db', this.database)
+    localStorage.setItem('session_timestamp', Date.now().toString())
+    if (this.userName) localStorage.setItem('user', this.userName)
+    if (this.userId) localStorage.setItem('id', this.userId)
+
+    if (this.shouldWriteSameOriginCookies()) {
+      setCookie(`idb_${this.database}`, this.token)
+      setCookie(this.database, this.token)
+    }
+  }
+
+  applySession(database, session = {}, authDatabase = null) {
+    const token = session.token || session.authToken || this.token
+    const xsrfToken = session.xsrfToken || session._xsrf || session.xsrf || this.xsrfToken
+    if (!database || !token) return false
+
+    this.database = database
+    this.currentDatabase = database
+    this.token = token
+    this.xsrfToken = xsrfToken || null
+    this.userId = session.userId || session.id || this.userId
+    this.userName = session.userName || session.user || this.userName
+    this.userRole = session.userRole || session.role || this.userRole
+    this.authDatabase = authDatabase || session.authDatabase || database
+
+    const existing = this.databases[database] || {}
+    this.databases[database] = {
+      ...existing,
+      token: this.token,
+      xsrfToken: this.xsrfToken,
+      userId: this.userId,
+      userName: this.userName,
+      userRole: this.userRole,
+      ownedDatabases: session.ownedDatabases || existing.ownedDatabases || []
+    }
+
+    return true
+  }
+
   loadSession() {
     try {
       const stored = localStorage.getItem('integram_session')
@@ -136,14 +249,7 @@ export class IntegramApiClient {
           this.currentDatabase = sessionData.currentDatabase
 
           if (this.currentDatabase && this.databases[this.currentDatabase]) {
-            const currentDBSession = this.databases[this.currentDatabase]
-            this.database = this.currentDatabase
-            this.token = currentDBSession.token
-            this.xsrfToken = currentDBSession.xsrfToken
-            this.userId = currentDBSession.userId
-            this.userName = currentDBSession.userName
-            this.userRole = currentDBSession.userRole
-            this.authDatabase = this.currentDatabase
+            this.applySession(this.currentDatabase, this.databases[this.currentDatabase])
           }
 
           localStorage.setItem('integram_server', this.baseURL)
@@ -151,26 +257,8 @@ export class IntegramApiClient {
         }
 
         // Legacy format
-        this.database = sessionData.database
-        this.token = sessionData.token
-        this.xsrfToken = sessionData.xsrfToken
-        this.userId = sessionData.userId
-        this.userName = sessionData.userName
-        this.userRole = sessionData.userRole
-        this.authDatabase = sessionData.authDatabase || sessionData.database
-
-        if (this.database && this.token) {
-          this.databases[this.database] = {
-            token: this.token,
-            xsrfToken: this.xsrfToken,
-            userId: this.userId,
-            userName: this.userName,
-            userRole: this.userRole,
-            ownedDatabases: []
-          }
-          this.currentDatabase = this.database
-          this.saveSession()
-        }
+        this.applySession(sessionData.database, sessionData, sessionData.authDatabase || sessionData.database)
+        if (this.database && this.token) this.saveSession()
 
         if (sessionData.authServer) {
           this.baseURL = sessionData.authServer
@@ -179,50 +267,71 @@ export class IntegramApiClient {
         return
       }
 
-      this.loadSessionFromMyToken()
+      this.loadSessionFromLegacySources()
     } catch (error) {
       console.error('Failed to load session from localStorage:', error)
       localStorage.removeItem('integram_session')
     }
   }
 
-  loadSessionFromMyToken() {
+  loadSessionFromLegacySources(databaseHint = null) {
     try {
+      if (this.loadSessionFromWindowGlobals(databaseHint)) return true
+
       const myToken = localStorage.getItem('my_token')
       const myXsrf = localStorage.getItem('my_xsrf')
       const myUser = localStorage.getItem('my_user')
       const myUserId = localStorage.getItem('my_id')
 
       if (myToken && myXsrf) {
-        this.database = 'my'
-        this.token = myToken
-        this.xsrfToken = myXsrf
-        this.userId = myUserId
-        this.userName = myUser
-        this.authDatabase = 'my'
-        return true
+        return this.applySession('my', {
+          token: myToken,
+          xsrfToken: myXsrf,
+          userId: myUserId,
+          userName: myUser
+        }, 'my')
       }
 
       const legacyToken = localStorage.getItem('token')
       const legacyXsrf = localStorage.getItem('_xsrf')
       const legacyUser = localStorage.getItem('user')
       const legacyUserId = localStorage.getItem('id')
-      const currentDb = localStorage.getItem('db')
+      const currentDb = databaseHint || localStorage.getItem('db') || localStorage.getItem('last_db') || 'my'
 
-      if (legacyToken && legacyXsrf && currentDb === 'my') {
-        this.database = 'my'
-        this.token = legacyToken
-        this.xsrfToken = legacyXsrf
-        this.userId = legacyUserId
-        this.userName = legacyUser
-        this.authDatabase = 'my'
-        return true
+      if (legacyToken && legacyXsrf && currentDb) {
+        return this.applySession(currentDb, {
+          token: legacyToken,
+          xsrfToken: legacyXsrf,
+          userId: legacyUserId,
+          userName: legacyUser
+        }, currentDb)
       }
 
       return false
     } catch (error) {
       return false
     }
+  }
+
+  loadSessionFromMyToken(databaseHint = null) {
+    return this.loadSessionFromLegacySources(databaseHint)
+  }
+
+  loadSessionFromWindowGlobals(databaseHint = null) {
+    if (typeof window === 'undefined') return false
+    const database = databaseHint || window.db
+    const token = window.token
+    const xsrfToken = window.xsrf
+
+    if (!database || !token || !xsrfToken) return false
+
+    return this.applySession(database, {
+      token,
+      xsrfToken,
+      userId: window.uid || window.id,
+      userName: window.user,
+      userRole: window.role
+    }, database)
   }
 
   setDatabase(database) {
@@ -238,14 +347,28 @@ export class IntegramApiClient {
   }
 
   async validateSession() {
-    if (!this.token || !this.xsrfToken) return false
+    if (!this.token || !this.database) return false
     try {
-      const response = await this.get('xsrf')
-      if (response.token) this.token = response.token
-      if (response._xsrf) this.xsrfToken = response._xsrf
-      if (response.id) this.userId = response.id
-      if (response.user) this.userName = response.user
-      if (response.role) this.userRole = response.role
+      const url = this.buildURL('xsrf')
+      const response = await axios.get(url, {
+        params: { JSON: '' },
+        headers: this.getAuthHeaders(this.database),
+        timeout: 30000,
+        withCredentials: this.shouldUseCredentials(url)
+      })
+      const data = firstPayload(response.data)
+
+      if (!data._xsrf && !data.xsrf) {
+        throw new Error(getApiMessage(data) || 'Сервер не вернул XSRF токен')
+      }
+
+      this.applySession(this.database, {
+        token: data.token || this.token,
+        xsrfToken: data._xsrf || data.xsrf,
+        userId: data.id,
+        userName: data.user,
+        userRole: data.role
+      }, this.authDatabase || this.database)
       this.saveSession()
       return true
     } catch (error) {
@@ -253,8 +376,14 @@ export class IntegramApiClient {
     }
   }
 
-  tryRestoreSession() {
-    if (this.isAuthenticated()) return true
+  tryRestoreSession(databaseHint = null) {
+    if (databaseHint && this.databases[databaseHint]) {
+      return this.applySession(databaseHint, this.databases[databaseHint])
+    }
+    if (this.isAuthenticated() && (!databaseHint || this.database === databaseHint || this.authDatabase === 'my')) {
+      if (databaseHint && this.database !== databaseHint && this.authDatabase === 'my') this.database = databaseHint
+      return true
+    }
 
     const stored = localStorage.getItem('integram_session')
     if (stored) {
@@ -263,29 +392,16 @@ export class IntegramApiClient {
 
         if (sessionData.version === 2 && sessionData.databases) {
           this.databases = sessionData.databases
-          this.currentDatabase = sessionData.currentDatabase
+          this.currentDatabase = databaseHint || sessionData.currentDatabase
           if (this.currentDatabase && this.databases[this.currentDatabase]) {
-            const s = this.databases[this.currentDatabase]
-            this.database = this.currentDatabase
-            this.token = s.token
-            this.xsrfToken = s.xsrfToken
-            this.userId = s.userId
-            this.userName = s.userName
-            this.userRole = s.userRole
-            this.authDatabase = this.currentDatabase
+            this.applySession(this.currentDatabase, this.databases[this.currentDatabase])
           }
           if (sessionData.server) this.baseURL = sessionData.server
-          return true
+          return this.isAuthenticated()
         }
 
         if (sessionData.token && sessionData.xsrfToken) {
-          this.database = sessionData.database
-          this.token = sessionData.token
-          this.xsrfToken = sessionData.xsrfToken
-          this.userId = sessionData.userId
-          this.userName = sessionData.userName
-          this.userRole = sessionData.userRole
-          this.authDatabase = sessionData.authDatabase || sessionData.database
+          this.applySession(databaseHint || sessionData.database, sessionData, sessionData.authDatabase || sessionData.database)
           if (sessionData.authServer) this.baseURL = sessionData.authServer
           return true
         }
@@ -294,7 +410,28 @@ export class IntegramApiClient {
       }
     }
 
-    return this.loadSessionFromMyToken()
+    return this.loadSessionFromLegacySources(databaseHint)
+  }
+
+  async restoreSession(databaseHint = null, options = {}) {
+    const { validate = true } = options
+    this.tryRestoreSession(databaseHint)
+
+    const database = databaseHint || this.database || localStorage.getItem('db') || localStorage.getItem('last_db') || 'my'
+    if (!this.token && database) {
+      const cookieToken = getCookie(`idb_${database}`)
+      if (cookieToken) {
+        this.applySession(database, { token: cookieToken, xsrfToken: null }, database)
+      }
+    }
+
+    if (!this.token) return false
+    if (!this.database && database) this.database = database
+    if (!validate) return this.isAuthenticated()
+
+    const restored = await this.validateSession()
+    if (!restored) this.clearDatabaseSession(database)
+    return restored
   }
 
   getAuthInfo() {
@@ -315,9 +452,12 @@ export class IntegramApiClient {
 
     let cleanBaseURL = this.baseURL.replace(/\/$/, '')
     const isIPAddress = /\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/.test(cleanBaseURL)
-    const isDronedoc = cleanBaseURL.includes('dronedoc.ru') || cleanBaseURL.includes('sakhwings.ru') || isIPAddress
+    const isLegacyHost = cleanBaseURL.includes('dronedoc.ru') ||
+      cleanBaseURL.includes('sakhwings.ru') ||
+      isIPAddress ||
+      this.isSameOriginBase(cleanBaseURL)
 
-    if (isDronedoc) {
+    if (isLegacyHost) {
       const dbPathRegex = new RegExp(`/${this.database}$`)
       if (dbPathRegex.test(cleanBaseURL)) return `${cleanBaseURL}/${endpoint}`
       if (endpoint.startsWith(`${this.database}/`)) return `${cleanBaseURL}/${endpoint}`
@@ -333,21 +473,25 @@ export class IntegramApiClient {
       const url = this.buildURL('auth')
 
       const formData = new URLSearchParams()
+      formData.append('db', database)
       formData.append('login', login)
       formData.append('pwd', password)
 
       const response = await axios.post(url, formData, {
-        params: { JSON_KV: '' },
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+        params: { JSON: '' },
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        withCredentials: this.shouldUseCredentials(url)
       })
 
-      if (response.data.failed) {
-        throw new Error('Неверный логин или пароль')
+      const data = firstPayload(response.data)
+
+      if (data.error || data.failed) {
+        throw new Error(getApiMessage(data) || 'Неверный логин или пароль')
       }
 
-      const receivedToken = response.data.token
+      const receivedToken = data.token
       if (!receivedToken) {
-        throw new Error('Сервер не вернул токен авторизации')
+        throw new Error(getApiMessage(data) || 'Сервер не вернул токен авторизации')
       }
 
       if (receivedToken === password) {
@@ -357,19 +501,19 @@ export class IntegramApiClient {
       // Save to multi-database structure
       this.databases[database] = {
         token: receivedToken,
-        xsrfToken: response.data._xsrf,
-        userId: response.data.id,
-        userName: login,
-        userRole: response.data.role || 'user',
+        xsrfToken: data._xsrf || data.xsrf,
+        userId: data.id,
+        userName: data.user || login,
+        userRole: data.role || 'user',
         ownedDatabases: []
       }
 
       this.currentDatabase = database
       this.token = receivedToken
-      this.xsrfToken = response.data._xsrf
-      this.userId = response.data.id
-      this.userName = login
-      this.userRole = response.data.role || 'user'
+      this.xsrfToken = data._xsrf || data.xsrf
+      this.userId = data.id
+      this.userName = data.user || login
+      this.userRole = data.role || 'user'
       this.database = database
       this.authDatabase = database
 
@@ -389,14 +533,14 @@ export class IntegramApiClient {
         success: true,
         database,
         token: receivedToken,
-        xsrf: response.data._xsrf,
+        xsrf: data._xsrf || data.xsrf,
         userId: this.userId,
         userName: this.userName,
         userRole: this.userRole,
         ownedDatabases: this.databases[database].ownedDatabases
       }
     } catch (error) {
-      throw new Error(error.response?.data?.message || error.message || 'Ошибка авторизации')
+      throw new Error(getApiMessage(error.response?.data) || error.message || 'Ошибка авторизации')
     }
   }
 
@@ -483,17 +627,52 @@ export class IntegramApiClient {
   }
 
   clearSession() {
+    for (const key of LEGACY_AUTH_STORAGE_KEYS) localStorage.removeItem(key)
     localStorage.removeItem('integram_session')
   }
 
-  logout() {
+  clearDatabaseSession(database = this.database) {
+    if (database) {
+      delete this.databases[database]
+      deleteCookie(`idb_${database}`)
+      deleteCookie(database)
+    }
+    if (!database || this.database === database || this.currentDatabase === database) {
+      this.token = null
+      this.xsrfToken = null
+      this.userId = null
+      this.userName = null
+      this.userRole = null
+      this.database = null
+      this.currentDatabase = null
+      this.authDatabase = null
+    }
+    this.clearSession()
+  }
+
+  logout(database = this.database, options = {}) {
+    const { all = true } = options
+    const knownDatabases = new Set([
+      database,
+      this.database,
+      this.currentDatabase,
+      localStorage.getItem('db'),
+      ...Object.keys(this.databases),
+      ...getIdbCookieDatabases()
+    ].filter(Boolean))
+
+    for (const dbName of knownDatabases) {
+      deleteCookie(`idb_${dbName}`)
+      deleteCookie(dbName)
+    }
+
     this.token = null
     this.xsrfToken = null
     this.userId = null
     this.userName = null
     this.userRole = null
     this.database = null
-    this.databases = {}
+    this.databases = all ? {} : this.databases
     this.currentDatabase = null
     this.clearSession()
   }
@@ -510,7 +689,8 @@ export class IntegramApiClient {
       const response = await axios.get(url, {
         params: { JSON_KV: '', ...params },
         headers,
-        timeout: 30000
+        timeout: 30000,
+        withCredentials: this.shouldUseCredentials(url)
       })
 
       return response.data
@@ -545,6 +725,7 @@ export class IntegramApiClient {
         params: { JSON_KV: '' },
         headers,
         timeout: 30000,
+        withCredentials: this.shouldUseCredentials(url),
         ...options
       })
 
@@ -563,23 +744,42 @@ export class IntegramApiClient {
     }
     if (error.response) {
       const { status, data } = error.response
+      const message = getApiMessage(data)
       if (status === 401) {
-        if (this.tryRestoreSession()) {
-          const retryError = new Error('SESSION_RESTORED_RETRY')
-          retryError.canRetry = true
-          return retryError
-        }
-        return new Error('Сессия истекла. Обновите страницу или войдите заново.')
+        this.clearDatabaseSession(this.database)
+        return new Error(message || 'Сессия истекла. Обновите страницу или войдите заново.')
       }
-      if (status === 403) return new Error('Доступ запрещен.')
+      if (status === 403) return new Error(message || 'Доступ запрещен.')
       if (status === 404) return new Error('Ресурс не найден.')
-      if (status === 500) return new Error('Ошибка сервера: ' + (data.message || data.error || 'Internal server error'))
-      return new Error(data.message || data.error || `HTTP ${status}`)
+      if (status === 500) return new Error('Ошибка сервера: ' + (message || 'Internal server error'))
+      return new Error(message || `HTTP ${status}`)
     }
     if (error.request) {
       return new Error('Нет ответа от сервера. Проверьте подключение к сети.')
     }
     return error
+  }
+
+  isSameOriginBase(baseURL) {
+    if (typeof window === 'undefined') return false
+    try {
+      return new URL(baseURL, window.location.origin).origin === window.location.origin
+    } catch (error) {
+      return false
+    }
+  }
+
+  shouldUseCredentials(url) {
+    if (typeof window === 'undefined') return false
+    try {
+      return new URL(url, window.location.origin).origin === window.location.origin
+    } catch (error) {
+      return false
+    }
+  }
+
+  shouldWriteSameOriginCookies() {
+    return this.isSameOriginBase(this.baseURL)
   }
 
   // DDL Operations

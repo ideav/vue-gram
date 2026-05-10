@@ -409,8 +409,8 @@ async function changePassword() {
       if (response.token) {
         integramApiClient.token = response.token
       }
-      if (response.xsrf) {
-        integramApiClient.xsrfToken = response.xsrf
+      if (response._xsrf || response.xsrf) {
+        integramApiClient.xsrfToken = response._xsrf || response.xsrf
       }
 
       // Save updated session
@@ -489,8 +489,7 @@ async function handleDatabaseChange(event) {
 }
 
 function logout() {
-  integramApiClient.logout()
-  document.cookie = `${database.value}=;Path=/`
+  integramApiClient.logout(database.value)
   router.push('/login')
 }
 
@@ -509,63 +508,20 @@ watch(() => route.params.database, async (newDb) => {
 // Lifecycle
 onMounted(async () => {
   // Issue #5100: Try to restore session before checking auth
-  integramApiClient.tryRestoreSession()
+  await integramApiClient.restoreSession(database.value, { validate: false })
 
   // Issue #4168: Check Integram authentication (independent from main site auth)
   const authInfo = integramApiClient.getAuthInfo()
   if (!authInfo.token || !authInfo.xsrf) {
-    // Issue #34: Auto-authenticate with default credentials (without requiring manual login)
-    const serverURL = import.meta.env.VITE_INTEGRAM_URL || `${window.location.protocol}//${window.location.hostname}`
-    const defaultDatabase = database.value || 'my'
-    const defaultUsername = 'd'
-    const defaultPassword = 'd'
-
-    try {
-      console.log('[IntegramMain] Auto-authenticating with database:', defaultDatabase)
-      await integramApiClient.authenticate(serverURL, defaultDatabase, defaultUsername, defaultPassword)
-
-      // Get user info after authentication
-      const response = await integramApiClient.get(`/${defaultDatabase}/auth?JSON`)
-      if (response.data) {
-        const dbSession = integramApiClient.databases[defaultDatabase]
-        if (dbSession) {
-          dbSession.userName = response.data.login || defaultUsername
-          dbSession.userRole = response.data.role || 'user'
-          dbSession.authInfo = {
-            userName: response.data.login || defaultUsername,
-            userRole: response.data.role || 'user',
-            token: dbSession.token,
-            xsrf: dbSession.xsrfToken
-          }
-
-          // Get owned databases list
-          if (response.data.bases && Array.isArray(response.data.bases)) {
-            dbSession.ownedDatabases = response.data.bases
-          }
-        }
-      }
-
-      // Save session to localStorage
-      integramApiClient.saveSession()
-
-      console.log('[IntegramMain] Auto-authentication successful')
-    } catch (error) {
-      console.error('[IntegramMain] Auto-authentication failed:', error)
-      toast.add({
-        severity: 'error',
-        summary: 'Ошибка автоматической авторизации',
-        detail: error.message || 'Не удалось войти в систему',
-        life: 5000
-      })
-      return
-    }
+    router.replace({ path: '/login', query: { redirect: route.fullPath } })
+    return
   }
 
   // Issue #5100: Validate session to refresh tokens and prevent quick expiration
-  try {
-    await integramApiClient.validateSession()
-  } catch (e) {
-    console.warn('Session validation skipped:', e.message)
+  const validSession = await integramApiClient.validateSession()
+  if (!validSession) {
+    router.replace({ path: '/login', query: { redirect: route.fullPath } })
+    return
   }
 
   // Load locale from localStorage - default to ru if not set

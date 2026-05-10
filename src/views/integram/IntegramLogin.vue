@@ -164,7 +164,7 @@
         </div>
 
         <Message v-if="error" severity="error" :closable="false" class="mb-3">
-          {{ t('wrongCredentials') }}
+          {{ error }}
         </Message>
 
         <Button
@@ -577,8 +577,7 @@ async function enterDatabase(dbName) {
 // Logout from all databases
 async function handleLogout() {
   try {
-    // Clear all authenticated databases
-    integramApiClient.databases = {}
+    integramApiClient.logout()
 
     toast.add({
       severity: 'info',
@@ -594,6 +593,7 @@ async function handleLogout() {
       login: '',
       password: ''
     }
+    error.value = null
 
     // Stay on login page
   } catch (error) {
