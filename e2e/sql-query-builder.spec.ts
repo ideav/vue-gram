@@ -59,12 +59,26 @@ async function fulfillJson(route: Route, body: unknown) {
 async function seedSession(page: Page) {
   await page.addInitScript(() => {
     localStorage.setItem('integram_session', JSON.stringify({
-      database: 'my',
-      token: 'auth-token',
-      xsrfToken: 'xsrf-token',
-      authServer: 'https://app.integram.io',
-      authDatabase: 'my'
+      version: 2,
+      server: 'https://app.integram.io',
+      currentDatabase: 'my',
+      databases: {
+        my: {
+          token: 'auth-token',
+          xsrfToken: 'xsrf-token',
+          userId: '1',
+          userName: 'admin',
+          userRole: 'admin',
+          ownedDatabases: []
+        }
+      }
     }))
+    localStorage.setItem('integram_server', 'https://app.integram.io')
+    localStorage.setItem('token', 'auth-token')
+    localStorage.setItem('_xsrf', 'xsrf-token')
+    localStorage.setItem('user', 'admin')
+    localStorage.setItem('id', '1')
+    localStorage.setItem('db', 'my')
   })
 }
 
@@ -72,11 +86,11 @@ test('SQL query builder loads report, saves a column setting, and refreshes prev
   const setRequests: string[] = []
 
   await seedSession(page)
-  await page.route('**/api/my/xsrf**', route => fulfillJson(route, {
+  await page.route('**/api/my/xsrf?**', route => fulfillJson(route, {
     token: 'auth-token',
     _xsrf: 'xsrf-token',
     id: '1',
-    user: 'tester',
+    user: 'admin',
     role: 'admin'
   }))
   await page.route(`**/api/my/edit_obj/${reportId}?**`, route => fulfillJson(route, editData))
