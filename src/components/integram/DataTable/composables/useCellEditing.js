@@ -287,10 +287,35 @@ export function useCellEditing(
     })
   }
 
+  const getCurrentCellValue = (headerId, rowId) =>
+    processedRows.value.find(r => r.id === rowId)?.cells?.[headerId]?.value
+
+  const applyOptimisticOverride = (overrideKey, value) => {
+    const hadPreviousOverride = localCellOverrides.value.has(overrideKey)
+    const previousOverride = localCellOverrides.value.get(overrideKey)
+
+    localCellOverrides.value.set(overrideKey, value)
+
+    return {
+      onSaveSuccess: () => {
+        localCellOverrides.value.delete(overrideKey)
+      },
+      onSaveError: () => {
+        if (hadPreviousOverride) {
+          localCellOverrides.value.set(overrideKey, previousOverride)
+        } else {
+          localCellOverrides.value.delete(overrideKey)
+        }
+      }
+    }
+  }
+
   // Save cell edit
   const saveCellEdit = (headerId, rowId) => {
     const header = localHeaders.value.find(h => h.id === headerId)
     let valueToSave, dirRowIdToSave, dirValuesToSave
+    const previousValue = getCurrentCellValue(headerId, rowId)
+    const overrideKey = `${rowId}:${headerId}`
 
     if (header?.dirTableId) {
       if (header.columnType === 'multi') {
@@ -300,14 +325,15 @@ export function useCellEditing(
         dirValuesToSave = selectedIds.map(id => ({ dirRowId: id }))
 
         // Immediate local update for reactive UI
-        const overrideKey = `${rowId}:${headerId}`
-        localCellOverrides.value.set(overrideKey, valueToSave)
+        const saveCallbacks = applyOptimisticOverride(overrideKey, valueToSave)
 
         emit('cell-multi-update', {
           rowId,
           headerId,
           dirTableId: header.dirTableId,
-          dirValues: dirValuesToSave
+          dirValues: dirValuesToSave,
+          previousValue,
+          ...saveCallbacks
         })
 
         // Mark cell as changed
@@ -321,8 +347,7 @@ export function useCellEditing(
       }
 
       // Immediate local update for reactive UI
-      const overrideKey = `${rowId}:${headerId}`
-      localCellOverrides.value.set(overrideKey, valueToSave)
+      const saveCallbacks = applyOptimisticOverride(overrideKey, valueToSave)
 
       emit('cell-update', {
         rowId,
@@ -330,7 +355,9 @@ export function useCellEditing(
         value: valueToSave,
         type: header.type,
         dirRowId: dirRowIdToSave,
-        dirValues: dirValuesToSave
+        dirValues: dirValuesToSave,
+        previousValue,
+        ...saveCallbacks
       })
 
       // Mark cell as changed
@@ -339,14 +366,15 @@ export function useCellEditing(
       valueToSave = editingValue.value
 
       // Immediate local update for reactive UI
-      const overrideKey = `${rowId}:${headerId}`
-      localCellOverrides.value.set(overrideKey, valueToSave)
+      const saveCallbacks = applyOptimisticOverride(overrideKey, valueToSave)
 
       emit('cell-update', {
         rowId,
         headerId,
         value: valueToSave,
-        type: header.type
+        type: header.type,
+        previousValue,
+        ...saveCallbacks
       })
 
       // Mark cell as changed
@@ -627,11 +655,16 @@ export function useCellEditing(
 
   const clearFileValue = (header, rowData) => {
     // Clear the file value by setting it to empty string
+    const overrideKey = `${rowData.id}:${header.id}`
+    const saveCallbacks = applyOptimisticOverride(overrideKey, '')
+
     emit('cell-update', {
       rowId: rowData.id,
       headerId: header.id,
       value: '',
-      type: header.type
+      type: header.type,
+      previousValue: getCurrentCellValue(header.id, rowData.id),
+      ...saveCallbacks
     })
     editingValue.value = ''
     cancelCellEdit()
@@ -646,13 +679,15 @@ export function useCellEditing(
 
     // Immediate local update for reactive UI
     const overrideKey = `${rowId}:${headerId}`
-    localCellOverrides.value.set(overrideKey, memoEditingValue.value)
+    const saveCallbacks = applyOptimisticOverride(overrideKey, memoEditingValue.value)
 
     emit('cell-update', {
       rowId,
       headerId,
       value: memoEditingValue.value,
-      type: header?.type || 12
+      type: header?.type || 12,
+      previousValue: getCurrentCellValue(headerId, rowId),
+      ...saveCallbacks
     })
 
     // Mark cell as changed

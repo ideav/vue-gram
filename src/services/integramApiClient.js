@@ -704,8 +704,8 @@ export class IntegramApiClient {
     return this.get(`object/${typeId}`, params)
   }
 
-  async getObjectCount(typeId) {
-    const result = await this.get(`object/${typeId}`, { _count: '' })
+  async getObjectCount(typeId, params = {}) {
+    const result = await this.get(`object/${typeId}`, { _count: '', ...params })
     return {
       typeId,
       count: parseInt(result.count, 10) || 0

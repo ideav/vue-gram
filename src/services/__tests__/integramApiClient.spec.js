@@ -56,6 +56,27 @@ describe('IntegramApiClient', () => {
     expect(body.get('_xsrf')).toBe('xsrf-token')
   })
 
+  it('passes legacy table filters to object count requests', async () => {
+    axios.get.mockResolvedValue({ data: { count: '2' } })
+
+    const result = await client.getObjectCount(42, {
+      F_U: '101',
+      F_42: '%Acme%',
+      lnx: 0
+    })
+
+    expect(result).toEqual({ typeId: 42, count: 2 })
+    expect(axios.get).toHaveBeenCalledTimes(1)
+
+    const [url, config] = axios.get.mock.calls[0]
+    expect(url).toBe('https://app.integram.io/api/my/object/42')
+    expect(config.params).toEqual({
+      JSON_KV: '',
+      _count: '',
+      F_U: '101',
+      F_42: '%Acme%',
+      lnx: 0
+    })
   it('posts form-style requisite keys through _m_set without double-prefixing', async () => {
     axios.post.mockResolvedValue({ data: { ok: true } })
 
