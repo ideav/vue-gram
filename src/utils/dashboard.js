@@ -306,6 +306,39 @@ export function normalizeDashboardSettings(settings) {
   return parsePanelSettings(settings)
 }
 
+function unwrapSettingsValue(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return value
+  return value.val ?? value.value ?? value.UI ?? value.settings ?? value.panelSettings ?? null
+}
+
+export function extractDashboardPanelSettings(row = {}) {
+  const candidates = [
+    row.panelSettings,
+    row.panel_settings,
+    row.dashboardPanelSettings,
+    row[`t${DASHBOARD_PANEL_SETTINGS_REQ_ID}`],
+    row[DASHBOARD_PANEL_SETTINGS_REQ_ID],
+    row[String(DASHBOARD_PANEL_SETTINGS_REQ_ID)],
+    row.reqs?.[DASHBOARD_PANEL_SETTINGS_REQ_ID],
+    row.reqs?.[String(DASHBOARD_PANEL_SETTINGS_REQ_ID)],
+    row.reqs?.[`t${DASHBOARD_PANEL_SETTINGS_REQ_ID}`],
+    row.requisites?.[DASHBOARD_PANEL_SETTINGS_REQ_ID],
+    row.requisites?.[String(DASHBOARD_PANEL_SETTINGS_REQ_ID)],
+    row.requisites?.[`t${DASHBOARD_PANEL_SETTINGS_REQ_ID}`]
+  ]
+
+  for (const candidate of candidates) {
+    const value = unwrapSettingsValue(candidate)
+    if (hasValue(value)) return parsePanelSettings(value)
+  }
+
+  return []
+}
+
+export function serializeDashboardPanelSettings(settings = []) {
+  return JSON.stringify(parsePanelSettings(settings))
+}
+
 function splitList(value) {
   return asString(value)
     .split(',')
@@ -536,7 +569,7 @@ function ensurePanel(state, sheet, row, reports) {
   const id = `fp${panelId}`
   if (state.panelById.has(id)) return state.panelById.get(id)
 
-  const settings = parsePanelSettings(row.panelSettings)
+  const settings = extractDashboardPanelSettings(row)
   const reportId = resolveDashboardPanelReportId(row)
   const report = reportId && reports[reportId] ? reports[reportId] : null
   const panel = {

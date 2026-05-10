@@ -8,7 +8,8 @@
 import integramApiClient from './integramApiClient';
 import {
   DASHBOARD_PANEL_SETTINGS_REQ_ID,
-  dateToDashboardYmd
+  dateToDashboardYmd,
+  serializeDashboardPanelSettings
 } from '@/utils/dashboard';
 
 class IntegramService {
@@ -109,7 +110,7 @@ class IntegramService {
 
   async saveDashboardPanelSettings(panelId, settings) {
     return integramApiClient.setObjectRequisites(panelId, {
-      [DASHBOARD_PANEL_SETTINGS_REQ_ID]: JSON.stringify(settings || [])
+      [DASHBOARD_PANEL_SETTINGS_REQ_ID]: serializeDashboardPanelSettings(settings)
     });
   }
 

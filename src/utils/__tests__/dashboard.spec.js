@@ -3,10 +3,13 @@ import { describe, expect, it } from 'vitest'
 import {
   buildDashboardState,
   collectDashboardVizData,
+  DASHBOARD_PANEL_SETTINGS_REQ_ID,
+  extractDashboardPanelSettings,
   formatDashboardNumber,
   normalizeDashboardReport,
   normalizeNumberText,
-  parseDashboardFormula
+  parseDashboardFormula,
+  serializeDashboardPanelSettings
 } from '../dashboard'
 import {
   dashboardModelFixture,
@@ -93,5 +96,41 @@ describe('dashboard utilities', () => {
     expect(pivot.rows).toEqual(['Won'])
     expect(pivot.columns).toEqual(['Ann', 'Bob'])
     expect(pivot.matrix).toEqual([[1000, 500]])
+  })
+
+  it('reads and writes object-backed legacy panel settings', () => {
+    const settings = [{ type: 'line', default: true }]
+    const row = {
+      panelSettings: '',
+      reqs: {
+        [DASHBOARD_PANEL_SETTINGS_REQ_ID]: { val: JSON.stringify(settings) }
+      }
+    }
+
+    expect(extractDashboardPanelSettings(row)).toEqual(settings)
+    expect(serializeDashboardPanelSettings(settings)).toBe(JSON.stringify(settings))
+  })
+
+  it('builds panel state from object-backed settings when report aliases are absent', () => {
+    const modelRows = [
+      {
+        ...dashboardModelFixture[0],
+        panelSettings: '',
+        reqs: {
+          [DASHBOARD_PANEL_SETTINGS_REQ_ID]: {
+            val: JSON.stringify([{ type: 'line', default: true }])
+          }
+        }
+      }
+    ]
+
+    const state = buildDashboardState({
+      modelRows,
+      periodData: dashboardPeriodFixture,
+      sourceRows: dashboardValuesFixture
+    })
+
+    expect(state.sheets[0].panels[0].settings).toEqual([{ type: 'line', default: true }])
+    expect(state.sheets[0].panels[0].activeViz).toBe('line')
   })
 })
