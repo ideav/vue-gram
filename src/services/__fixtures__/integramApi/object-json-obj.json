@@ -1,0 +1,29 @@
+{
+  "obj": {
+    "id": 5001,
+    "typ": 100,
+    "up": 1,
+    "val": "Prepare contract"
+  },
+  "type": {
+    "id": 100,
+    "val": "Tasks",
+    "up": 1
+  },
+  "req_order": [
+    "101",
+    "102"
+  ],
+  "req_type": {
+    "101": "Status",
+    "102": "Due date"
+  },
+  "req_base": {
+    "101": "SHORT",
+    "102": "DATE"
+  },
+  "reqs": {
+    "101": "Open",
+    "102": "2026-05-09"
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "columns": [
+    {
+      "id": 1,
+      "name": "Task ID",
+      "type": 100,
+      "format": "SIGNED"
+    },
+    {
+      "id": 2,
+      "name": "Task",
+      "type": 100,
+      "format": "SHORT"
+    },
+    {
+      "id": 3,
+      "name": "Status",
+      "type": 101,
+      "format": "SHORT"
+    }
+  ],
+  "data": [
+    [
+      "5001"
+    ],
+    [
+      "Prepare contract"
+    ],
+    [
+      "Open"
+    ]
+  ],
+  "totals": []
+}
