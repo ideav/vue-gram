@@ -276,6 +276,35 @@ describe('IntegramApiClient', () => {
     expect(terms.baseTypes).toEqual([])
   })
 
+  it('normalizes array-shaped legacy terms responses', () => {
+    const terms = normalizeTermsResponse([
+      { id: 18, type: 3, name: 'User' },
+      { id: 42, type: 3, val: 'Role' }
+    ])
+
+    expect(terms.terms).toHaveLength(2)
+    expect(terms.termById).toEqual({
+      18: 'User',
+      42: 'Role'
+    })
+  })
+
+  it('normalizes dictionary-shaped legacy terms responses', () => {
+    const terms = normalizeTermsResponse({
+      18: 'User',
+      42: 'Role'
+    })
+
+    expect(terms.terms).toEqual({
+      18: 'User',
+      42: 'Role'
+    })
+    expect(terms.termById).toEqual({
+      18: 'User',
+      42: 'Role'
+    })
+  })
+
   it('normalizes object JSON_DATA and JSON_OBJ fixtures without dropping legacy fields', () => {
     const list = normalizeObjectListResponse(objectListFixture)
     const record = normalizeObjectRecordResponse(objectRecordFixture)

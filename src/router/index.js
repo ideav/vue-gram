@@ -93,7 +93,7 @@ const routes = [
         component: () => import('../views/integram/IntegramSqlView.vue')
       },
       {
-        path: 'smartq',
+        path: 'smartq/:reportId?',
         name: 'IntegramSmartQuery',
         component: () => import('../views/integram/IntegramSmartQueryView.vue')
       },

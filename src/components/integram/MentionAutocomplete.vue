@@ -124,23 +124,12 @@ function handleInput(value) {
   const textBeforeCursor = value.substring(0, cursorPosition.value)
   const atMatch = textBeforeCursor.match(/@(\w*)$/)
 
-  console.log('[MentionAutocomplete] handleInput:', {
-    value,
-    cursorPosition: cursorPosition.value,
-    textBeforeCursor,
-    atMatch: atMatch ? atMatch[0] : null,
-    database: props.database,
-    filteredUsersCount: filteredUsers.value.length,
-    usersCount: users.value.length
-  })
-
   if (atMatch) {
     mentionQuery.value = atMatch[1] || ''
     showDropdown.value = true
     selectedIndex.value = 0
 
     // Lazy load users only when @ is typed (not on mount)
-    console.log('[MentionAutocomplete] @ detected, loading users for database:', props.database)
     loadUsers()
   } else {
     showDropdown.value = false

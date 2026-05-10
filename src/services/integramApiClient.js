@@ -174,10 +174,24 @@ export function normalizeMetadataResponse(data = {}) {
 }
 
 export function normalizeTermsResponse(data = {}) {
-  const payload = Array.isArray(data) ? { terms: data } : data
-  const rawTerms = Array.isArray(data)
+  const isArrayPayload = Array.isArray(data)
+  const hasWrappedTerms = !isArrayPayload && Object.prototype.hasOwnProperty.call(data, 'terms')
+  const hasTermById = !isArrayPayload && Object.prototype.hasOwnProperty.call(data, 'termById')
+  const hasBaseTypes = !isArrayPayload && (
+    Object.prototype.hasOwnProperty.call(data, 'base_types') ||
+    Object.prototype.hasOwnProperty.call(data, 'baseTypes')
+  )
+  const isDictionaryPayload = !isArrayPayload && !hasWrappedTerms && !hasTermById && !hasBaseTypes
+  const rawTerms = isArrayPayload
     ? data
-    : payload.terms ?? payload.termById ?? (payload.base_types || payload.baseTypes ? {} : payload)
+    : hasWrappedTerms
+      ? data.terms ?? {}
+      : hasTermById
+        ? data.termById ?? {}
+        : isDictionaryPayload
+          ? data
+          : {}
+  const payload = isArrayPayload || isDictionaryPayload ? { terms: rawTerms } : data
   const termById = Array.isArray(rawTerms)
     ? Object.fromEntries(rawTerms.map(term => [String(term.id), term.val ?? term.name ?? '']))
     : Object.fromEntries(Object.entries(rawTerms).map(([id, term]) => [
@@ -1337,6 +1351,10 @@ export class IntegramApiClient {
     }
 
     return this.get(endpoint, requestParams, { jsonMode: jsonFlag, normalize: normalizeReportResponse })
+  }
+
+  async sendAiChatMessage(payload = {}) {
+    return this.post('ai-chat', payload, { jsonMode: 'JSON' })
   }
 
   async getDirAdmin(options = {}) {

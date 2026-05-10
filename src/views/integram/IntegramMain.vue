@@ -761,10 +761,12 @@ function startSidebarResize(event) {
 
   const startX = event.clientX
   const startWidth = sidebar.offsetWidth
+  let latestWidth = startWidth
 
   const onMouseMove = (moveEvent) => {
     const width = startWidth + (moveEvent.clientX - startX)
     if (width >= 150 && width <= 400) {
+      latestWidth = width
       sidebar.style.width = `${width}px`
     }
   }
@@ -774,7 +776,7 @@ function startSidebarResize(event) {
     document.body.style.userSelect = ''
     document.removeEventListener('mousemove', onMouseMove)
     document.removeEventListener('mouseup', onMouseUp)
-    setSidebarWidthPreference(sidebar.offsetWidth)
+    setSidebarWidthPreference(latestWidth)
   }
 
   document.body.style.cursor = 'ew-resize'
