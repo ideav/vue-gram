@@ -40,7 +40,7 @@ async function seedSession(page: Page) {
 async function mockIntegramApi(page: Page) {
   const reportUrls: string[] = []
 
-  await page.route('**/api/my/xsrf**', async (route) => {
+  await page.route(/\/(?:api\/)?my\/xsrf(?:\?|$)/, async (route) => {
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
@@ -54,7 +54,12 @@ async function mockIntegramApi(page: Page) {
     })
   })
 
-  await page.route('**/api/my/report/42**', async (route) => {
+  await page.route(/\/(?:api\/)?my\/report\/42(?:\?|$)/, async (route) => {
+    if (route.request().resourceType() === 'document') {
+      await route.continue()
+      return
+    }
+
     reportUrls.push(route.request().url())
     await route.fulfill({
       status: 200,
