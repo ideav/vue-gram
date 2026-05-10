@@ -1293,6 +1293,7 @@ const debouncedSearchQuery = ref('')
 const isFilterDialogVisible = ref(false)
 const filterConditions = ref([])
 const filterApplyButton = ref(null)
+const routeQueryOverride = ref(null)
 let searchDebounceTimer = null
 
 // Search Navigation (Phase 2 - Feature Roadmap)
@@ -1548,6 +1549,98 @@ function isRangeOperator(operator) {
   return operator === 'between'
 }
 
+const LEGACY_TABLE_STATE_KEYS = new Set(['lnx', 'order_val', 'desc', 'f_show_all', 'full'])
+
+function normalizeQueryValue(value) {
+  const normalized = Array.isArray(value) ? value[0] : value
+  if (normalized === null || normalized === undefined || normalized === '') return null
+  return String(normalized)
+}
+
+function getLegacyRouteQueryState() {
+  const legacyState = {}
+
+  Object.entries(routeQueryOverride.value || route.query || {}).forEach(([key, value]) => {
+    if (!key.startsWith('F_') && !LEGACY_TABLE_STATE_KEYS.has(key)) return
+
+    const normalizedValue = normalizeQueryValue(value)
+    if (normalizedValue !== null) {
+      legacyState[key] = normalizedValue
+    }
+  })
+
+  return legacyState
+}
+
+function applyEmbeddedFilters(queryFilters) {
+  if (props.parentId !== null && props.parentId !== undefined && props.parentId !== '') {
+    queryFilters.F_U = String(props.parentId)
+  }
+
+  if (props.filterId !== null && props.filterId !== undefined && props.filterId !== '') {
+    queryFilters.F_I = String(props.filterId)
+  }
+}
+
+function buildObjectListQueryFilters(page = 1, limit = rowsPerPage.value) {
+  const queryFilters = {
+    pg: page,
+    LIMIT: limit,
+    ...getLegacyRouteQueryState()
+  }
+
+  applyEmbeddedFilters(queryFilters)
+
+  // Добавить серверные фильтры из Vue dialog. Они перекрывают URL filters
+  // для тех же колонок, когда пользователь применяет новые условия.
+  const serverFilters = buildServerFilters()
+  if (Object.keys(serverFilters).length > 0) {
+    Object.assign(queryFilters, serverFilters)
+    console.log('[buildObjectListQueryFilters] Server filters:', serverFilters)
+  }
+
+  return queryFilters
+}
+
+function buildObjectCountQueryFilters(queryFilters) {
+  const countFilters = {}
+
+  Object.entries(queryFilters).forEach(([key, value]) => {
+    if (key.startsWith('F_') || key === 'lnx') {
+      countFilters[key] = value
+    }
+  })
+
+  return countFilters
+}
+
+function buildRouteQueryForAppliedFilters() {
+  const nextQuery = { ...(route.query || {}) }
+
+  Object.keys(nextQuery).forEach(key => {
+    if (key.startsWith('F_') && key !== 'F_U' && key !== 'F_I') {
+      delete nextQuery[key]
+    }
+  })
+  delete nextQuery.pg
+
+  const serverFilters = buildServerFilters()
+  Object.assign(nextQuery, serverFilters)
+
+  if (!Object.prototype.hasOwnProperty.call(serverFilters, 'lnx') &&
+      normalizeQueryValue(nextQuery.lnx) === '0') {
+    delete nextQuery.lnx
+  }
+
+  return nextQuery
+}
+
+function syncRouteQueryWithAppliedFilters() {
+  const nextQuery = buildRouteQueryForAppliedFilters()
+  routeQueryOverride.value = nextQuery
+  router.replace({ query: nextQuery })
+}
+
 // Methods
 async function loadData(page = 1) {
   if (!isAuthenticated.value) {
@@ -1568,29 +1661,16 @@ async function loadData(page = 1) {
       integramApiClient.setDatabase(database.value)
     }
 
-    // Fetch objects
-    const queryFilters = {
-      pg: page,
-      LIMIT: rowsPerPage.value
+    if (page === 1) {
+      allRows.value = []
+      allDataLoaded.value = false
+      backgroundProgress.value = 0
+      loadedCount.value = 0
+      totalCount.value = 0
     }
 
-    // Filter by parent for subordinate tables
-    if (props.parentId) {
-      queryFilters.F_U = props.parentId
-    }
-
-    // Filter by specific object ID
-    if (props.filterId) {
-      queryFilters.F_I = props.filterId
-    }
-
-    // Добавить серверные фильтры
-    // Фильтрация ВСЕГДА серверная для корректной работы
-    const serverFilters = buildServerFilters()
-    if (Object.keys(serverFilters).length > 0) {
-      Object.assign(queryFilters, serverFilters)
-      console.log('[loadData] Server filters:', serverFilters)
-    }
+    // Fetch objects using legacy URL-compatible table state.
+    const queryFilters = buildObjectListQueryFilters(page, rowsPerPage.value)
 
     console.log('[loadData] Database:', integramApiClient.getDatabase(), 'TypeId:', typeId.value)
     const data = await integramApiClient.getObjectList(typeId.value, queryFilters)
@@ -1620,7 +1700,10 @@ async function loadData(page = 1) {
     // Load total count for badge (only on first page)
     if (page === 1 && totalCount.value === 0) {
       try {
-        const countResult = await integramApiClient.getObjectCount(typeId.value)
+        const countResult = await integramApiClient.getObjectCount(
+          typeId.value,
+          buildObjectCountQueryFilters(queryFilters)
+        )
         totalCount.value = countResult.count || 0
         console.log(`[loadData] Total records in table: ${totalCount.value}`)
       } catch (err) {
@@ -1740,19 +1823,8 @@ async function startBackgroundLoading() {
         break
       }
 
-      // Загрузить chunk
-      const queryFilters = {
-        pg: page,
-        LIMIT: chunkSize
-      }
-
-      if (props.parentId) {
-        queryFilters.F_U = props.parentId
-      }
-
-      if (props.filterId) {
-        queryFilters.F_I = props.filterId
-      }
+      // Загрузить chunk with the same legacy URL/filter state as the first page.
+      const queryFilters = buildObjectListQueryFilters(page, chunkSize)
 
       const data = await integramApiClient.getObjectList(typeId.value, queryFilters)
 
@@ -2400,15 +2472,11 @@ function getFilterProps(type) {
 async function applyFilter() {
   isFilterDialogVisible.value = false
 
-  // Для серверной фильтрации - перезагрузить данные с фильтрами
-  // CRITICAL: Check for both boolean false AND string 'false'
-  const isAutoLoadAllDisabled = settings.value.autoLoadAll === false || settings.value.autoLoadAll === 'false'
-  if (isAutoLoadAllDisabled) {
-    console.log('[applyFilter] Applying server-side filters')
-    currentPage.value = 1
-    await loadData()
-  }
-  // Для клиентской фильтрации - computed filteredRows обновится автоматически
+  // Для серверной фильтрации - всегда перезагрузить данные с фильтрами.
+  console.log('[applyFilter] Applying server-side filters')
+  currentPage.value = 1
+  syncRouteQueryWithAppliedFilters()
+  await loadData()
 
   toast.add({
     severity: 'success',
@@ -2424,6 +2492,7 @@ async function resetAllFilters() {
   // Перезагрузить данные без фильтров (серверная фильтрация всегда активна)
   console.log('[resetAllFilters] Clearing filters and reloading')
   currentPage.value = 1
+  syncRouteQueryWithAppliedFilters()
   await loadData()
 }
 
@@ -2557,7 +2626,7 @@ async function exportToExcel() {
 
 // Event handlers
 async function handleCellUpdate(event) {
-  const { rowId, headerId, value, dirRowId } = event
+  const { rowId, headerId, value, dirRowId, onSaveSuccess, onSaveError } = event
 
   try {
     if (headerId === 'val') {
@@ -2591,6 +2660,8 @@ async function handleCellUpdate(event) {
       }
     }
 
+    onSaveSuccess?.()
+
     toast.add({
       severity: 'success',
       summary: 'Сохранено',
@@ -2598,6 +2669,8 @@ async function handleCellUpdate(event) {
       life: 2000
     })
   } catch (err) {
+    onSaveError?.(err)
+
     toast.add({
       severity: 'error',
       summary: 'Ошибка',
@@ -2678,7 +2751,7 @@ async function handleRowUpdate(event) {
 }
 
 async function handleCellMultiUpdate(event) {
-  const { rowId, headerId, dirTableId, dirValues } = event
+  const { rowId, headerId, dirTableId, dirValues, onSaveSuccess, onSaveError } = event
 
   try {
     const reqId = headerId.replace('req_', '')
@@ -2715,6 +2788,8 @@ async function handleCellMultiUpdate(event) {
       cell.dirValues = dirValues
     }
 
+    onSaveSuccess?.()
+
     toast.add({
       severity: 'success',
       summary: 'Сохранено',
@@ -2722,6 +2797,8 @@ async function handleCellMultiUpdate(event) {
       life: 2000
     })
   } catch (err) {
+    onSaveError?.(err)
+
     toast.add({
       severity: 'error',
       summary: 'Ошибка',
@@ -3561,6 +3638,7 @@ onMounted(async () => {
 // Watch for typeId changes (from route or prop)
 watch(typeId, async (newTypeId) => {
   if (newTypeId) {
+    routeQueryOverride.value = null
     currentPage.value = 1
     rows.value = []
     await loadData()
