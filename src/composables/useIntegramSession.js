@@ -13,8 +13,8 @@ const currentDatabase = ref(null);
 const userInfo = ref(null);
 
 export function useIntegramSession() {
-  function initializeSession() {
-    const restored = integramApiClient.tryRestoreSession();
+  function initializeSession(databaseHint = null) {
+    const restored = integramApiClient.tryRestoreSession(databaseHint);
     if (restored) {
       isAuthenticated.value = integramApiClient.isAuthenticated();
       currentDatabase.value = integramApiClient.getDatabase();
@@ -24,6 +24,7 @@ export function useIntegramSession() {
 
   async function login(serverURL, database, username, password) {
     try {
+      if (serverURL) integramApiClient.setServer(serverURL);
       await integramApiClient.authenticate(database, username, password);
       isAuthenticated.value = true;
       currentDatabase.value = database;
@@ -56,6 +57,7 @@ export function useIntegramSession() {
   return {
     isAuthenticated: computed(() => isAuthenticated.value),
     currentDatabase: computed(() => currentDatabase.value),
+    database: computed(() => currentDatabase.value),
     userInfo: computed(() => userInfo.value),
     login,
     logout,

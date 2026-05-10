@@ -217,21 +217,69 @@
           </div>
         </div>
 
-        <nav class="app-menu" id="app-menu">
-          <router-link
-            v-for="item in filteredMenuItems"
-            :key="item.href"
-            :to="`/${database}/${item.href}`"
-            class="app-menu-item"
-            :class="{ active: isMenuItemActive(item) }"
-            :title="getMenuItemLabel(item)"
-            :data-href="item.href"
-            @click="closeMobileSidebar"
-          >
-            <span class="menu-icon"><i :class="item.icon"></i></span>
-            <span class="menu-text">{{ getMenuItemLabel(item) }}</span>
-          </router-link>
-          <div v-if="filteredMenuItems.length === 0" class="menu-no-results">
+        <nav class="app-menu" id="app-menu" aria-label="Главное меню">
+          <template v-for="row in visibleMenuRows" :key="row.item.id">
+            <a
+              v-if="row.item.href"
+              class="app-menu-item"
+              :class="menuRowClasses(row)"
+              :href="getMenuHref(row.item)"
+              :title="row.item.label"
+              :data-menu-id="row.item.id"
+              :data-menu-up="row.item.parentId"
+              :data-level="row.level"
+              :aria-current="isMenuItemActive(row.item) ? 'page' : undefined"
+              :style="menuItemStyle(row)"
+              @click.prevent="navigateMenuItem(row.item)"
+            >
+              <span class="menu-icon" aria-hidden="true">
+                <i v-if="row.item.iconClass" :class="row.item.iconClass"></i>
+                <span v-else>{{ row.item.iconText }}</span>
+              </span>
+              <span class="menu-text">{{ row.item.label }}</span>
+              <span
+                v-if="row.hasChildren && !sidebarCollapsed"
+                class="menu-expand-button"
+                role="button"
+                tabindex="0"
+                :aria-label="row.isExpanded ? 'Свернуть раздел' : 'Развернуть раздел'"
+                :aria-expanded="row.isExpanded"
+                @click.prevent.stop="toggleMenuItem(row.item)"
+                @keydown.enter.prevent.stop="toggleMenuItem(row.item)"
+                @keydown.space.prevent.stop="toggleMenuItem(row.item)"
+              >
+                <i class="menu-arrow fi fi-rr-angle-small-down" :class="{ rotated: row.isExpanded }"></i>
+              </span>
+            </a>
+
+            <button
+              v-else
+              class="app-menu-item app-menu-item-folder"
+              :class="menuRowClasses(row)"
+              type="button"
+              :title="row.item.label"
+              :data-menu-id="row.item.id"
+              :data-menu-up="row.item.parentId"
+              :data-level="row.level"
+              :aria-expanded="row.hasChildren ? row.isExpanded : undefined"
+              :style="menuItemStyle(row)"
+              @click="toggleMenuItem(row.item)"
+            >
+              <span class="menu-icon" aria-hidden="true">
+                <i v-if="row.item.iconClass" :class="row.item.iconClass"></i>
+                <span v-else>{{ row.item.iconText }}</span>
+              </span>
+              <span class="menu-text">{{ row.item.label }}</span>
+              <i
+                v-if="row.hasChildren && !sidebarCollapsed"
+                class="menu-arrow fi fi-rr-angle-small-down"
+                :class="{ rotated: row.isExpanded }"
+                aria-hidden="true"
+              ></i>
+            </button>
+          </template>
+
+          <div v-if="menuSearch && visibleMenuRows.length === 0" class="menu-no-results">
             Ничего не найдено
           </div>
         </nav>
@@ -344,6 +392,15 @@ import {
   getLogoutStartUrl,
   useIntegramShellSettings
 } from '@/composables/useIntegramShellSettings'
+import {
+  buildLegacyMenuPath,
+  filterMenuTree,
+  findActiveMenuItem,
+  flattenMenuTree,
+  getMenuItemAncestors,
+  isExternalMenuHref,
+  normalizeMenuData
+} from '@/utils/integramMenu'
 
 const router = useRouter()
 const route = useRoute()
@@ -362,6 +419,8 @@ const newPasswordRepeat = ref('')
 const locale = ref('ru')
 const userMenuOpen = ref(false)
 const menuSearch = ref('')
+const rawMenuData = ref([])
+const expandedMenuIds = ref(new Set())
 const mobileSidebarOpen = ref(false)
 const viewportWidth = ref(typeof window !== 'undefined' ? window.innerWidth : 1024)
 
@@ -435,45 +494,20 @@ const availableDatabases = computed(() => {
   })
 })
 
-const baseMenuItems = [
-  { href: 'dict', icon: 'fi fi-rr-database', ruName: 'Объекты', enName: 'Objects' },
-  { href: 'table', icon: 'fi fi-rr-table', ruName: 'Таблицы', enName: 'Tables' },
-  { href: 'edit_types', icon: 'fi fi-rr-sitemap', ruName: 'Структура', enName: 'Structure' },
-  { href: 'sql', icon: 'fi fi-rr-code', ruName: 'SQL', enName: 'SQL' },
-  { href: 'report', icon: 'fi fi-rr-chart-histogram', ruName: 'Запросы', enName: 'Queries' },
-  { href: 'form', icon: 'fi fi-rr-file', ruName: 'Формы', enName: 'Forms' },
-  { href: 'upload', icon: 'fi fi-rr-upload', ruName: 'Загрузка', enName: 'Upload' },
-  { href: 'dir_admin', icon: 'fi fi-rr-folder', ruName: 'Файлы', enName: 'Files' },
-  { href: 'info', icon: 'fi fi-rr-info', ruName: 'Информация', enName: 'Info' }
-]
-
-const filteredMenuItems = computed(() => {
-  const query = menuSearch.value.trim().toLowerCase()
-  if (!query) return baseMenuItems
-
-  return baseMenuItems.filter((item) => {
-    return getMenuItemLabel(item).toLowerCase().includes(query) || item.href.toLowerCase().includes(query)
-  })
+const menuTree = computed(() => normalizeMenuData(rawMenuData.value))
+const filteredMenuTree = computed(() => filterMenuTree(menuTree.value, menuSearch.value))
+const visibleMenuRows = computed(() => {
+  const forceExpanded = Boolean(menuSearch.value.trim()) && !sidebarCollapsed.value
+  const expandedIds = sidebarCollapsed.value ? new Set() : expandedMenuIds.value
+  return flattenMenuTree(filteredMenuTree.value, expandedIds, { forceExpanded })
 })
-
-const activeWorkspaceName = computed(() => {
-  const match = baseMenuItems.find(item => isMenuItemActive(item))
-  return match ? getMenuItemLabel(match) : database.value
-})
+const activeMenuItem = computed(() => findActiveMenuItem(menuTree.value, route.fullPath, database.value))
+const activeWorkspaceName = computed(() => activeMenuItem.value?.label || database.value)
 
 const sidebarStyle = computed(() => {
   if (isMobileViewport.value || sidebarCollapsed.value || !sidebarWidth.value) return {}
   return { width: `${sidebarWidth.value}px` }
 })
-
-function getMenuItemLabel(item) {
-  return locale.value === 'ru' ? item.ruName : item.enName
-}
-
-function isMenuItemActive(item) {
-  const prefix = `/${database.value}/${item.href}`
-  return route.path === prefix || route.path.startsWith(`${prefix}/`)
-}
 
 function t(key) {
   const translations = {
@@ -610,6 +644,94 @@ async function handleDatabaseChange(event) {
   }
 }
 
+function loadServerMenuData() {
+  const candidates = [
+    window.menuData,
+    window.__INTEGRAM_MENU_DATA__,
+    window.integramMenuData
+  ]
+  const serverMenu = candidates.find(candidate => Array.isArray(candidate) && candidate.length > 0)
+  rawMenuData.value = serverMenu ? [...serverMenu] : []
+}
+
+function expandedMenuStorageKey() {
+  return `menuExpanded_${database.value || 'default'}`
+}
+
+function loadExpandedMenuState() {
+  try {
+    const raw = localStorage.getItem(expandedMenuStorageKey())
+    const ids = raw ? JSON.parse(raw) : []
+    expandedMenuIds.value = new Set(Array.isArray(ids) ? ids.map(String) : [])
+  } catch {
+    expandedMenuIds.value = new Set()
+  }
+}
+
+function saveExpandedMenuState() {
+  localStorage.setItem(expandedMenuStorageKey(), JSON.stringify([...expandedMenuIds.value]))
+}
+
+function expandActiveAncestors() {
+  if (!activeMenuItem.value) return
+  const ancestors = getMenuItemAncestors(menuTree.value, activeMenuItem.value.id)
+  if (ancestors.length === 0) return
+
+  const nextExpanded = new Set(expandedMenuIds.value)
+  for (const id of ancestors) nextExpanded.add(id)
+  expandedMenuIds.value = nextExpanded
+  saveExpandedMenuState()
+}
+
+function menuRowClasses(row) {
+  return {
+    active: isMenuItemActive(row.item),
+    expanded: row.isExpanded,
+    'app-menu-item-parent': row.hasChildren,
+    'app-menu-item-nested': row.level > 0,
+    'search-match': row.isSearchMatch
+  }
+}
+
+function menuItemStyle(row) {
+  if (sidebarCollapsed.value) return {}
+  return { paddingLeft: `${1 + row.level * 0.9}rem` }
+}
+
+function isMenuItemActive(item) {
+  return activeMenuItem.value?.id === item.id
+}
+
+function getMenuHref(item) {
+  return buildLegacyMenuPath(database.value, item.href)
+}
+
+function navigateMenuItem(item) {
+  const href = getMenuHref(item)
+  if (!href) return
+
+  if (isExternalMenuHref(href)) {
+    window.location.assign(href)
+  } else {
+    router.push(href)
+  }
+
+  closeMobileSidebar()
+}
+
+function toggleMenuItem(item) {
+  if (!item.children.length) return
+
+  const nextExpanded = new Set(expandedMenuIds.value)
+  if (nextExpanded.has(item.id)) {
+    nextExpanded.delete(item.id)
+  } else {
+    nextExpanded.add(item.id)
+  }
+  expandedMenuIds.value = nextExpanded
+  saveExpandedMenuState()
+}
+
 function clearMenuSearch() {
   menuSearch.value = ''
 }
@@ -702,6 +824,15 @@ watch(() => route.params.database, async (newDb) => {
   }
 }, { immediate: true })
 
+watch(database, () => {
+  loadExpandedMenuState()
+  expandActiveAncestors()
+}, { immediate: true })
+
+watch(activeMenuItem, () => {
+  expandActiveAncestors()
+}, { immediate: true })
+
 watch(() => route.fullPath, () => {
   closeMobileSidebar()
   closeUserMenu()
@@ -714,58 +845,20 @@ watch(mobileSidebarOpen, (isOpen) => {
 onMounted(async () => {
   document.addEventListener('click', handleDocumentClick)
   window.addEventListener('resize', updateViewportWidth)
+  loadServerMenuData()
 
-  integramApiClient.tryRestoreSession()
+  await integramApiClient.restoreSession(database.value, { validate: false })
 
   const authInfo = integramApiClient.getAuthInfo()
-  if (!authInfo.token || !authInfo.xsrf) {
-    const serverURL = import.meta.env.VITE_INTEGRAM_URL || `${window.location.protocol}//${window.location.hostname}`
-    const defaultDatabase = database.value || 'my'
-    const defaultUsername = 'd'
-    const defaultPassword = 'd'
-
-    try {
-      integramApiClient.setServer(serverURL)
-      await integramApiClient.authenticate(defaultDatabase, defaultUsername, defaultPassword)
-
-      try {
-        const response = await integramApiClient.get('auth')
-        if (response.data) {
-          const dbSession = integramApiClient.databases[defaultDatabase]
-          if (dbSession) {
-            dbSession.userName = response.data.login || defaultUsername
-            dbSession.userRole = response.data.role || 'user'
-            dbSession.authInfo = {
-              userName: response.data.login || defaultUsername,
-              userRole: response.data.role || 'user',
-              token: dbSession.token,
-              xsrf: dbSession.xsrfToken
-            }
-            if (response.data.bases && Array.isArray(response.data.bases)) {
-              dbSession.ownedDatabases = response.data.bases
-            }
-          }
-        }
-      } catch {
-        // User metadata is optional for the shell; the authenticated session is enough.
-      }
-
-      integramApiClient.saveSession()
-    } catch (error) {
-      toast.add({
-        severity: 'error',
-        summary: 'Ошибка автоматической авторизации',
-        detail: error.message || 'Не удалось войти в систему',
-        life: 5000
-      })
-      return
-    }
+  if (!authInfo.token) {
+    router.replace({ path: '/login', query: { redirect: route.fullPath } })
+    return
   }
 
-  try {
-    await integramApiClient.validateSession()
-  } catch (e) {
-    console.warn('Session validation skipped:', e.message)
+  const validSession = await integramApiClient.validateSession()
+  if (!validSession) {
+    router.replace({ path: '/login', query: { redirect: route.fullPath } })
+    return
   }
 
   const savedLocale = localStorage.getItem('integram_locale')
@@ -1191,7 +1284,9 @@ onBeforeUnmount(() => {
 }
 
 .app-sidebar.collapsed .menu-search-wrapper,
-.app-sidebar.collapsed .menu-text {
+.app-sidebar.collapsed .menu-text,
+.app-sidebar.collapsed .menu-arrow,
+.app-sidebar.collapsed .menu-expand-button {
   display: none;
 }
 
@@ -1221,6 +1316,7 @@ onBeforeUnmount(() => {
   cursor: pointer;
   color: var(--text-primary);
   font-size: 0.9rem;
+  font-family: inherit;
   text-align: left;
   transition: all 0.2s ease;
   width: 100%;
@@ -1236,6 +1332,15 @@ onBeforeUnmount(() => {
 .app-menu-item.active {
   background-color: rgba(0, 0, 0, 0.08);
   color: var(--text-primary);
+}
+
+.app-menu-item-folder .menu-text {
+  text-transform: uppercase;
+  letter-spacing: 0;
+}
+
+.app-menu-item-nested {
+  font-size: 0.85rem;
 }
 
 :global([data-theme="dark"]) .app-menu-item:hover,
@@ -1260,6 +1365,42 @@ onBeforeUnmount(() => {
   overflow: hidden;
   text-overflow: ellipsis;
   flex: 1;
+}
+
+.menu-expand-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  margin-left: auto;
+  border-radius: 50%;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+
+.menu-expand-button:hover {
+  background-color: rgba(0, 0, 0, 0.08);
+  color: var(--text-primary);
+}
+
+.menu-arrow {
+  margin-left: auto;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  transition: transform 0.16s ease;
+}
+
+.menu-arrow.rotated,
+.app-menu-item.expanded > .menu-arrow {
+  transform: rotate(180deg);
+}
+
+.app-menu-item.search-match .menu-text {
+  background: rgba(59, 130, 246, 0.16);
+  border-radius: 3px;
+  padding: 0 0.25rem;
+  margin: 0 -0.25rem;
 }
 
 .menu-no-results {

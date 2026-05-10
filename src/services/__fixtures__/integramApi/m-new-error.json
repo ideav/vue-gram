@@ -1,0 +1,7 @@
+{
+  "failed": "Required requisite Status is missing",
+  "code": "REQUIRED_REQUISITE",
+  "details": {
+    "requisiteId": 101
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "types": [
+    {
+      "id": 100,
+      "val": "Tasks",
+      "base": 3,
+      "up": 1,
+      "unique": false
+    },
+    {
+      "id": 200,
+      "val": "Statuses",
+      "base": 3,
+      "up": 1,
+      "unique": true
+    }
+  ],
+  "reqs": [
+    {
+      "id": 101,
+      "typ": 100,
+      "val": "Status",
+      "base": 3,
+      "ref": 200,
+      "multi": false,
+      "null": false
+    },
+    {
+      "id": 102,
+      "typ": 100,
+      "val": "Due date",
+      "base": 9,
+      "ref": null,
+      "multi": false,
+      "null": true
+    }
+  ],
+  "grants": {
+    "role": "admin",
+    "roleId": 1,
+    "canEdit": true
+  }
+}

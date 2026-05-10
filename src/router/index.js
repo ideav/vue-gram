@@ -1,4 +1,19 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import integramApiClient from '../services/integramApiClient'
+
+function legacyChildRedirect(target) {
+  return (to) => {
+    const pathMatch = to.params.pathMatch
+    const rest = Array.isArray(pathMatch) ? pathMatch.join('/') : pathMatch
+    const suffix = rest ? `/${rest}` : ''
+
+    return {
+      path: `/${to.params.database}/${target}${suffix}`,
+      query: to.query,
+      hash: to.hash
+    }
+  }
+}
 
 const routes = [
   {
@@ -36,13 +51,8 @@ const routes = [
         component: () => import('../views/integram/IntegramTableList.vue')
       },
       {
-        path: 'tables',
-        redirect: to => ({
-          name: 'IntegramTableList',
-          params: { database: to.params.database },
-          query: to.query,
-          hash: to.hash
-        })
+        path: 'tables/:pathMatch(.*)*',
+        redirect: legacyChildRedirect('table')
       },
       {
         path: 'table/:typeId',
@@ -65,9 +75,19 @@ const routes = [
         component: () => import('../views/integram/IntegramSqlView.vue')
       },
       {
-        path: 'query/:reportId?',
-        name: 'IntegramQuery',
-        component: () => import('../views/integram/IntegramReportView.vue')
+        path: 'smartq',
+        name: 'IntegramSmartQuery',
+        component: () => import('../views/integram/IntegramSmartQueryView.vue')
+      },
+      {
+        path: 'report/:reportId/embed',
+        name: 'IntegramReportEmbed',
+        component: () => import('../components/integram/IntegramReportEmbed.vue'),
+        props: route => ({
+          reportId: route.params.reportId,
+          database: route.params.database,
+          params: route.query
+        })
       },
       {
         path: 'report/:reportId?',
@@ -75,9 +95,22 @@ const routes = [
         component: () => import('../views/integram/IntegramReportView.vue')
       },
       {
+        path: 'query/:pathMatch(.*)*',
+        redirect: legacyChildRedirect('report')
+      },
+      {
         path: 'form/:formId?',
         name: 'IntegramForm',
         component: () => import('../views/integram/IntegramFormView.vue')
+      },
+      {
+        path: 'forms/:pathMatch(.*)*',
+        redirect: legacyChildRedirect('form')
+      },
+      {
+        path: 'myform/:formId?',
+        name: 'IntegramMyForm',
+        component: () => import('../views/integram/IntegramMyFormView.vue')
       },
       {
         path: 'upload',
@@ -104,18 +137,15 @@ const router = createRouter({
 })
 
 // Auth guard
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to) => {
   if (to.matched.some(record => record.meta.requiresAuth)) {
-    const token = localStorage.getItem('token')
-    const session = localStorage.getItem('integram_session')
-    if (!token && !session) {
-      next({ path: '/login', query: { redirect: to.fullPath } })
-    } else {
-      next()
+    const database = typeof to.params.database === 'string' ? to.params.database : null
+    const restored = await integramApiClient.restoreSession(database)
+    if (!restored) {
+      return { path: '/login', query: { redirect: to.fullPath } }
     }
-  } else {
-    next()
   }
+  return true
 })
 
 export default router

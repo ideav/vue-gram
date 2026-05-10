@@ -29,6 +29,14 @@ class IntegramService {
     integramApiClient.saveSession()
   }
 
+  loadSession() {
+    return integramApiClient.loadSession()
+  }
+
+  isAuthenticated() {
+    return integramApiClient.isAuthenticated()
+  }
+
   async getObjects(typeId, filters = {}) {
     return integramApiClient.getObjectList(typeId, filters);
   }
@@ -39,6 +47,14 @@ class IntegramService {
 
   async post(endpoint, data = {}, options = {}) {
     return integramApiClient.post(endpoint, data, options);
+  }
+
+  async getMetadataRoot(params = {}) {
+    return integramApiClient.getMetadata(params);
+  }
+
+  async getTerms(params = {}) {
+    return integramApiClient.getTerms(params);
   }
 
   async deleteObject(objectId) {
@@ -99,8 +115,12 @@ class IntegramService {
     return integramApiClient.getObjectEditData(objectId);
   }
 
-  async getMetadata(typeId) {
-    return integramApiClient.getTypeMetadata(typeId);
+  async getObjectRecord(objectId, params = {}) {
+    return integramApiClient.getObjectRecord(objectId, params);
+  }
+
+  async getMetadata(typeId = null) {
+    return typeId ? integramApiClient.getTypeMetadata(typeId) : integramApiClient.getMetadata();
   }
 
   async getReferenceOptions(requisiteId, objectId, restrict = null, query = null) {
