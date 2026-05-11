@@ -107,10 +107,6 @@ const routes = [
         redirect: sportzaniaRedirect('struct')
       },
       {
-        path: 'procvac',
-        redirect: sportzaniaRedirect('procvac')
-      },
-      {
         path: 'edit_obj/:objectId',
         name: 'IntegramObjectEdit',
         component: () => import('../views/integram/IntegramObjectEdit.vue')

@@ -1,164 +1,188 @@
 # Vue-Gram CRM
 
-Современная CRM-система на VueJS 3 с использованием PrimeVue компонентов, созданная на основе [Ideav CRM](https://github.com/ideav/crm).
+Vue-Gram CRM - Vue 3 фронтенд для Интеграма. Проект переносит текущие
+PHP-шаблоны и legacy JavaScript рабочие места из
+[ideav/crm](https://github.com/ideav/crm) в поддерживаемое SPA на Vite,
+сохраняя существующий backend Интеграма как источник авторизации, прав,
+структуры данных, отчетов и DDL/DML операций.
 
-## 🚀 Возможности
+Под Интеграмом здесь понимается CRM-платформа Ideav, а не Instagram.
 
-### 📊 Канбан-доска
-- **Визуализация воронки продаж** с 11 этапами от лида до повторной оплаты
-- **Drag & Drop** - перетаскивание карточек между колонками для изменения статуса
-- **Цветовое кодирование** - каждый этап имеет уникальный цвет для быстрой навигации
-- **Счетчики задач и сделок** на карточках лидов
-- Фильтрация по менеджеру, продукту и партнерам
+## Текущее состояние
 
-### 📋 Таблицы данных
-- **Задачи** - полный список задач с фильтрацией, сортировкой и поиском
-  - Цветовая индикация приоритетов
-  - Выделение срочных задач (< 3 дней до дедлайна)
-  - Связь с лидами
-- **Партнеры** - управление партнерами и дистрибьюторами
-  - Статусы партнеров
-  - Счетчик сделок
-- **Сделки** - отслеживание продаж
-  - Форматирование сумм
-  - Статусы сделок с цветовой индикацией
+Репозиторий уже содержит не только ранний CRM demo-экран, а совместимую
+оболочку Интеграма и набор перенесенных рабочих мест. README актуализирован
+по закрытым parity issues и текущему коду:
 
-### 🎨 Интерфейс
-- **Material Design** стилистика
-- **Адаптивный дизайн**
-- **Боковая панель** с быстрыми ссылками и статистикой
-- **Верхнее меню** с навигацией между разделами
+- #11-#13: shell, авторизация, восстановление сессии, XSRF/token handling,
+  меню, mobile/sidebar и совместимость старых ссылок.
+- #14: JSON API contracts, fixtures и нормализация ответов backend.
+- #15-#18: рабочее место таблиц, объектная таблица, карточка объекта,
+  редактор объекта и базовые типы полей.
+- #19-#20: отчеты, report embed/viewer, SQL editor и query builder.
+- #21-#24: справочник, редактор типов, загрузка файлов, dir_admin,
+  системная информация и диагностика.
+- #25-#30: kanban/funnel/cards, dashboard, SmartQ/AI chat, формы, quiz,
+  календарь и личный кабинет.
+- #31-#33: migr, ProcVac и Sportzania workspaces.
+- #34-#35: grants/permissions, видимость действий, cookies/localStorage и
+  пользовательские настройки shell, таблиц, меню и dashboard.
 
-## 🛠 Технологии
+Детальный список задач паритета находится в
+[docs/INTEGRAM_FUNCTIONAL_BACKLOG.md](docs/INTEGRAM_FUNCTIONAL_BACKLOG.md).
 
-- **Vue 3** - прогрессивный JavaScript фреймворк
-- **Vue Router 4** - маршрутизация
-- **PrimeVue 4** - библиотека UI компонентов
-- **Vite** - быстрая сборка и dev-сервер
-- **PrimeIcons** - набор иконок
+## Возможности
 
-## 📦 Установка
+- Совместимый Integram shell: верхняя панель, выбор базы, пользовательское
+  меню, logout, смена темы, размер шрифта, brand background, sidebar,
+  поиск по меню и мобильная навигация.
+- Авторизация через `/login` с выбором сервера, входом в базу, регистрацией,
+  сбросом пароля, восстановлением сохраненных сессий и переключением между
+  доступными базами.
+- Адаптер меню, который принимает legacy `menuData`, сохраняет вложенность,
+  активный пункт, раскрытие разделов и старые URL aliases.
+- Таблицы и объекты: список таблиц, объектная таблица, карточка объекта,
+  inline/edit flows, subordinate tables, быстрые действия, drag/drop,
+  сортировка, группировка, фильтры, настройки вида и compatibility helpers.
+- Редактор типов и реквизитов с базовыми field/editor компонентами:
+  boolean, chars, date, datetime, file, HTML, memo, number, password,
+  path, reference, signed, short, report column и button.
+- Отчеты: выполнение reports, embed/viewer режим, SQL editor, query builder,
+  dashboard panels и сохранение настроек dashboard.
+- Специализированные рабочие места: kanban/funnel/cards, SmartQ и AI chat,
+  forms/myform/quiz, calendar, upload, dir_admin, migr, info diagnostics,
+  cabinet, ProcVac и Sportzania task dashboard/rating/structure.
+- Совместимость с правами и настройками Интеграма: `grants`, `role`,
+  `roleId`, cookies, legacy localStorage keys, table UI settings и
+  object-backed settings.
+
+## Быстрый старт
 
 ```bash
-# Клонировать репозиторий
 git clone https://github.com/ideav/vue-gram.git
 cd vue-gram
 
-# Установить зависимости
 npm install
-
-# Запустить dev-сервер
 npm run dev
-
-# Собрать для продакшена
-npm run build
-
-# Запустить preview собранной версии
-npm run preview
 ```
 
-## 🏗 Структура проекта
+Dev-сервер Vite запускается на `http://localhost:3000`.
 
-```
-vue-gram/
-├── src/
-│   ├── assets/
-│   │   └── css/
-│   │       └── theme.css          # Кастомная тема PrimeVue
-│   ├── components/
-│   │   ├── AppHeader.vue          # Верхнее меню
-│   │   └── AppSidebar.vue         # Боковая панель
-│   ├── router/
-│   │   └── index.js               # Настройка маршрутизации
-│   ├── services/
-│   │   └── mockData.js            # Демо-данные и API
-│   ├── views/
-│   │   ├── KanbanView.vue         # Канбан-доска
-│   │   ├── TasksView.vue          # Таблица задач
-│   │   ├── PartnersView.vue       # Таблица партнеров
-│   │   └── DealsView.vue          # Таблица сделок
-│   ├── App.vue                    # Корневой компонент
-│   └── main.js                    # Точка входа
-├── index.html
-├── vite.config.js
-└── package.json
+Полезные команды:
+
+```bash
+npm run build      # production build
+npm run preview    # preview собранной версии
+npm test           # unit/component tests через Vitest
+npm run test:e2e   # Playwright smoke/e2e tests
 ```
 
-## 📱 Скриншоты
+## Настройка API
 
-### Канбан-доска
-Визуализация воронки продаж с возможностью перетаскивания карточек между этапами.
+Основной API-клиент находится в
+[`src/services/integramApiClient.js`](src/services/integramApiClient.js).
+Он строит запросы в формате `{server}/{database}/{endpoint}?JSON_KV`,
+хранит token/XSRF/session state и нормализует ответы backend.
 
-### Таблица задач
-Фильтрация, сортировка и поиск по всем задачам с выделением приоритетов.
+Источник сервера выбирается в таком порядке:
 
-### Таблица партнеров
-Управление партнерами и дистрибьюторами с отслеживанием статусов.
+1. `localStorage.integram_server`, если пользователь уже выбирал сервер.
+2. `VITE_INTEGRAM_URL`.
+3. `https://app.integram.io`.
 
-## 🎯 Функциональность
+Экран входа также дает выбрать один из известных серверов:
+`https://dronedoc.ru`, `https://integram.io`, `https://app.integram.io`.
 
-### Воронка продаж (Канбан)
-1. **Лид** (3689) - новые заявки
-2. **Первичный контакт** (3691) - первое взаимодействие
-3. **Квалификация** (3693) - оценка потенциала
-4. **Отправлено КП** (3695) - коммерческое предложение
-5. **Презентация / демо** (2849) - демонстрация продукта
-6. **Согласование** (2843) - обсуждение условий
-7. **Триал / апробация** (2806) - тестирование
-8. **Закрытие сделки** (3697) - подписание договора
-9. **Оплата** (3699) - ожидание платежа
-10. **Повторная оплата** (3701) - продление/повторные продажи
-11. **Отказ / срыв сделки** (2824) - неудачные сделки
+## Основные маршруты
 
-### Типы задач
-- Звонок
-- Отправить обновление
-- Видеозвонок
-- Прогрев / касание
-- Напомнить о продлении
-- Передать лида партнеру
+Все рабочие места после входа открываются внутри маршрута `/:database`.
 
-## 🔄 API
+| Маршрут | Назначение |
+| --- | --- |
+| `/login` | вход, регистрация, сброс пароля, список активных баз |
+| `/:database` | стартовая страница базы в Integram shell |
+| `/:database/dict` | справочник объектов |
+| `/:database/table` и `/:database/table/:typeId` | список таблиц и таблица данных |
+| `/:database/object/:typeId` | объектный список/карточка типа |
+| `/:database/edit_obj/:objectId` | редактор объекта |
+| `/:database/edit_types` | редактор типов и реквизитов |
+| `/:database/sql/:reportId?` | SQL editor |
+| `/:database/smartq/:reportId?` | SmartQ и AI chat |
+| `/:database/report/:reportId?` | отчеты |
+| `/:database/report/:reportId/embed` | embedded report viewer |
+| `/:database/dash/:dashboardId` | dashboard |
+| `/:database/kanban/:sourceId?` | kanban workspace |
+| `/:database/funnel/:sourceId?` | funnel workspace |
+| `/:database/cards/:typeId?` | cards workspace |
+| `/:database/calendar` | календарь |
+| `/:database/form/:formId?` | конструктор и runtime форм |
+| `/:database/myform/:formId?` | пользовательские формы |
+| `/:database/quiz/:quizId?` | quiz runtime |
+| `/:database/upload` | загрузка файлов |
+| `/:database/dir_admin` | администрирование директорий |
+| `/:database/migr` | migration workspace |
+| `/:database/info` | системная информация и диагностика |
+| `/:database/cabinet` | личный кабинет |
+| `/:database/procvac` | ProcVac workspace |
+| `/:database/sportzania/:workspace` | `taskdash`, `rating`, `struct`, `procvac` fallback |
 
-Проект использует mock API (`src/services/mockData.js`) с демонстрационными данными. Для интеграции с реальным backend:
+Для совместимости сохранены redirects старых ссылок:
+`tables -> table`, `query -> report`, `forms -> form`, `iquiz -> quiz`,
+а также короткие Sportzania routes `taskdash`, `rating` и `struct`.
 
-1. Замените функции в `mockData.js` на реальные HTTP запросы
-2. Используйте axios или fetch для работы с API
-3. Обновите URL в конфигурации
+## Архитектура проекта
 
-Пример интеграции:
-```javascript
-import axios from 'axios'
-
-const API_BASE = 'https://your-api.com'
-
-export const api = {
-  async getLeads(statusId = null) {
-    const params = statusId ? { statusId } : {}
-    const response = await axios.get(`${API_BASE}/leads`, { params })
-    return response.data
-  },
-  // ...
-}
+```text
+src/
+  assets/css/theme.css
+  components/integram/       # общие и рабочие Vue-компоненты Интеграма
+  composables/               # shell, theme, grants, session и UI state
+  router/index.js            # Vue Router и legacy redirects
+  services/
+    integramApiClient.js     # прямой клиент JSON API Интеграма
+    integramService.js       # высокоуровневые операции поверх API client
+  stores/                    # Pinia state
+  utils/                     # нормализация, permissions, reports, workspaces
+  views/integram/            # route-level рабочие места
+e2e/                         # Playwright smoke/e2e specs
+docs/                        # migration/parity/API/storage documentation
+experiments/                 # одноразовые исследовательские скрипты
 ```
 
-## 📝 Дальнейшее развитие
+## Документация
 
-- [ ] Выполнять миграцию по плану: [docs/VUE_INTEGRAM_REWRITE_PLAN.md](docs/VUE_INTEGRAM_REWRITE_PLAN.md)
-- [ ] Формы создания и редактирования лидов
-- [ ] Модальные окна для просмотра деталей
-- [ ] Интеграция с реальным API
-- [ ] Аутентификация пользователей
-- [ ] Фильтры и расширенный поиск
-- [ ] Экспорт данных
-- [ ] Уведомления и напоминания
-- [ ] Темная тема
-- [ ] i18n (мультиязычность)
+- [План переписывания CRM на Vue + Интеграм](docs/VUE_INTEGRAM_REWRITE_PLAN.md)
+- [Бэклог функционального паритета](docs/INTEGRAM_FUNCTIONAL_BACKLOG.md)
+- [JSON API contracts](docs/INTEGRAM_JSON_API_CONTRACTS.md)
+- [Storage compatibility](docs/INTEGRAM_STORAGE_COMPATIBILITY.md)
+- [SQL / Query Builder parity](docs/SQL_QUERY_BUILDER_PARITY.md)
+- [ProcVac legacy parity](docs/PROCVAC_PARITY.md)
+- [Sportzania workspace parity](docs/SPORTZANIA_WORKSPACES.md)
 
-## 📄 Лицензия
+Скриншоты ключевых рабочих мест лежат в [docs/screenshots](docs/screenshots).
+
+## Тестирование
+
+Проект использует Vitest для unit/component проверок и Playwright для
+browser smoke/e2e сценариев.
+
+```bash
+npm test
+npm run test:e2e
+```
+
+Unit tests покрывают API adapters, shell settings, grants, таблицы, формы,
+отчеты, SmartQ, dashboard, migration helpers, Sportzania/ProcVac utilities
+и field/editor компоненты. Playwright specs проверяют основные route-level
+рабочие места: shell, dashboard, tables, SQL/query builder, reports,
+forms/quiz, upload, dir_admin, calendar, cabinet, migration, SmartQ,
+Sportzania и ProcVac.
+
+## Лицензия
 
 ISC
 
-## 🙏 Благодарности
+## Благодарности
 
-Основано на [Ideav CRM](https://github.com/ideav/crm) - оригинальной реализации CRM-системы.
+Проект основан на [Ideav CRM](https://github.com/ideav/crm) и переносит ее
+функциональность в Vue-приложение с сохранением совместимости Интеграма.
