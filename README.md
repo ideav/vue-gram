@@ -56,26 +56,83 @@ PHP-шаблоны и legacy JavaScript рабочие места из
   `roleId`, cookies, legacy localStorage keys, table UI settings и
   object-backed settings.
 
-## Быстрый старт
+## Установка
+
+### Требования
+
+- **Node.js 20 или новее** (Vite 6 и Vitest 4 не работают на Node ниже 18; 20 LTS — рекомендуемая версия).
+- **npm 10+** (поставляется с Node 20). `pnpm` и `yarn` совместимы по структуре, но команды ниже даны для npm.
+- **git** для клонирования.
+
+Проверить версии:
+
+```bash
+node --version    # должно быть v20.x или выше
+npm --version     # должно быть 10.x или выше
+```
+
+### 1. Клонирование
 
 ```bash
 git clone https://github.com/ideav/vue-gram.git
 cd vue-gram
+```
 
+### 2. Установка зависимостей
+
+```bash
 npm install
+```
+
+`package-lock.json` зафиксирован — для воспроизводимой установки можно использовать `npm ci` (быстрее и строже, но не обновляет lock-файл).
+
+### 3. Настройка окружения (опционально)
+
+По умолчанию приложение указывает на `https://app.integram.io`. Если нужен другой backend Интеграма, создайте файл `.env.local` в корне:
+
+```env
+# .env.local — локальные переменные окружения для Vite
+VITE_INTEGRAM_URL=https://dronedoc.ru
+```
+
+Источник сервера выбирается в порядке: `localStorage.integram_server` → `VITE_INTEGRAM_URL` → `https://app.integram.io`. На экране входа также можно выбрать один из готовых серверов: `https://dronedoc.ru`, `https://integram.io`, `https://app.integram.io`.
+
+`.env.local` уже в `.gitignore` и в репозиторий не попадает.
+
+### 4. Запуск dev-сервера
+
+```bash
 npm run dev
 ```
 
-Dev-сервер Vite запускается на `http://localhost:3000`.
+Vite поднимает локальный dev-сервер на `http://localhost:3000` с hot module reload. После старта откройте этот адрес в браузере — должна загрузиться страница `/login`. Введите учётные данные на выбранном backend Интеграма (см. шаг 3), и фронтенд должен начать работать с реальными данными.
 
-Полезные команды:
+### 5. Сборка production-версии
 
 ```bash
-npm run build      # production build
-npm run preview    # preview собранной версии
-npm test           # unit/component tests через Vitest
-npm run test:e2e   # Playwright smoke/e2e tests
+npm run build      # собирает оптимизированную сборку в dist/
+npm run preview    # локальный сервер для проверки собранной версии
 ```
+
+`dist/` — статическая сборка, её можно отдавать любым веб-сервером (nginx, Apache, статический хостинг). Маршрутизация на стороне клиента (Vue Router в history-режиме) — серверу нужно отдавать `index.html` для всех неизвестных путей.
+
+### 6. Запуск тестов
+
+Unit/component (Vitest):
+
+```bash
+npm test           # один прогон в jsdom-окружении
+npm run test:watch # watch-режим для разработки
+```
+
+End-to-end (Playwright):
+
+```bash
+npx playwright install   # первый раз — установить браузеры (≈ 200-300 МБ)
+npm run test:e2e
+```
+
+Unit-тесты покрывают API-адаптеры, shell, grants, таблицы, формы, отчёты, SmartQ, dashboard, миграции, Sportzania/ProcVac утилиты и компоненты полей/редакторов. Playwright покрывает основные route-level рабочие места.
 
 ## Настройка API
 
@@ -160,23 +217,6 @@ experiments/                 # одноразовые исследователь
 - [Sportzania workspace parity](docs/SPORTZANIA_WORKSPACES.md)
 
 Скриншоты ключевых рабочих мест лежат в [docs/screenshots](docs/screenshots).
-
-## Тестирование
-
-Проект использует Vitest для unit/component проверок и Playwright для
-browser smoke/e2e сценариев.
-
-```bash
-npm test
-npm run test:e2e
-```
-
-Unit tests покрывают API adapters, shell settings, grants, таблицы, формы,
-отчеты, SmartQ, dashboard, migration helpers, Sportzania/ProcVac utilities
-и field/editor компоненты. Playwright specs проверяют основные route-level
-рабочие места: shell, dashboard, tables, SQL/query builder, reports,
-forms/quiz, upload, dir_admin, calendar, cabinet, migration, SmartQ,
-Sportzania и ProcVac.
 
 ## Лицензия
 
